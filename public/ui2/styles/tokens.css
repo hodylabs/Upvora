@@ -23,6 +23,12 @@ body.u2 {
   --u-s-planned: #2f5fb3;
   --u-s-progress: #c2560a;
   --u-s-shipped: #18804b;
+  /* Scorecard bands, best to worst (the ring, chips and threshold dots). */
+  --u-band-strong: #13693d;
+  --u-band-good: #2a56a3;
+  --u-band-refine: #7a5000;
+  --u-band-low: #a3420a;
+  --u-band-reject: #b3302f;
 
   --u-font: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   --u-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -53,6 +59,11 @@ body.u2[data-theme="dark"] {
   --u-s-planned: #9fb4cc;
   --u-s-progress: #ff9a3c;
   --u-s-shipped: #6fd39a;
+  --u-band-strong: #6fd39a;
+  --u-band-good: #8fb0e6;
+  --u-band-refine: #ffc46b;
+  --u-band-low: #ff9a5c;
+  --u-band-reject: #ff7b7b;
 }
 
 @media (prefers-reduced-motion: reduce) {
