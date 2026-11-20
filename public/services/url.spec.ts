@@ -1,5 +1,34 @@
 import * as url from "./url"
 
+describe("sameOriginPath", () => {
+  const origin = "https://demo.test"
+  test("keeps same-site relative paths", () => {
+    expect(url.sameOriginPath("/oauth2/authorize?client_id=a#x", origin)).toBe("/oauth2/authorize?client_id=a#x")
+    expect(url.sameOriginPath("/posts/1/a", origin)).toBe("/posts/1/a")
+  })
+  test("refuses hostile targets, including ones that only leave the site after normalization", () => {
+    const hostile = [
+      "//evil.example/x",
+      "/\\evil.example/x",
+      "\\\\evil.example",
+      "/.//evil.example",
+      "/./\\evil.example",
+      "/%2e//evil.example",
+      "/\t/evil.example",
+      "/\n/evil.example",
+      "https://evil.example/",
+      "https://demo.test/x",
+      "javascript:alert(1)",
+      "evil.example",
+      "",
+      undefined,
+    ]
+    for (const bad of hostile) {
+      expect(url.sameOriginPath(bad, origin)).toBeUndefined()
+    }
+  })
+})
+
 // Test the URL validation utilities
 describe("URL validation utilities", () => {
   test("should always allow HTTP/HTTPS URLs even when no allowed schemes provided", () => {

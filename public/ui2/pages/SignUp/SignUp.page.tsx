@@ -41,8 +41,16 @@ const SignUpPage = () => {
     if (!sub.name) return
     let current = true
     const timer = window.setTimeout(async () => {
-      const result = await actions.checkAvailability(sub.name)
-      if (current) setSub((s) => ({ ...s, available: !result.data.message, message: result.data.message }))
+      const failed = i18n._({ id: "ui2.signup.checkfailed", message: "Could not check this subdomain. Please try again." })
+      let message: string
+      try {
+        const result = await actions.checkAvailability(sub.name)
+        // A failed lookup is never "available".
+        message = result.ok ? result.data.message : result.data?.message || failed
+      } catch {
+        message = failed
+      }
+      if (current) setSub((s) => ({ ...s, available: !message, message }))
     }, 500)
     return () => {
       current = false
@@ -52,14 +60,24 @@ const SignUpPage = () => {
 
   const confirm = async () => {
     setBusy(true)
-    const result = await actions.createTenant({
-      token: user?.token,
-      legalAgreement: agreed,
-      tenantName,
-      subdomain: sub.name,
-      name,
-      email,
-    })
+    let result: Awaited<ReturnType<typeof actions.createTenant>>
+    try {
+      result = await actions.createTenant({
+        token: user?.token,
+        legalAgreement: agreed,
+        tenantName,
+        subdomain: sub.name,
+        name,
+        email,
+      })
+    } catch {
+      // http.post throws on a network failure instead of returning a Result.
+      setBusy(false)
+      setError({
+        errors: [{ message: i18n._({ id: "ui2.signup.failed", message: "Could not create the site. Please check your connection and try again." }) }],
+      })
+      return
+    }
     if (result.ok) {
       if (singleHost) {
         location.reload()

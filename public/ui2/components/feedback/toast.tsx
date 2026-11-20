@@ -3,9 +3,9 @@ import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { i18n } from "@lingui/core"
 
-// Small toasts for the new UI. The host mounts itself on first use in its own element
-// inside #root-toastify (classic's react-toastify, which the shared http layer still
-// calls on server errors, keeps the container itself), so no page or shell wiring is needed.
+// Small toasts for the new UI. The host mounts itself on first use in its own element,
+// #root-u2-toast, next to #root-toastify (classic notifications create their own React root
+// on that element and would wipe anything inside it), so no page or shell wiring is needed.
 
 type Kind = "success" | "error"
 interface Toast {
@@ -18,7 +18,7 @@ const DURATION = 5000
 let nextId = 1
 let items: Toast[] = []
 const listeners = new Set<(t: Toast[]) => void>()
-let mounted = false
+let host: HTMLElement | null = null
 
 const emit = () => listeners.forEach((l) => l(items))
 
@@ -28,16 +28,18 @@ export const dismissToast = (id: number) => {
 }
 
 const ToastHost = () => {
-  const [list, setList] = useState<Toast[]>(items)
+  // Starts empty so the live region is announced as changing when the first message lands.
+  const [list, setList] = useState<Toast[]>([])
   useEffect(() => {
     listeners.add(setList)
+    setList(items) // catch anything shown between the first render and this subscription
     return () => {
       listeners.delete(setList)
     }
   }, [])
   const closeLabel = i18n._({ id: "ui2.toast.dismiss", message: "Dismiss" })
   return (
-    <ul className="u2-toasts" role="status" aria-live="polite">
+    <>
       {list.map((t) => (
         <li key={t.id} className={t.kind === "error" ? "u2-toast u2-toast--error" : "u2-toast"}>
           <span className="u2-toast__msg">{t.message}</span>
@@ -48,17 +50,23 @@ const ToastHost = () => {
           </button>
         </li>
       ))}
-    </ul>
+    </>
   )
 }
 
 const mount = () => {
-  if (mounted) return
-  mounted = true
-  const parent = document.getElementById("root-toastify") || document.body
-  const el = document.createElement("div")
-  el.className = "u2-toast-host"
-  parent.appendChild(el)
+  if (host && host.isConnected) return
+  // The status region is plain DOM, attached empty and synchronously, so it is in the page
+  // before React renders any message into it.
+  const el = document.createElement("ul")
+  el.id = "root-u2-toast"
+  el.className = "u2-toasts"
+  el.setAttribute("role", "status")
+  el.setAttribute("aria-live", "polite")
+  const classic = document.getElementById("root-toastify")
+  if (classic) classic.after(el)
+  else document.body.appendChild(el)
+  host = el
   createRoot(el).render(<ToastHost />)
 }
 

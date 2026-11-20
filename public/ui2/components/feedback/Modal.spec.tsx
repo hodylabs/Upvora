@@ -64,6 +64,33 @@ describe("ui2 <Modal />", () => {
     expect(screen.queryByRole("dialog")).toBeNull()
     expect(document.activeElement).toBe(opener)
   })
+
+  test("locks page scroll while open and restores the previous value on close", () => {
+    document.body.style.overflow = "clip"
+    render(<Harness />)
+    fireEvent.click(screen.getByText("opener"))
+    expect(document.body.style.overflow).toBe("hidden")
+    fireEvent.keyDown(document.activeElement as Element, { key: "Escape" })
+    expect(document.body.style.overflow).toBe("clip")
+    document.body.style.overflow = ""
+  })
+
+  test("skips controls hidden with CSS for the initial focus and the Tab wrap", () => {
+    render(
+      <Modal open onClose={jest.fn()} title="T" footer={<button style={{ visibility: "hidden" }}>ghost-last</button>}>
+        <div style={{ display: "none" }}>
+          <input aria-label="hidden-first" />
+        </div>
+        <input aria-label="shown" />
+      </Modal>
+    )
+    const shown = screen.getByLabelText("shown")
+    expect(document.activeElement).toBe(shown)
+    tab()
+    // the hidden footer button is not the last stop, so Tab from "shown" wraps inside the dialog
+    expect(screen.getByRole("dialog").contains(document.activeElement)).toBe(true)
+    expect(document.activeElement).not.toBe(screen.getByText("ghost-last"))
+  })
 })
 
 describe("ui2 <ConfirmDialog />", () => {

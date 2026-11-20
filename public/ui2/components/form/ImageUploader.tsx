@@ -32,10 +32,13 @@ export const ImageUploader = (props: ImageUploaderProps) => {
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | undefined>(uploadedImageURL(props.bkey))
   const [tooBig, setTooBig] = useState(false)
+  // Bumped on every pick and removal, so a file read that finishes late is ignored.
+  const op = useRef(0)
 
   const picked = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    const mine = ++op.current
     if (file.size > hardFileSizeLimit) {
       setTooBig(true)
       e.target.value = ""
@@ -43,12 +46,14 @@ export const ImageUploader = (props: ImageUploaderProps) => {
     }
     setTooBig(false)
     const upload = await encodeImage(file, props.bkey)
+    if (mine !== op.current) return
     const url = `data:${file.type};base64,${upload.upload?.content}`
     setPreview(url)
     props.onChange(upload, url)
   }
 
   const remove = () => {
+    op.current++
     if (fileRef.current) fileRef.current.value = ""
     setPreview(undefined)
     setTooBig(false)

@@ -203,7 +203,7 @@ export const SignInControl = (props: SignInControlProps) => {
                 placeholder={i18n._({ id: "signin.email.placeholder", message: "Email address" })}
                 autoComplete="email"
                 autoFocus={autoFocus}
-                disabled={step === "name"}
+                disabled={step === "name" || busy}
                 value={email}
                 onChange={setEmail}
                 hint={

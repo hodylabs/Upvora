@@ -68,6 +68,11 @@ export const useAttachments = (options: UseAttachmentsOptions = {}): UseAttachme
           }
         }
 
+        // A restored image (e.g. Undo after a delete) replaces its removal entry.
+        if (upload.bkey && prev.some((att) => att.bkey === upload.bkey)) {
+          return prev.map((att) => (att.bkey === upload.bkey ? upload : att))
+        }
+
         // Check max attachments limit
         if (maxAttachments && prev.length >= maxAttachments) {
           console.warn(`Maximum ${maxAttachments} attachments allowed`)

@@ -1,5 +1,7 @@
 import React from "react"
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { Editor } from "@tiptap/react"
+import { closeHistory } from "@tiptap/pm/history"
 import { Fider, FiderContext } from "@fider/services"
 import { MarkdownEditor } from "./MarkdownEditor"
 
@@ -34,6 +36,76 @@ describe("ui2 <MarkdownEditor />", () => {
     expect(raw.value).toBe("Hello **world**")
     fireEvent.change(raw, { target: { value: "Bye" } })
     expect(onChange).toHaveBeenLastCalledWith("Bye")
+  })
+
+  const editorOf = (container: HTMLElement) => (container.querySelector(".ProseMirror") as unknown as { editor: Editor }).editor
+  const pickImage = (container: HTMLElement, name: string) =>
+    fireEvent.change(container.querySelector('input[type="file"]') as HTMLInputElement, {
+      target: { files: [new File(["png-bytes"], name, { type: "image/png" })] },
+    })
+
+  test("Undo after deleting a new image sends its upload again", async () => {
+    const onImageUploaded = jest.fn()
+    const { container } = renderEditor({ onImageUploaded })
+    await waitFor(() => expect(container.querySelector(".ProseMirror")).not.toBeNull())
+    pickImage(container, "a.png")
+    await waitFor(() => expect(onImageUploaded).toHaveBeenCalledTimes(1))
+    const added = onImageUploaded.mock.calls[0][0]
+    expect(added.remove).toBe(false)
+    expect(added.upload.fileName).toBe("a.png")
+
+    const editor = editorOf(container)
+    act(() => {
+      // a separate history step, as a later user action would be
+      editor.view.dispatch(closeHistory(editor.state.tr))
+      editor.chain().selectAll().deleteSelection().run()
+    })
+    expect(onImageUploaded).toHaveBeenLastCalledWith({ bkey: added.bkey, remove: true })
+    act(() => {
+      editor.commands.undo()
+    })
+    expect(onImageUploaded).toHaveBeenLastCalledWith({ bkey: added.bkey, upload: added.upload, remove: false })
+  })
+
+  test("raw-mode edits report removed and restored stored images and free the slot", async () => {
+    const onImageUploaded = jest.fn()
+    const md = "![](fider-image:attachments/a.png)"
+    const { container } = renderEditor({ initialValue: md, onImageUploaded, maxAttachments: 1 })
+    await waitFor(() => expect(container.querySelector(".ProseMirror img")).not.toBeNull())
+    fireEvent.click(container.querySelector(".u2-md__mode") as HTMLButtonElement)
+    const raw = screen.getByTestId("u2-markdown-raw")
+    fireEvent.change(raw, { target: { value: "text" } })
+    expect(onImageUploaded).toHaveBeenLastCalledWith({ bkey: "attachments/a.png", remove: true })
+    fireEvent.change(raw, { target: { value: md } })
+    expect(onImageUploaded).toHaveBeenLastCalledWith({ bkey: "attachments/a.png", upload: undefined, remove: false })
+    fireEvent.change(raw, { target: { value: "text" } })
+    // back to rich mode: the limit of 1 has room again
+    fireEvent.click(container.querySelector(".u2-md__mode") as HTMLButtonElement)
+    onImageUploaded.mockClear()
+    pickImage(container, "b.png")
+    await waitFor(() => expect(onImageUploaded).toHaveBeenCalledWith(expect.objectContaining({ remove: false, upload: expect.anything() })))
+  })
+
+  test("re-checks the image limit after reading the file", async () => {
+    const onImageUploaded = jest.fn()
+    const { container } = renderEditor({ onImageUploaded, maxAttachments: 1 })
+    await waitFor(() => expect(container.querySelector(".ProseMirror")).not.toBeNull())
+    // both reads start before either image lands
+    pickImage(container, "a.png")
+    pickImage(container, "b.png")
+    await waitFor(() => expect(onImageUploaded).toHaveBeenCalledTimes(1))
+    await act(async () => new Promise((r) => setTimeout(r, 20)))
+    expect(onImageUploaded).toHaveBeenCalledTimes(1)
+    expect(container.querySelectorAll(".ProseMirror img:not(.ProseMirror-separator)").length).toBe(1)
+  })
+
+  test("the link dialog footer button is the submit button of its form", async () => {
+    const { container } = renderEditor()
+    await waitFor(() => expect(container.querySelector(".ProseMirror")).not.toBeNull())
+    fireEvent.click(screen.getByLabelText("Insert link"))
+    const submit = document.querySelector('.u2-dlg__foot button[type="submit"]') as HTMLButtonElement
+    const form = document.getElementById(submit.getAttribute("form") as string)
+    expect(form?.tagName).toBe("FORM")
   })
 
   test("the toolbar is labelled and its buttons say what they do", async () => {
