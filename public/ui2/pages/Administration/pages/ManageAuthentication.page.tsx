@@ -178,6 +178,7 @@ const ManageAuthenticationPage = (props: ManageAuthenticationPageProps) => {
                           checked={o.isEnabled}
                           disabled={cantDisable && o.isEnabled}
                           onChange={(v) => toggleSystemProvider(o, v)}
+                          ariaLabel={i18n._({ id: "ui2.admin.auth.providertoggle", message: "Sign in with {name}", values: { name: o.displayName } })}
                           label={
                             o.isEnabled
                               ? i18n._({ id: "ui2.admin.auth.enabled", message: "Enabled" })

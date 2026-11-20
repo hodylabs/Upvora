@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react"
+import React, { createContext, useContext, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { Trans } from "@lingui/react/macro"
 import { uploadedImageURL } from "@fider/services"
@@ -7,6 +7,7 @@ import { applyTheme, followSystemTheme } from "../lib/theme"
 import { NotificationsBadge } from "../components/NotificationsBadge"
 import { ModerationBadge } from "../components/ModerationBadge"
 import { URL_CHANGE_EVENT } from "../lib/nav"
+import { Menu, MenuItem } from "../components/Menu"
 
 // The new UI's app shell: top bar (site, account, theme), optional site banner,
 // sidebar (views and products; behind a menu button on phones), the page, footer.
@@ -70,24 +71,6 @@ const ThemeToggle = () => {
 
 const AccountMenu = () => {
   const fider = useFider()
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const onDoc = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false)
-    }
-    document.addEventListener("mousedown", onDoc)
-    document.addEventListener("keydown", onKey)
-    return () => {
-      document.removeEventListener("mousedown", onDoc)
-      document.removeEventListener("keydown", onKey)
-    }
-  }, [open])
 
   if (!fider.session.isAuthenticated) {
     return (
@@ -98,39 +81,23 @@ const AccountMenu = () => {
   }
 
   const user = fider.session.user
+  const items: MenuItem[] = [
+    { key: "settings", href: "/settings", label: <Trans id="ui2.shell.settings">My settings</Trans> },
+    { key: "notifications", href: "/notifications", label: <Trans id="ui2.shell.notifications">Notifications</Trans> },
+    ...(user.isCollaborator ? [{ key: "admin", href: "/admin", label: <Trans id="ui2.shell.admin">Site settings</Trans> }] : []),
+    { key: "signout", href: "/signout", label: <Trans id="menu.signout">Sign out</Trans> },
+  ]
   return (
-    <div className="u2-menu" ref={ref}>
-      <button type="button" className="u2-avatarbtn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
-        <img src={user.avatarURL} alt="" width={28} height={28} />
-        <span className="u2-avatarbtn__name">{user.name}</span>
-      </button>
-      {open && (
-        <ul className="u2-menu__list u2-panel" role="menu">
-          <li role="none">
-            <a role="menuitem" href="/settings">
-              <Trans id="ui2.shell.settings">My settings</Trans>
-            </a>
-          </li>
-          <li role="none">
-            <a role="menuitem" href="/notifications">
-              <Trans id="ui2.shell.notifications">Notifications</Trans>
-            </a>
-          </li>
-          {user.isCollaborator && (
-            <li role="none">
-              <a role="menuitem" href="/admin">
-                <Trans id="ui2.shell.admin">Site settings</Trans>
-              </a>
-            </li>
-          )}
-          <li role="none">
-            <a role="menuitem" href="/signout">
-              <Trans id="menu.signout">Sign out</Trans>
-            </a>
-          </li>
-        </ul>
-      )}
-    </div>
+    <Menu
+      triggerClassName="u2-avatarbtn"
+      items={items}
+      trigger={
+        <>
+          <img src={user.avatarURL} alt="" width={28} height={28} />
+          <span className="u2-avatarbtn__name">{user.name}</span>
+        </>
+      }
+    />
   )
 }
 
@@ -212,6 +179,8 @@ export const Shell = (props: { children: React.ReactNode }) => {
   const [menuOpen, setMenuOpen] = useState(false)
   const [slotEl, setSlotEl] = useState<HTMLElement | null>(null)
   const logo = uploadedImageURL(tenant.logoBlobKey, 64)
+  // Admin pages bring their own nav: the board sidebar steps aside on desktop (phones keep the menu).
+  const admin = (fider.session.page || "").startsWith("Administration/")
 
   return (
     <div className="u2-app">
@@ -244,7 +213,7 @@ export const Shell = (props: { children: React.ReactNode }) => {
         </div>
       </header>
       <Banner />
-      <div className="u2-body">
+      <div className={admin ? "u2-body is-admin" : "u2-body"}>
         <Sidebar id="u2-side" open={menuOpen} slotRef={setSlotEl} />
         <main id="u2-main" className="u2-main" tabIndex={-1}>
           <SidebarSlotContext.Provider value={slotEl}>{props.children}</SidebarSlotContext.Provider>

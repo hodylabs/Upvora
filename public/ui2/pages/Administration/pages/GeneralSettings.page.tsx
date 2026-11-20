@@ -293,7 +293,7 @@ const GeneralSettingsPage = () => {
                 </>
               ) : (
                 <Trans id="ui2.admin.general.cnamehint">
-                  Use custom domains to access Fider via your own domain name <code>feedback.yourcompany.com</code>
+                  Use custom domains to access this site via your own domain name <code>feedback.yourcompany.com</code>
                 </Trans>
               )
             }

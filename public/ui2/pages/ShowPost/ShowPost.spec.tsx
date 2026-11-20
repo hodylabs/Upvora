@@ -160,6 +160,17 @@ describe("ui2 idea page", () => {
     await waitFor(() => expect(http.post).toHaveBeenCalledWith("/api/v1/posts/5/comments", { content: "Started on this", attachments: [], isInternal: true }))
   })
 
+  test("the composer is locked while a comment posts, so nothing typed meanwhile is lost", async () => {
+    let finish: (v: unknown) => void = () => undefined
+    renderIdea("member")
+    await typeComment("First thought")
+    http.post = jest.fn(() => new Promise((r) => (finish = r))) as unknown as typeof http.post
+    fireEvent.click(primaryIn(document.querySelector(".u2-compose") as HTMLElement))
+    await waitFor(() => expect(http.post).toHaveBeenCalled())
+    expect((screen.getByTestId("u2-markdown-raw") as HTMLTextAreaElement).disabled).toBe(true)
+    await act(async () => finish({ ok: true, data: {} }))
+  })
+
   test("members get no team-only switch and post public comments", async () => {
     renderIdea("member")
     await typeComment("Me too")

@@ -166,13 +166,13 @@
   font-size: 11px;
   color: var(--u-muted);
 }
-.u2-sc__score {
+.u2-sc__total {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 3px;
 }
-.u2-sc__score b {
+.u2-sc__total b {
   font-weight: 600;
 }
 .u2-sc__strip {
@@ -466,17 +466,6 @@
   margin: 0;
   font-size: 12px;
 }
-.u2-sc__slider input {
-  width: 100%;
-  accent-color: var(--u-accent);
-}
-.u2-sc__steps {
-  display: flex;
-  justify-content: space-between;
-  padding-inline: 4px;
-  font-size: 10px;
-  color: var(--u-muted);
-}
 .u2-sc__score-val {
   font-size: 18px;
   font-weight: 600;
@@ -493,43 +482,6 @@
 }
 .u2-sc__delete:hover {
   border-color: var(--u-danger);
-}
-
-/* Internal notes */
-.u2-notes {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px;
-}
-.u2-notes__head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.u2-notes__title {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-}
-.u2-notes__title svg {
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-}
-.u2-notes__state {
-  margin-inline-start: auto;
-  font-size: 12px;
-}
-.u2-notes__text {
-  min-height: 84px;
-}
-.u2-notes__hint {
-  margin: 0;
-  font-size: 12px;
 }
 
 /* Brief dialog content (the dialog itself is the shared Modal) */
@@ -569,8 +521,9 @@
   .u2-sc__input {
     width: 100%;
   }
-  .u2-sc__tab {
-    height: 44px;
+  .u2-sc__tab,
+  .u2-sc__brief {
+    min-height: 44px;
   }
   .u2-sc__grid {
     grid-template-columns: minmax(0, 1fr);

@@ -163,16 +163,20 @@
 .u2-rtile__vote {
   padding-block-start: 1px;
 }
-.u2-rtile__done {
+.u2-rtile__check {
   display: inline-flex;
+  min-height: 28px;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
   color: var(--u-s-shipped);
 }
-.u2-rtile__done svg {
-  width: 13px;
-  height: 13px;
+.u2-rtile__done {
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--u-s-shipped);
+}
+.u2-rtile__check svg {
+  width: 16px;
+  height: 16px;
   flex: none;
   fill: none;
   stroke: currentColor;

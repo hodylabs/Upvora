@@ -62,11 +62,10 @@ const Tile = (props: TileProps) => {
     >
       <div className="u2-rtile__vote">
         {completed && respondedAt ? (
-          <span className="u2-rtile__done" title={formatDate(props.locale, respondedAt)}>
+          <span className="u2-rtile__check">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 12l5 5L19 7" />
             </svg>
-            <span className="u2-mono">{timeSince(props.locale, new Date(), new Date(respondedAt))}</span>
           </span>
         ) : (
           <VoteButton post={post} onChange={props.onVoteChange} />
@@ -90,6 +89,11 @@ const Tile = (props: TileProps) => {
         </div>
         {excerpt && <p className="u2-rtile__desc">{excerpt}</p>}
         <div className="u2-rtile__meta">
+          {completed && respondedAt && (
+            <span className="u2-rtile__done u2-mono" title={formatDate(props.locale, respondedAt)}>
+              {timeSince(props.locale, new Date(), new Date(respondedAt))}
+            </span>
+          )}
           {post.product && <ProductChip product={post.product} />}
           {props.tags.map((t) => (
             <span key={t.id} className="u2-chip u2-chip--tag" style={{ "--u-chip-dot": `#${t.color}` } as React.CSSProperties}>

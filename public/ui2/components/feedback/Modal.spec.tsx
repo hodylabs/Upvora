@@ -93,6 +93,51 @@ describe("ui2 <Modal />", () => {
   })
 })
 
+describe("ui2 <Modal /> stacking", () => {
+  const Nested = (props: { onOuterClose: () => void }) => {
+    const [inner, setInner] = useState(false)
+    return (
+      <Modal open onClose={props.onOuterClose} title="Outer" footer={<button onClick={() => setInner(true)}>open inner</button>}>
+        <input aria-label="outer field" />
+        <ConfirmDialog open={inner} title="Sure?" onConfirm={jest.fn()} onCancel={() => setInner(false)}>
+          <p>inner</p>
+        </ConfirmDialog>
+      </Modal>
+    )
+  }
+
+  test("only the topmost dialog handles Esc and traps Tab", () => {
+    const onOuterClose = jest.fn()
+    render(<Nested onOuterClose={onOuterClose} />)
+    fireEvent.click(screen.getByText("open inner"))
+    const [outer, inner] = screen.getAllByRole("dialog")
+    expect(inner.contains(document.activeElement)).toBe(true)
+
+    // Tab from the inner dialog's last control wraps inside it, not into the outer one.
+    const innerButtons = Array.from(inner.querySelectorAll("button"))
+    innerButtons[innerButtons.length - 1].focus()
+    tab()
+    expect(inner.contains(document.activeElement)).toBe(true)
+
+    // Esc closes only the inner dialog; the outer stays open and gets Esc back.
+    fireEvent.keyDown(document.activeElement as Element, { key: "Escape" })
+    expect(screen.getAllByRole("dialog")).toHaveLength(1)
+    expect(onOuterClose).not.toHaveBeenCalled()
+    expect(outer.isConnected).toBe(true)
+    fireEvent.keyDown(document.activeElement || document.body, { key: "Escape" })
+    expect(onOuterClose).toHaveBeenCalledTimes(1)
+  })
+
+  test("size picks the dialog width class", () => {
+    render(
+      <Modal open size="full" onClose={jest.fn()} title="T">
+        <p>x</p>
+      </Modal>
+    )
+    expect(screen.getByRole("dialog").className).toContain("u2-dlg--full")
+  })
+})
+
 describe("ui2 <ConfirmDialog />", () => {
   test("confirm runs the action and stays locked until it settles", async () => {
     let finish: () => void = () => undefined

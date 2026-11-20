@@ -44,15 +44,6 @@ export const CREATED_MODERATION = "POST_CREATED_MODERATION"
 // Classic only offers "Submit" once the title has ten characters or more.
 export const titleLongEnough = (title: string): boolean => title.replace(/\s+/g, " ").trim().length > 9
 
-// Classic's file rules: PDF, text and Markdown, 3 attachments in all (images
-// included), 5 MB each. The server validates and scans every file again.
-export const MAX_ATTACHMENTS = 3
-export const MAX_FILE_BYTES = 5 * 1024 * 1024
-export type FileKind = "pdf" | "md" | "txt"
-export const fileKind = (name: string): FileKind | undefined => {
-  const lower = name.toLowerCase()
-  if (lower.endsWith(".pdf")) return "pdf"
-  if (lower.endsWith(".md") || lower.endsWith(".markdown")) return "md"
-  if (lower.endsWith(".txt") || lower.endsWith(".text")) return "txt"
-  return undefined
-}
+// Classic's file rules (PDF, text and Markdown; 3 attachments in all, images included)
+// live with the files editor; the server validates and scans every file again.
+export { MAX_ATTACHMENTS, fileKind } from "../content/IdeaFiles"

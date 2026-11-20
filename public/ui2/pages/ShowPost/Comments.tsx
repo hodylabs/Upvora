@@ -391,7 +391,8 @@ export const CommentComposer = (props: ComposerProps) => {
           maxAttachments={MAX_IMAGES}
           maxImageSizeKB={MAX_IMAGE_KB}
           maxLength={MAX_LENGTH}
-          disabled={fider.isReadOnly}
+          // Locked while posting, so text typed meanwhile is not cleared with the sent comment.
+          disabled={fider.isReadOnly || busy}
         />
         <div className="u2-compose__foot">
           {staff && (

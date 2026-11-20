@@ -181,6 +181,10 @@
   color: var(--u-text);
   font-weight: 600;
 }
+/* A status with no ideas: muted text (still AA), not opacity. */
+.u2-tab.is-empty:not([aria-pressed="true"]) {
+  color: var(--u-muted);
+}
 .u2-tab__n {
   font-size: 11px;
   font-weight: 400;

@@ -189,6 +189,45 @@ describe("ui2 ShareIdea", () => {
     fireEvent.keyDown(document, { key: "Escape" })
     await waitFor(() => expect(screen.getAllByRole("dialog")).toHaveLength(2))
   })
+
+  test("the site's share instructions render as sanitized Markdown, not raw text", async () => {
+    renderHost("member", { shareIdeaInstructions: "**Read this** first <img src=x onerror=alert(1)>" })
+    act(() => {
+      requestShare("")
+    })
+    await dialog()
+    const box = document.querySelector(".u2-share__instructions") as HTMLElement
+    expect(box.querySelector("strong")?.textContent).toBe("Read this")
+    expect(box.innerHTML).not.toContain("**")
+    expect(box.querySelector("img")).toBeNull()
+  })
+
+  test("opened on a product board, the dialog starts on that board's product", async () => {
+    window.history.replaceState({}, "", "/p/kahalia")
+    const products = [
+      { id: 1, slug: "upvora", name: "Upvora", isActive: true },
+      { id: 2, slug: "kahalia", name: "Kahalia", isActive: true },
+    ]
+    renderHost("member", { products } as unknown as Partial<Tenant>)
+    act(() => {
+      requestShare("")
+    })
+    await dialog()
+    expect(document.querySelector<HTMLSelectElement>('select[name="productId"]')?.value).toBe("2")
+  })
+
+  test("on the main board the dialog starts on the first product, as classic", async () => {
+    const products = [
+      { id: 1, slug: "upvora", name: "Upvora", isActive: true },
+      { id: 2, slug: "kahalia", name: "Kahalia", isActive: true },
+    ]
+    renderHost("member", { products } as unknown as Partial<Tenant>)
+    act(() => {
+      requestShare("")
+    })
+    await dialog()
+    expect(document.querySelector<HTMLSelectElement>('select[name="productId"]')?.value).toBe("1")
+  })
 })
 
 describe("ui2 share: when the plain form is allowed", () => {

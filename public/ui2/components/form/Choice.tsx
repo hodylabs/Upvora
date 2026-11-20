@@ -4,8 +4,10 @@ import React, { useId } from "react"
 interface ToggleProps {
   checked: boolean
   onChange: (checked: boolean) => void
-  // Visible text, which is also the switch's accessible name.
+  // Visible text, which is also the switch's accessible name unless ariaLabel is set.
   label: React.ReactNode
+  // An accessible name that says more than the visible label, e.g. "Sign in with GitHub" for "Enabled".
+  ariaLabel?: string
   // Use when the label must be hidden (e.g. a table cell already says what it is).
   hideLabel?: boolean
   disabled?: boolean
@@ -20,6 +22,7 @@ export const Toggle = (props: ToggleProps) => (
     id={props.id}
     role="switch"
     aria-checked={props.checked}
+    aria-label={props.ariaLabel}
     className="u2-switch"
     disabled={props.disabled}
     onClick={() => props.onChange(!props.checked)}

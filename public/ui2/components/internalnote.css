@@ -1,0 +1,29 @@
+/* The team-only internal note (idea page and scorecard). */
+.u2-note-int {
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--u-warn) 40%, transparent);
+  border-radius: var(--u-radius);
+  background: color-mix(in srgb, var(--u-warn) 8%, transparent);
+}
+.u2-note-int__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12px;
+}
+.u2-note-int h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--u-warn);
+}
+.u2-note-int textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+}
+.u2-note-int p {
+  margin: 6px 0 0;
+  font-size: 12px;
+}

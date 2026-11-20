@@ -70,7 +70,6 @@ const HomePage = (props: HomePageProps) => {
   const [focused, setFocused] = useState(-1)
   const [hovered, setHovered] = useState<number | null>(null)
   const [peekClosed, setPeekClosed] = useState(false)
-  const [shareNote, setShareNote] = useState(false)
   const [nudgeDismissed, setNudgeDismissed] = useState(() => cache.local.has(NUDGE_KEY))
   const seq = useRef(0)
   const searchTimer = useRef<number>()
@@ -155,7 +154,9 @@ const HomePage = (props: HomePageProps) => {
   const onDetails = (num: number, d: PeekDetails) => d.voters.length > 0 && setVoters((v) => ({ ...v, [num]: d.voters }))
 
   // ShareIdea (components/share) claims the event and sends signed-out people to sign in.
-  const share = (title: string) => setShareNote(!requestShare(title))
+  const share = (title: string) => {
+    requestShare(title)
+  }
 
   const focusRow = (i: number) => {
     setFocused(i)
@@ -176,10 +177,7 @@ const HomePage = (props: HomePageProps) => {
           openIdea(postHref(posts[i], of ? `#merge=${of}` : "#merge"))
         }
       : undefined,
-    onEscape: () => {
-      setPeekClosed(true)
-      setShareNote(false)
-    },
+    onEscape: () => setPeekClosed(true),
   })
 
   const onHover = (num: number | null) => {
@@ -261,13 +259,6 @@ What can we do better? This is the place for you to vote, discuss and share idea
         onVoteChange={onVoteChange}
         boardPosts={posts}
       />
-      {shareNote && (
-        <p className="u2-note" role="status">
-          <Trans id="ui2.vora.sharesoon">
-            Sharing ideas in the new look comes with the next update. Until then, an administrator can switch the site to Classic.
-          </Trans>
-        </p>
-      )}
 
       {lonely ? (
         <section className="u2-empty u2-panel">

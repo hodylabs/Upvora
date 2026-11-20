@@ -133,7 +133,7 @@ export const ResponseDialog = (props: ResponseDialogProps) => {
     <Modal
       open={props.open}
       onClose={props.onClose}
-      wide
+      size="lg"
       locked={busy}
       title={<Trans id="action.respond">Update Status</Trans>}
       footer={
@@ -327,7 +327,7 @@ export const TranscriptDialog = (props: { postNumber: number; open: boolean; onC
   }, [props.open])
 
   return (
-    <Modal open={props.open} onClose={props.onClose} wide title={<Trans id="ui2.idea.brief.transcript">Conversation with Vora</Trans>}>
+    <Modal open={props.open} onClose={props.onClose} size="lg" title={<Trans id="ui2.idea.brief.transcript">Conversation with Vora</Trans>}>
       {failed ? (
         <p className="u2-muted">
           <Trans id="ui2.idea.brief.notranscript">This conversation is not available.</Trans>

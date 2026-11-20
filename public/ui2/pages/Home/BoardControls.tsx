@@ -85,7 +85,7 @@ export const BoardControls = (props: BoardControlsProps) => {
           <button
             key={s.value}
             type="button"
-            className="u2-tab"
+            className={props.countPerStatus[s.value] ? "u2-tab" : "u2-tab is-empty"}
             aria-pressed={onlyStatus === s.value}
             onClick={() => props.onChange({ statuses: onlyStatus === s.value ? [] : [s.value] })}
           >

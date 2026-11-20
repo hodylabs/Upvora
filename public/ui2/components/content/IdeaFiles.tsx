@@ -18,7 +18,7 @@ const PdfView = lazy(() => import(/* webpackChunkName: "pdfview" */ "./PdfView")
 export type FileKind = "pdf" | "md" | "txt"
 
 const HARD_LIMIT = 5 * 1024 * 1024
-const MAX_ATTACHMENTS = 3
+export const MAX_ATTACHMENTS = 3
 
 export const fileKind = (name: string): FileKind | undefined => {
   const lower = name.toLowerCase()
@@ -73,7 +73,7 @@ export const FileViewer = (props: { bkey: string; onClose: () => void }) => {
   return (
     <Modal
       open
-      wide
+      size="lg"
       onClose={props.onClose}
       title={fileName(props.bkey)}
       footer={
@@ -134,6 +134,8 @@ interface IdeaFilesEditorProps {
   onChange: (upload: ImageUpload) => void
   // false keeps removing existing files possible while the site switch is off.
   allowAdd?: boolean
+  // Read-only site: list the files, no add or remove.
+  disabled?: boolean
 }
 
 // Adds and removes files while editing; they travel in the same attachments list as
@@ -169,11 +171,13 @@ export const IdeaFilesEditor = (props: IdeaFilesEditorProps) => {
     <li key={key} className="u2-chip u2-files__chip">
       <FileIcon />
       {name}
-      <button type="button" className="u2-iconbtn" aria-label={`${removeLabel}: ${name}`} onClick={() => props.onChange({ bkey: key, remove: true })}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6 6l12 12M18 6L6 18" />
-        </svg>
-      </button>
+      {!props.disabled && (
+        <button type="button" className="u2-iconbtn" aria-label={`${removeLabel}: ${name}`} onClick={() => props.onChange({ bkey: key, remove: true })}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      )}
     </li>
   )
 
@@ -194,7 +198,7 @@ export const IdeaFilesEditor = (props: IdeaFilesEditorProps) => {
         accept=".pdf,.txt,.md,.markdown,application/pdf,text/plain,text/markdown"
         onChange={picked}
       />
-      {props.allowAdd !== false && (
+      {props.allowAdd !== false && !props.disabled && (
         <Button small disabled={full} onClick={() => input.current?.click()}>
           <Trans id="ideafiles.attach">Attach a PDF, text or Markdown file</Trans>
         </Button>

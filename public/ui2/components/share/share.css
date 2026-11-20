@@ -1,20 +1,6 @@
-/* "Share an idea": a large dialog (about 960 px, full screen on phones) holding the
-   Vora conversation or the plain form. The shared Modal has no size option, so the
-   dialog is sized from inside through :has(). */
+/* "Share an idea": the shared Modal at size="full" holding the Vora conversation or
+   the plain form. In the conversation the chat log scrolls, not the dialog body. */
 
-.u2-dlg:has(.u2-share) {
-  display: flex;
-  flex-direction: column;
-  width: min(960px, 100%);
-  height: min(780px, calc(100vh - 32px));
-  overflow: hidden;
-}
-.u2-dlg:has(.u2-share) .u2-dlg__body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding-block-end: 12px;
-}
 .u2-dlg:has(.u2-share--vora) .u2-dlg__body {
   display: flex;
   flex-direction: column;
@@ -221,35 +207,8 @@
   flex-wrap: wrap;
   gap: 4px 14px;
 }
-.u2-share__files {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0 0 8px;
-  padding: 0;
-  list-style: none;
-}
-.u2-share__file {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding-inline-start: 10px;
-  border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
-  background: var(--u-chip);
-  font-size: 13px;
-}
 
 @media (max-width: 700px) {
-  .u2-dlg-back:has(.u2-share) {
-    padding: 0;
-  }
-  .u2-dlg:has(.u2-share) {
-    width: 100%;
-    height: 100%;
-    max-height: none;
-    border-radius: 0;
-  }
   .u2-share__msg {
     max-width: 90%;
   }

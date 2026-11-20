@@ -10,7 +10,7 @@ body.u2 {
   --u-text: #141a23;
   --u-text2: #3a4452;
   --u-muted: #5d6878;
-  --u-accent: var(--colors-primary-base, #f25c05);
+  --u-accent: var(--colors-primary-base, #b84505);
   --u-accent-soft: color-mix(in srgb, var(--u-accent) 10%, transparent);
   --u-on-accent: #ffffff;
   --u-grid: rgba(30, 45, 70, 0.03);
@@ -21,8 +21,8 @@ body.u2 {
   --u-warn: #8a5a00;
   --u-s-review: #4d5869;
   --u-s-planned: #2f5fb3;
-  --u-s-progress: #c2560a;
-  --u-s-shipped: #18804b;
+  --u-s-progress: #a84a08;
+  --u-s-shipped: #157443;
   /* Scorecard bands, best to worst (the ring, chips and threshold dots). */
   --u-band-strong: #13693d;
   --u-band-good: #2a56a3;
@@ -45,8 +45,8 @@ body.u2[data-theme="dark"] {
   --u-line: rgba(255, 255, 255, 0.06);
   --u-text: #e9eaee;
   --u-text2: #c2c6cf;
-  --u-muted: #8c9099;
-  --u-accent: var(--colors-primary-base, #ff5f1f);
+  --u-muted: #969aa3;
+  --u-accent: var(--colors-primary-base, #ff6b2c);
   --u-accent-soft: color-mix(in srgb, var(--u-accent) 12%, transparent);
   --u-on-accent: #140700;
   --u-grid: rgba(255, 255, 255, 0.02);

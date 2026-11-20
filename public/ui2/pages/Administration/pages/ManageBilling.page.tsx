@@ -140,7 +140,7 @@ const ManageBillingPage = (props: ManageBillingPageProps) => {
       subtitle={<Trans id="ui2.admin.billing.sub">Manage your subscription and billing</Trans>}
     >
       <p>
-        <Trans id="ui2.admin.billing.intro">Fider is free forever. But if you need advanced features and support, consider upgrading to Pro.</Trans>
+        <Trans id="ui2.admin.billing.intro">Upvora is free forever. But if you need advanced features and support, consider upgrading to Pro.</Trans>
       </p>
       {isPaddleCustomer && (
         <div className="u2-admin__note" role="note" data-testid="u2-paddle">

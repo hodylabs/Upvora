@@ -177,14 +177,14 @@ export const OAuthForm = (props: OAuthFormProps) => {
 
         <AdminSection
           title={<Trans id="ui2.admin.oauth.profile">User Profile</Trans>}
-          lede={<Trans id="ui2.admin.oauth.profilehint">This section is used to configure how Fider will fetch user after the authentication process.</Trans>}
+          lede={<Trans id="ui2.admin.oauth.profilehint">This section is used to configure how Upvora will fetch user after the authentication process.</Trans>}
         >
           {input(
             "profileURL",
             <Trans id="ui2.admin.oauth.profileurl">Profile API URL</Trans>,
             300,
             <Trans id="ui2.admin.oauth.profileurlhint">
-              The URL to fetch the authenticated user info. If empty, Fider will try to parse the user info from the Access Token.
+              The URL to fetch the authenticated user info. If empty, Upvora will try to parse the user info from the Access Token.
             </Trans>
           )}
         </AdminSection>

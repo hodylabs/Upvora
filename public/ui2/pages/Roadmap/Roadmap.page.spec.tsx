@@ -92,7 +92,7 @@ describe("ui2 Roadmap page", () => {
     fireEvent.click(trigger)
     const menu = within(tile).getByRole("menu")
     const items = within(menu).getAllByRole("menuitem")
-    expect(items.map((i) => i.dataset.slug)).toEqual(["started", "completed"])
+    expect(items.map((i) => i.dataset.key)).toEqual(["started", "completed"])
     expect(document.activeElement).toBe(items[0])
     fireEvent.keyDown(items[0], { key: "ArrowDown" })
     expect(document.activeElement).toBe(items[1])
