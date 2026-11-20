@@ -1,0 +1,126 @@
+/* Dialogs, toasts and avatars. */
+
+.u2-dlg-back {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: color-mix(in srgb, var(--u-bg) 55%, transparent);
+  backdrop-filter: blur(3px);
+}
+.u2-dlg {
+  width: min(480px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  background: var(--u-pop);
+  color: var(--u-text);
+  border: 1px solid var(--u-edge);
+  border-radius: var(--u-radius-lg);
+  box-shadow: var(--u-shadow);
+  animation: u2-dlg-in 0.14s ease-out;
+}
+.u2-dlg--wide {
+  width: min(760px, 100%);
+}
+.u2-dlg:focus {
+  outline: none;
+}
+@keyframes u2-dlg-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.u2-dlg__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 0;
+}
+.u2-dlg__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.u2-dlg__close {
+  margin-inline-start: auto;
+}
+.u2-dlg__body {
+  padding: 10px 16px 4px;
+  color: var(--u-text2);
+}
+.u2-dlg__body p {
+  margin: 0 0 10px;
+}
+.u2-dlg__foot {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 16px 14px;
+}
+
+/* Toasts */
+.u2-toasts {
+  position: fixed;
+  z-index: 60;
+  inset-block-end: 16px;
+  inset-inline-end: 16px;
+  display: grid;
+  gap: 8px;
+  width: min(360px, calc(100vw - 32px));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: 14px/1.45 var(--u-font);
+}
+.u2-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 10px 10px 12px;
+  background: var(--u-pop);
+  color: var(--u-text);
+  border: 1px solid var(--u-edge);
+  border-inline-start: 3px solid var(--u-s-shipped);
+  border-radius: var(--u-radius);
+  box-shadow: var(--u-shadow);
+  animation: u2-dlg-in 0.16s ease-out;
+}
+.u2-toast--error {
+  border-inline-start-color: var(--u-danger);
+}
+.u2-toast__msg {
+  flex: 1;
+  padding-block-start: 5px;
+}
+.u2-toast .u2-iconbtn {
+  width: 30px;
+  height: 30px;
+}
+
+/* Avatar */
+.u2-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--u-accent-soft);
+  color: var(--u-accent);
+  font-weight: 600;
+  object-fit: cover;
+}
+
+@media (max-width: 700px) {
+  .u2-toasts {
+    inset-inline: 16px;
+    inset-block-end: 72px;
+    width: auto;
+  }
+  .u2-dlg-back {
+    place-items: end center;
+  }
+}
