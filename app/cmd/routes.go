@@ -171,6 +171,8 @@ func routes(r *web.Engine) *web.Engine {
 	r.Get("/roadmap", handlers.RoadmapPage())
 	r.Get("/posts/:number", handlers.PostDetails())
 	r.Get("/posts/:number/:slug", handlers.PostDetails())
+	// New UI board row data; the query filters by what the viewer may see.
+	r.Get("/_api/ui2/board-insights", handlers.BoardInsights())
 
 	ui := r.Group()
 	{
@@ -189,6 +191,7 @@ func routes(r *web.Engine) *web.Engine {
 		ui.Post("/_api/user/change-email", handlers.ChangeUserEmail())
 		ui.Post("/_api/notifications/read-all", handlers.ReadAllNotifications())
 		ui.Get("/_api/notifications/unread/total", handlers.TotalUnreadNotifications())
+		ui.Get("/_api/ui2/briefing", handlers.Briefing())
 		// Members may publish their own private idea; the handler enforces the rules.
 		ui.Post("/_api/posts/:number/privacy", handlers.SetPostPrivacy())
 		// MCP client consent decision. On an MCP-only address (MCP_ORIGINS) the

@@ -163,7 +163,9 @@ func setPostResponse(ctx context.Context, c *cmd.SetPostResponse) error {
 
 		_, err := trx.Execute(`
 		UPDATE posts
-		SET response = $3, original_id = NULL, response_date = $4, response_user_id = $5, status_slug = $6
+		SET response = $3, original_id = NULL, response_date = $4, response_user_id = $5, status_slug = $6::varchar,
+		    prev_status_slug = CASE WHEN status_slug <> $6::varchar THEN status_slug ELSE prev_status_slug END,
+		    status_changed_at = CASE WHEN status_slug <> $6::varchar THEN NOW() ELSE status_changed_at END
 		WHERE id = $1 and tenant_id = $2
 		`, c.Post.ID, tenant.ID, c.Text, respondedAt, user.ID, c.StatusSlug)
 		if err != nil {
@@ -284,7 +286,9 @@ func markPostAsDuplicate(ctx context.Context, c *cmd.MarkPostAsDuplicate) error 
 
 		_, err = trx.Execute(`
 		UPDATE posts
-		SET response = '', original_id = $3, response_date = $4, response_user_id = $5, status_slug = 'duplicate'
+		SET response = '', original_id = $3, response_date = $4, response_user_id = $5, status_slug = 'duplicate',
+		    prev_status_slug = CASE WHEN status_slug <> 'duplicate' THEN status_slug ELSE prev_status_slug END,
+		    status_changed_at = CASE WHEN status_slug <> 'duplicate' THEN NOW() ELSE status_changed_at END
 		WHERE id = $1 and tenant_id = $2
 		`, c.Post.ID, tenant.ID, c.Original.ID, respondedAt, user.ID)
 		if err != nil {
@@ -536,19 +540,7 @@ func findSimilarPosts(ctx context.Context, q *query.FindSimilarPosts) error {
 		if filteredQuery == "" {
 			q.Result = make([]*entity.Post, 0)
 		} else {
-			tsConfig := MapLocaleToTSConfig(tenant.Locale)
-
-			// Build tsquery with AND operator between words and prefix matching on each word
-			// The search column already contains both language-specific and simple tsvectors
-			tsQueryExpr := fmt.Sprintf("to_tsquery('%s', regexp_replace(regexp_replace($3, '\\\\s+', ':* & ', 'g'), '$', ':*'))", tsConfig)
-			tsQuerySimple := "to_tsquery('simple', regexp_replace(regexp_replace($3, '\\\\s+', ':* & ', 'g'), '$', ':*'))"
-
-			// Use ts_rank_cd (cover density ranking) for better relevance scoring
-			// Query against the generated search column which combines language-specific and simple tsvectors
-			score := fmt.Sprintf("ts_rank_cd(q.search, %s) + ts_rank_cd(q.search, %s)", tsQueryExpr, tsQuerySimple)
-
-			// Match against the pre-computed search column
-			whereParts := fmt.Sprintf(`q.search @@ %s OR q.search @@ %s`, tsQueryExpr, tsQuerySimple)
+			whereParts, score := similarSearchExprs(tenant, "q", "$3")
 
 			sql := fmt.Sprintf(`
 				SELECT * FROM (%s) AS q
@@ -574,6 +566,19 @@ func findSimilarPosts(ctx context.Context, q *query.FindSimilarPosts) error {
 		}
 		return nil
 	})
+}
+
+// similarSearchExprs is the similar-ideas full-text match and ranking over
+// <alias>.search for the tsquery text bound at placeholder ph. The search
+// column holds both the tenant-language and the simple tsvectors; the score is
+// ts_rank_cd (cover density) against both.
+func similarSearchExprs(tenant *entity.Tenant, alias, ph string) (match, score string) {
+	tsConfig := MapLocaleToTSConfig(tenant.Locale)
+	tsQueryExpr := fmt.Sprintf("to_tsquery('%s', regexp_replace(regexp_replace(%s, '\\\\s+', ':* & ', 'g'), '$', ':*'))", tsConfig, ph)
+	tsQuerySimple := fmt.Sprintf("to_tsquery('simple', regexp_replace(regexp_replace(%s, '\\\\s+', ':* & ', 'g'), '$', ':*'))", ph)
+	match = fmt.Sprintf("%[1]s.search @@ %[2]s OR %[1]s.search @@ %[3]s", alias, tsQueryExpr, tsQuerySimple)
+	score = fmt.Sprintf("ts_rank_cd(%[1]s.search, %[2]s) + ts_rank_cd(%[1]s.search, %[3]s)", alias, tsQueryExpr, tsQuerySimple)
+	return match, score
 }
 
 func searchPosts(ctx context.Context, q *query.SearchPosts) error {
@@ -785,19 +790,25 @@ func buildSinglePostQuery(user *entity.User, filter string) string {
 		hasVotedSubQuery = fmt.Sprintf("(SELECT true FROM post_votes WHERE post_id = p.id AND user_id = %d)", user.ID)
 	}
 
-	// Approval filtering for single post views
-	approvalFilter := ""
-	if user != nil && user.IsCollaborator() {
-		// Collaborators can view any post (for moderation purposes)
-		approvalFilter = ""
-	} else if user != nil {
-		// Regular authenticated users can see approved posts + their own unapproved posts
-		approvalFilter = fmt.Sprintf(" AND (p.is_approved = true OR p.user_id = %d)", user.ID)
-	} else {
-		// Anonymous users can only see approved posts
-		approvalFilter = " AND p.is_approved = true"
-	}
-
-	combinedFilter := filter + approvalFilter + visibilityFilter(user)
+	combinedFilter := filter + approvalClause(user) + visibilityFilter(user)
 	return fmt.Sprintf(sqlSelectPostsWhere, tagCondition, hasVotedSubQuery, privacyClause(user, "d."), combinedFilter)
+}
+
+// approvalClause: collaborators see every post (for moderation); a signed-in
+// member sees approved posts plus their own unapproved ones; visitors see
+// approved posts only. Same rule as the board with no moderation filter.
+func approvalClause(user *entity.User) string {
+	if user != nil && user.IsCollaborator() {
+		return ""
+	}
+	if user != nil {
+		return fmt.Sprintf(" AND (p.is_approved = true OR p.user_id = %d)", user.ID)
+	}
+	return " AND p.is_approved = true"
+}
+
+// visiblePostsClause is the board's full visibility rule for posts aliased "p":
+// not deleted, then approval and privacy as above.
+func visiblePostsClause(user *entity.User) string {
+	return " AND p.status_slug != 'deleted'" + approvalClause(user) + visibilityFilter(user)
 }
