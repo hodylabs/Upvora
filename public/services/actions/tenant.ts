@@ -48,8 +48,9 @@ export const updateTenantUI = async (ui: "classic" | "new"): Promise<Result> => 
   return await http.post("/_api/admin/settings/look", { ui })
 }
 
-export const updateTenantAdvancedSettings = async (customCSS: string, allowedSchemes: string): Promise<Result> => {
-  return await http.post("/_api/admin/settings/advanced", { customCSS, allowedSchemes })
+// ui2CustomCSS is the new look's own Custom CSS; leaving it out keeps the stored value.
+export const updateTenantAdvancedSettings = async (customCSS: string, allowedSchemes: string, ui2CustomCSS?: string): Promise<Result> => {
+  return await http.post("/_api/admin/settings/advanced", { customCSS, allowedSchemes, ui2CustomCSS })
 }
 
 export interface UpdateTenantSiteBannerRequest {

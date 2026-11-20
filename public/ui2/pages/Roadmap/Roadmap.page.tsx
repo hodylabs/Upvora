@@ -1,3 +1,4 @@
+import "../../components/form/form.css"
 import "./roadmap.css"
 
 import React, { useRef, useState } from "react"
@@ -302,10 +303,9 @@ export const RoadmapBoard = (props: RoadmapPageProps) => {
 
       <div className="u2-roadmap__tools">
         <ProductFilter products={products} selected={filter.products} onToggle={toggleProduct} />
-        {/* TODO(form-primitives): shared search input */}
         <input
           type="search"
-          className="u2-rinput"
+          className="u2-ctl u2-roadmap__search"
           placeholder={i18n._({ id: "ui2.roadmap.search", message: "Search the roadmap" })}
           aria-label={i18n._({ id: "ui2.roadmap.search", message: "Search the roadmap" })}
           value={filter.query}

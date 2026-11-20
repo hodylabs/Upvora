@@ -1,0 +1,13 @@
+/* AI agent cards and the scorecard field catalogue */
+.u2-ai-agent + .u2-ai-agent {
+  margin-block-start: 18px;
+  padding-block-start: 4px;
+  border-block-start: 2px solid var(--u-edge);
+}
+.u2-sf__order {
+  gap: 2px;
+  flex: none;
+}
+.u2-sf--inactive > :not(.u2-alist__acts) {
+  opacity: 0.6;
+}

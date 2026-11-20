@@ -26,16 +26,10 @@
   flex-wrap: wrap;
   gap: 6px;
 }
-/* TODO(form-primitives): replace with the shared input */
-.u2-rinput {
-  min-height: 32px;
+/* The search box is the shared .u2-ctl; here it only sizes to the toolbar. */
+.u2-roadmap__search {
+  width: auto;
   min-width: 200px;
-  padding: 4px 10px;
-  border: 1px solid var(--u-edge);
-  border-radius: 8px;
-  background: var(--u-chip);
-  color: var(--u-text);
-  font: inherit;
 }
 
 .u2-roadmap__tabs {
@@ -359,10 +353,8 @@
   .u2-lane:not(.is-active) {
     display: none;
   }
-  .u2-rinput {
+  .u2-roadmap__search {
     width: 100%;
-    min-height: 44px;
-    font-size: 16px;
   }
   .u2-rtile {
     grid-template-columns: 52px minmax(0, 1fr);

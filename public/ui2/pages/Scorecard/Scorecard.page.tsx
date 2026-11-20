@@ -1,3 +1,4 @@
+import "../../components/form/form.css"
 import "./scorecard.css"
 
 import React, { useMemo, useState } from "react"
@@ -122,10 +123,9 @@ const ScorecardPage = (props: ScorecardPageProps) => {
         </div>
         <div className="u2-sc__tools-end">
           <ProductFilter products={products} selected={productIds} onToggle={toggleProduct} />
-          {/* TODO(form-primitives): shared search input */}
           <input
             type="search"
-            className="u2-sc__input"
+            className="u2-ctl u2-sc__input"
             placeholder={i18n._({ id: "ui2.scorecard.filter", message: "Filter cards" })}
             aria-label={i18n._({ id: "ui2.scorecard.filter", message: "Filter cards" })}
             value={query}

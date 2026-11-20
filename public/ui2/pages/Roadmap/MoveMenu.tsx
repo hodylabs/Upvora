@@ -10,7 +10,8 @@ export interface MoveTarget {
 // The keyboard way to move an idea between lanes (staff): a "Move to…" button on the
 // tile opens a menu of the other lanes. Arrow keys move through it, Enter picks,
 // Esc closes and puts focus back on the button.
-// TODO(form-primitives): swap for the shared menu/popover once it lands.
+// There is no shared menu primitive, and the shared Button does not forward a ref
+// (needed to put focus back on the trigger), so this keeps its own small menu.
 export const MoveMenu = (props: { title: string; targets: MoveTarget[]; onMove: (slug: string) => void }) => {
   const [open, setOpen] = useState(false)
   const wrap = useRef<HTMLDivElement>(null)

@@ -74,10 +74,9 @@ export const InternalNotes = (props: { postNumber: number; initialNote?: Interna
           {state === "idle" && editor && <Trans id="ui2.notes.lastedit">Last edited by {editor}</Trans>}
         </span>
       </div>
-      {/* TODO(form-primitives): shared textarea */}
       <textarea
         id="u2-notes"
-        className="u2-sc__control u2-notes__text"
+        className="u2-ctl u2-notes__text"
         value={content}
         onChange={onChange}
         onBlur={onBlur}

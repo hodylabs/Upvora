@@ -1,0 +1,121 @@
+/* Products, statuses, tags, theme and webhooks admin pages. */
+.u2-color {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.u2-color__pick {
+  inline-size: 34px;
+  block-size: 30px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.u2-color__hex.u2-ctl {
+  inline-size: 100px;
+  font-family: var(--u-mono);
+  font-size: 13px;
+}
+
+/* A dot in a list row, colored by the product, status or tag. */
+.u2-dot {
+  flex: none;
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+  background: var(--u-dot, var(--u-accent));
+}
+.u2-swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.u2-alist > li.is-off {
+  opacity: 0.6;
+}
+.u2-editbox {
+  margin-block: 10px 16px;
+  padding: 4px 14px 14px;
+  border: 1px solid var(--u-edge);
+  border-radius: var(--u-radius);
+  background: var(--u-chip);
+}
+.u2-editbox__h {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Theme: one row per surface. */
+.u2-theme-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.u2-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.u2-seg .u2-btn[aria-pressed="true"] {
+  border-color: var(--u-accent);
+  box-shadow: 0 0 0 1px var(--u-accent);
+}
+
+/* Statuses: up and down arrows in a row. */
+.u2-order {
+  display: inline-flex;
+  flex-direction: column;
+}
+.u2-order .u2-btn {
+  min-block-size: 18px;
+  padding-block: 0;
+}
+
+/* Webhooks */
+.u2-wh__url {
+  font-family: var(--u-mono);
+  font-size: 12px;
+  color: var(--u-muted);
+}
+.u2-wh__state--failed {
+  color: var(--u-danger);
+}
+.u2-wh__state--enabled {
+  color: var(--u-s-shipped);
+}
+.u2-wh__props {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.u2-wh__props th,
+.u2-wh__props td {
+  padding: 6px 8px;
+  text-align: start;
+  border-block-end: 1px solid var(--u-line);
+  vertical-align: top;
+}
+.u2-wh__props code {
+  font-family: var(--u-mono);
+  font-size: 12px;
+}
+.u2-wh__preview {
+  max-block-size: 320px;
+  overflow: auto;
+}
+
+@media (max-width: 700px) {
+  .u2-alist > li {
+    flex-wrap: wrap;
+  }
+  .u2-order .u2-btn,
+  .u2-color__pick {
+    min-block-size: 44px;
+    min-inline-size: 44px;
+  }
+}

@@ -89,5 +89,9 @@
     <link rel="stylesheet" href="{{ .public.settings.assetsURL }}/static/custom/{{ .public.tenant.CustomCSS | md5 }}.css" />
     {{ end }}
   {{ end }}
+  {{- /* The new look loads only its own Custom CSS; classic's targets classic markup. */ -}}
+  {{ if and .public.tenant .private.ui2 .public.tenant.UI2CustomCSS }}
+    <link rel="stylesheet" href="{{ .public.settings.assetsURL }}/static/custom/{{ .public.tenant.UI2CustomCSS | md5 }}.css" />
+  {{ end }}
 </body>
 </html>

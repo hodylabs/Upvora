@@ -21,6 +21,7 @@ type Tenant struct {
 	IsPrivate                  bool              `json:"isPrivate"`
 	LogoBlobKey                string            `json:"logoBlobKey"`
 	CustomCSS                  string            `json:"-"`
+	UI2CustomCSS               string            `json:"-"` // the new look's own Custom CSS
 	AllowedSchemes             string            `json:"allowedSchemes"`
 	IsEmailAuthAllowed         bool              `json:"isEmailAuthAllowed"`
 	IsFeedEnabled              bool              `json:"isFeedEnabled"`

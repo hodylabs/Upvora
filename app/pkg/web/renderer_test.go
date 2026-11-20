@@ -16,6 +16,7 @@ import (
 	"github.com/getfider/fider/app/models/query"
 	. "github.com/getfider/fider/app/pkg/assert"
 	"github.com/getfider/fider/app/pkg/bus"
+	"github.com/getfider/fider/app/pkg/crypto"
 	"github.com/getfider/fider/app/pkg/env"
 	"github.com/getfider/fider/app/pkg/markdown"
 	"github.com/getfider/fider/app/pkg/web"
@@ -220,26 +221,43 @@ func TestRenderer_NewUI(t *testing.T) {
 		return nil
 	})
 
-	render := func(ui string, headers map[string]string) string {
+	classicCSS, ui2CSS := ".x{color:red}", ".u2-row{gap:0}"
+	classicFile := "/static/custom/" + crypto.MD5(classicCSS) + ".css"
+	ui2File := "/static/custom/" + crypto.MD5(ui2CSS) + ".css"
+
+	renderWith := func(ui, ui2Custom string, headers map[string]string) string {
 		buf := new(bytes.Buffer)
 		ctx := newGetContext("https://demo.test.fider.io:3000/", headers)
-		ctx.SetTenant(&entity.Tenant{Name: "Acme", Locale: "en", UI: ui, CustomCSS: ".x{color:red}"})
+		ctx.SetTenant(&entity.Tenant{Name: "Acme", Locale: "en", UI: ui, CustomCSS: classicCSS, UI2CustomCSS: ui2Custom})
 		web.NewRenderer().Render(buf, http.StatusOK, web.Props{Page: "Test.page"}, ctx)
 		return buf.String()
 	}
+	render := func(ui string, headers map[string]string) string { return renderWith(ui, ui2CSS, headers) }
 
 	newUI := render("new", nil)
 	Expect(newUI).ContainsSubstring("/assets/ui2/js/ui2main.js")
 	Expect(newUI).ContainsSubstring("/assets/ui2/css/ui2main.css")
 	Expect(newUI).ContainsSubstring("/assets/ui2/js/Test.page.ui2.js")
 	Expect(strings.Contains(newUI, "/assets/js/file1.js")).IsFalse()
-	Expect(strings.Contains(newUI, "/static/custom/")).IsFalse()
+	// The new look loads only its own Custom CSS file, never classic's.
+	Expect(newUI).ContainsSubstring(ui2File)
+	Expect(strings.Contains(newUI, classicFile)).IsFalse()
+	Expect(strings.Count(newUI, "/static/custom/")).Equals(1)
+
+	// No Custom CSS of its own: the new look links none at all.
+	bare := renderWith("new", "", nil)
+	Expect(strings.Contains(bare, "/static/custom/")).IsFalse()
 
 	classic := render("classic", nil)
 	Expect(classic).ContainsSubstring("/assets/js/file1.js")
-	Expect(classic).ContainsSubstring("/static/custom/")
+	Expect(classic).ContainsSubstring(classicFile)
+	Expect(strings.Contains(classic, ui2File)).IsFalse()
+	Expect(strings.Count(classic, "/static/custom/")).Equals(1)
 	Expect(strings.Contains(classic, "/assets/ui2/")).IsFalse()
 
+	// Crawlers get classic, so classic's CSS.
 	crawler := render("new", map[string]string{"User-Agent": "Googlebot"})
 	Expect(strings.Contains(crawler, "/assets/ui2/")).IsFalse()
+	Expect(crawler).ContainsSubstring(classicFile)
+	Expect(strings.Contains(crawler, ui2File)).IsFalse()
 }

@@ -106,23 +106,14 @@
   color: var(--u-text);
   font-weight: 600;
 }
-/* TODO(form-primitives): shared input, select and textarea styles */
-.u2-sc__input,
-.u2-sc__control {
-  min-height: 32px;
-  padding: 4px 10px;
-  border: 1px solid var(--u-edge);
-  border-radius: 8px;
-  background: var(--u-chip);
-  color: var(--u-text);
-  font: inherit;
+/* Inputs, selects and textareas are the shared .u2-ctl; the filter only sizes itself. */
+.u2-sc__input {
+  width: auto;
+  min-width: 200px;
 }
-.u2-sc__control:disabled {
-  opacity: 0.6;
-}
-textarea.u2-sc__control {
-  resize: vertical;
-  line-height: 1.45;
+/* A multiline field starts one line tall, as before the shared control. */
+.u2-sc textarea.u2-ctl {
+  min-height: 36px;
 }
 
 /* List table: dense 42 px rows */
@@ -541,26 +532,7 @@ textarea.u2-sc__control {
   font-size: 12px;
 }
 
-/* Brief dialog. TODO(form-primitives): shared dialog */
-.u2-sc__scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: grid;
-  place-items: center;
-  padding: 16px;
-  background: color-mix(in srgb, var(--u-bg) 70%, transparent);
-}
-.u2-sc__dialog {
-  width: min(760px, 100%);
-  max-height: 86vh;
-  overflow: auto;
-  padding: 20px;
-  background: var(--u-pop);
-}
-.u2-sc__dialog:focus {
-  outline: none;
-}
+/* Brief dialog content (the dialog itself is the shared Modal) */
 .u2-sc__md {
   line-height: 1.55;
   overflow-wrap: anywhere;
@@ -584,21 +556,12 @@ textarea.u2-sc__control {
   background: var(--u-chip);
   white-space: pre-wrap;
 }
-.u2-sc__dialog-acts {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-block-start: 16px;
-}
 
 @media (max-width: 840px) {
   .u2-sc__tools-end {
     margin-inline-start: 0;
     width: 100%;
   }
-  .u2-sc__input,
-  .u2-sc__control,
   .u2-sc__titleinput {
     min-height: 44px;
     font-size: 16px;

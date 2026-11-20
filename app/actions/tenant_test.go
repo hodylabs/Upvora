@@ -201,3 +201,26 @@ func TestUpdateTenantSettings_NullLogo(t *testing.T) {
 	Expect(action.Logo).IsNotNil()
 	Expect(action.Logo.BlobKey).Equals("hello-world.png")
 }
+
+// The new look's Custom CSS rides on the advanced settings action: admin-only like
+// customCSS, validated the same way (any text), and omitted means "leave it as is".
+func TestUpdateTenantAdvancedSettings_UI2CustomCSS(t *testing.T) {
+	RegisterT(t)
+
+	omitted := &actions.UpdateTenantAdvancedSettings{}
+	Expect(json.Unmarshal([]byte(`{"customCSS":".a{}","allowedSchemes":""}`), omitted)).IsNil()
+	Expect(omitted.UI2CustomCSS).IsNil()
+
+	sent := &actions.UpdateTenantAdvancedSettings{}
+	Expect(json.Unmarshal([]byte(`{"customCSS":".a{}","ui2CustomCSS":".u2-row{gap:0}"}`), sent)).IsNil()
+	Expect(*sent.UI2CustomCSS).Equals(".u2-row{gap:0}")
+	Expect(sent.Validate(context.Background(), nil).Ok).IsTrue()
+
+	cleared := &actions.UpdateTenantAdvancedSettings{}
+	Expect(json.Unmarshal([]byte(`{"ui2CustomCSS":""}`), cleared)).IsNil()
+	Expect(*cleared.UI2CustomCSS).Equals("")
+
+	Expect(sent.IsAuthorized(context.Background(), &entity.User{Role: enum.RoleAdministrator})).IsTrue()
+	Expect(sent.IsAuthorized(context.Background(), &entity.User{Role: enum.RoleCollaborator})).IsFalse()
+	Expect(sent.IsAuthorized(context.Background(), nil)).IsFalse()
+}

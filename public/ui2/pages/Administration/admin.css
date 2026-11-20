@@ -1,0 +1,288 @@
+/* Admin pages (mockup section D): nav on the inline-start side, label-left and
+   control-right forms with thin rules between fields (the shared .u2-fld), compact. */
+.u2-admin {
+  max-width: 1080px;
+}
+.u2-admin__eyebrow {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--u-muted);
+}
+.u2-admin__frame {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+.u2-admin__nav {
+  grid-column: 1;
+  grid-row: 1;
+  padding: 12px;
+  border-inline-end: 1px solid var(--u-line);
+}
+.u2-admin__nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.u2-admin__nav a {
+  display: block;
+  padding: 6px 8px;
+  border-radius: 7px;
+  color: var(--u-text2);
+  text-decoration: none;
+  font-size: 13px;
+}
+.u2-admin__nav a:hover {
+  background: var(--u-chip);
+  color: var(--u-text);
+}
+.u2-admin__nav a[aria-current="page"] {
+  background: var(--u-chip);
+  color: var(--u-text);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--u-accent);
+}
+.u2-admin__nav a[aria-current="page"]:dir(rtl) {
+  box-shadow: inset -2px 0 0 var(--u-accent);
+}
+.u2-admin__sys {
+  grid-column: 1;
+  grid-row: 2;
+  padding: 0 12px 12px;
+  border-inline-end: 1px solid var(--u-line);
+}
+.u2-admin__content {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-width: 0;
+  padding: 18px 22px 22px;
+}
+.u2-admin__head {
+  margin-block-end: 10px;
+}
+.u2-admin__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.u2-admin__sub {
+  margin: 2px 0 0;
+  color: var(--u-muted);
+  font-size: 13px;
+}
+.u2-admin__sect {
+  margin-block-start: 22px;
+}
+.u2-admin__secthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-block-end: 8px;
+}
+.u2-admin__h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.u2-admin__note {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--u-edge);
+  border-radius: var(--u-radius);
+  background: var(--u-chip);
+  color: var(--u-text2);
+  font-size: 13px;
+}
+.u2-admin__note--warn {
+  border-color: color-mix(in srgb, var(--u-warn) 45%, transparent);
+  color: var(--u-warn);
+}
+.u2-admin__note--danger {
+  border-color: color-mix(in srgb, var(--u-danger) 45%, transparent);
+  color: var(--u-danger);
+}
+.u2-admin code,
+.u2-admin pre {
+  font-family: var(--u-mono);
+  font-size: 12px;
+}
+.u2-admin pre {
+  margin: 6px 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--u-chip);
+  border: 1px solid var(--u-line);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+/* Rows in an admin list (products, statuses, tags, webhooks, members, clients): ~42 px. */
+.u2-alist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-block-start: 1px solid var(--u-line);
+}
+.u2-alist > li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--u-row);
+  padding-block: 6px;
+  border-block-end: 1px solid var(--u-line);
+}
+.u2-alist__main {
+  flex: 1;
+  min-width: 0;
+}
+.u2-alist__main > * {
+  overflow-wrap: anywhere;
+}
+.u2-alist__meta {
+  color: var(--u-muted);
+  font-size: 12px;
+}
+.u2-alist__acts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.u2-alist__empty {
+  padding: 12px 0;
+  color: var(--u-muted);
+}
+
+/* The Look picker: two visual option cards. */
+.u2-looks .u2-radios--cards {
+  grid-template-columns: 1fr 1fr;
+}
+.u2-look {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.u2-look__sw {
+  flex: none;
+  width: 56px;
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid var(--u-edge);
+}
+.u2-look__sw--new {
+  background: linear-gradient(135deg, #15171b 60%, #ff5f1f 60%);
+}
+.u2-look__sw--classic {
+  background: linear-gradient(135deg, #ffffff 60%, #3b82f6 60%);
+}
+.u2-look b {
+  display: block;
+  font-weight: 600;
+}
+.u2-look__d {
+  font-size: 12px;
+  color: var(--u-muted);
+}
+
+/* System box */
+.u2-sys {
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--u-line);
+  font-size: 12px;
+}
+.u2-sys__rows {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+.u2-sys__rows div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.u2-sys__rows dt {
+  color: var(--u-muted);
+}
+.u2-sys__rows dd {
+  margin: 0;
+}
+.u2-sys__state {
+  margin: 8px 0;
+  font-weight: 600;
+  color: var(--u-text2);
+}
+.u2-sys__state--update-available {
+  color: var(--u-accent);
+}
+.u2-sys__state--up-to-date {
+  color: var(--u-s-shipped);
+}
+.u2-sys__acts {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+.u2-sys__acts p,
+.u2-sys__more p {
+  margin: 0;
+  font-size: 12px;
+}
+.u2-sys__more {
+  margin-block-start: 6px;
+}
+.u2-sys__more summary {
+  cursor: pointer;
+  color: var(--u-text2);
+}
+.u2-sys__error {
+  margin: 8px 0 0;
+  color: var(--u-danger);
+}
+.u2-sys__updating {
+  color: var(--u-text2);
+}
+
+@media (max-width: 800px) {
+  .u2-admin__frame {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+  .u2-admin__nav,
+  .u2-admin__sys,
+  .u2-admin__content {
+    grid-column: 1;
+    grid-row: auto;
+    border-inline-end: 0;
+  }
+  .u2-admin__nav {
+    border-block-end: 1px solid var(--u-line);
+    overflow-x: auto;
+  }
+  .u2-admin__nav ul {
+    display: flex;
+    gap: 4px;
+  }
+  .u2-admin__nav a {
+    white-space: nowrap;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .u2-admin__content {
+    padding: 14px;
+  }
+  .u2-admin__sys {
+    padding: 0 14px 14px;
+  }
+  .u2-looks .u2-radios--cards {
+    grid-template-columns: 1fr;
+  }
+}
