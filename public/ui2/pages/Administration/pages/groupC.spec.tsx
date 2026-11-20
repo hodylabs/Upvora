@@ -183,6 +183,16 @@ describe("ui2 Admin scorecard settings", () => {
     expect(choicesToCsv(prev)).toBe("Yes:review, No")
   })
 
+  test("a stored option holding a comma survives adding, removing and reordering other options", () => {
+    const prev = [{ value: "Sales, EU", color: "blue", bucket: "review" as const }, { value: "Ops" }]
+    const csv = choicesToCsv(prev)
+    expect(csv).toBe("Sales, EU:review, Ops")
+    expect(csvToChoices(csv + ", Legal", prev)).toEqual([{ value: "Sales, EU", color: "blue", bucket: "review" }, { value: "Ops" }, { value: "Legal" }])
+    expect(csvToChoices("Legal, Sales, EU", prev)).toEqual([{ value: "Legal" }, { value: "Sales, EU", color: "blue", bucket: "review" }])
+    // a new option is still split on commas
+    expect(csvToChoices("Sales, US", prev)).toEqual([{ value: "Sales" }, { value: "US" }])
+  })
+
   const sf = (id: number, key: string, extra: Partial<ScorecardField> = {}) =>
     ({ id, key, label: key, groupKey: "context", type: "text", sortOrder: id, isSystem: false, isActive: true, ...extra }) as ScorecardField
 

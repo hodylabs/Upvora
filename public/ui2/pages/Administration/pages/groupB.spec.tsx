@@ -7,7 +7,7 @@ import { ColorInput, isHex, normalizeHex, expandHex } from "../components/ColorI
 import { WebhookForm, PREVIEW_DELAY_MS } from "../components/webhook"
 import ManageThemePage, { themeRequest } from "./ManageTheme.page"
 import ManageWebhooksPage from "./ManageWebhooks.page"
-import { moveSortOrder, ordered } from "./ManageStatuses.page"
+import ManageStatusesPage, { moveSortOrder, ordered } from "./ManageStatuses.page"
 import { parseTagsFile, tagSorter } from "./ManageTags.page"
 import ManageProductsPage, { slugify } from "./ManageProducts.page"
 
@@ -189,6 +189,64 @@ describe("ui2 statuses ordering", () => {
     expect(moveSortOrder(list, 1, -1)).toBeNull()
     expect(moveSortOrder(list, 3, 1)).toBeNull()
     expect(moveSortOrder(list, 9, 1)).toBeNull()
+  })
+})
+
+describe("ui2 statuses mutations", () => {
+  const status = (id: number, label: string, sortOrder: number) =>
+    ({
+      id,
+      slug: label.toLowerCase(),
+      label,
+      kind: "open",
+      color: "blue",
+      icon: "",
+      showOnHome: true,
+      showOnRoadmap: false,
+      filterable: true,
+      sortOrder,
+      isActive: true,
+      isSystem: true,
+    }) as unknown as Status
+
+  test("one mutation per status at a time, each built from the latest row", async () => {
+    let finish: (r: unknown) => void = () => undefined
+    const put = jest.fn(() => new Promise((r) => (finish = r)))
+    http.put = put as unknown as typeof http.put
+    http.get = jest.fn(() => Promise.resolve({ ok: true, data: {} })) as unknown as typeof http.get
+    const { container } = withFider(<ManageStatusesPage statuses={[status(1, "Open", 10), status(2, "Planned", 20)]} />)
+    const row = () => container.querySelector('[data-id="2"]') as HTMLElement
+    const toggle = () => row().querySelector('[role="switch"]') as HTMLButtonElement
+    const up = () => row().querySelector(".u2-order button") as HTMLButtonElement
+
+    fireEvent.click(
+      screen.getAllByRole("button").find((b) => b.closest('[data-id="2"]') && b.className.includes("u2-btn--ghost") && !b.closest(".u2-order")) as HTMLElement
+    )
+    fireEvent.change(container.querySelector('input[name="label"]') as HTMLInputElement, { target: { value: "Next up" } })
+    await act(async () => {
+      fireEvent.submit(container.querySelector("form") as HTMLFormElement)
+    })
+    expect(put).toHaveBeenCalledTimes(1)
+    // the save is in flight: the switch and the arrows wait
+    expect(toggle().disabled).toBe(true)
+    expect(up().disabled).toBe(true)
+    fireEvent.click(toggle())
+    fireEvent.click(up())
+    expect(put).toHaveBeenCalledTimes(1)
+    await act(async () => finish({ ok: true, data: {} }))
+
+    // the switch sends the saved label, not the one the row was rendered with before the save
+    await act(async () => {
+      fireEvent.click(toggle())
+    })
+    expect(put).toHaveBeenLastCalledWith("/_api/admin/statuses/2", expect.objectContaining({ label: "Next up", isActive: false }))
+    await act(async () => finish({ ok: true, data: {} }))
+    await act(async () => {
+      fireEvent.click(up())
+    })
+    expect(put).toHaveBeenLastCalledWith("/_api/admin/statuses/2", expect.objectContaining({ label: "Next up", isActive: false, sortOrder: 9 }))
+    await act(async () => finish({ ok: true, data: {} }))
+    expect(container.querySelector(".u2-alist li")?.getAttribute("data-id")).toBe("2")
   })
 })
 

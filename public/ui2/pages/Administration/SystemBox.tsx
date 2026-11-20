@@ -179,7 +179,8 @@ export const SystemBox = () => {
         </pre>
         <p>
           <Trans id="ui2.admin.system.recoveryup">
-            <code>docker compose up -d</code> brings everything back with the images already on disk.
+            <code>docker compose up -d</code> starts the containers again with the image your compose file points to. If the update pulled a new image, that is
+            the one it starts; it does not roll back to the previous version.
           </Trans>
         </p>
       </details>

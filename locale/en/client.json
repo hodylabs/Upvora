@@ -718,7 +718,7 @@
   "ui2.admin.system.moved": "Upvora has moved to <0>github.com/HodyLabs/Upvora</0>. Images are published at <1>ghcr.io/hodylabs/upvora</1>; the old <2>ghcr.io/hodyhq/upvora</2> keeps receiving every release, so nothing breaks. The latest updater sidecar switches your compose file to the new address on its own.",
   "ui2.admin.system.recovery": "If the site doesn't come back",
   "ui2.admin.system.recoveryssh": "SSH into the host, go to the compose directory and check the logs:",
-  "ui2.admin.system.recoveryup": "<0>docker compose up -d</0> brings everything back with the images already on disk.",
+  "ui2.admin.system.recoveryup": "<0>docker compose up -d</0> starts the containers again with the image your compose file points to. If the update pulled a new image, that is the one it starts; it does not roll back to the previous version.",
   "ui2.admin.system.title": "System",
   "ui2.admin.system.update": "Update now",
   "ui2.admin.system.updating": "Updating. The site will restart and this page will reload itself.",

@@ -1,5 +1,5 @@
 import "../components/groupB.css"
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { i18n } from "@lingui/core"
 import { Trans } from "@lingui/react/macro"
 import { Status, StatusKind } from "@fider/models"
@@ -95,11 +95,33 @@ const blank = (): Draft => ({
 })
 
 const ManageStatusesPage = (props: ManageStatusesPageProps) => {
-  const [statuses, setStatuses] = useState<Status[]>(ordered(props.statuses ?? []))
+  const [statuses, setStatusesState] = useState<Status[]>(ordered(props.statuses ?? []))
+  // The latest list, updated with every change (not on render), for requests built in between.
+  const latest = useRef(statuses)
+  const setStatuses = (change: (list: Status[]) => Status[]) => {
+    latest.current = change(latest.current)
+    setStatusesState(latest.current)
+  }
   const [draft, setDraft] = useState<Draft | null>(null)
   const [error, setError] = useState<Failure | undefined>()
   const [busy, setBusy] = useState(false)
   const [deleting, setDeleting] = useState<Status | null>(null)
+  // The update endpoint writes every column, so each request is built from the latest row and
+  // only one mutation (save, switch, move) runs per status at a time: none can revert another.
+  const [pending, setPending] = useState<number[]>([])
+  const pendingRef = useRef(new Set<number>())
+  const rowAction = async (id: number, run: () => Promise<void>) => {
+    if (pendingRef.current.has(id)) return
+    pendingRef.current.add(id)
+    setPending([...pendingRef.current])
+    try {
+      await run()
+    } finally {
+      pendingRef.current.delete(id)
+      setPending([...pendingRef.current])
+    }
+  }
+  const rowOf = (id: number) => latest.current.find((x) => x.id === id)
 
   const set = (patch: Partial<Draft>) => setDraft((d) => (d ? { ...d, ...patch } : d))
   const open = (d: Draft) => {
@@ -124,9 +146,13 @@ const ManageStatusesPage = (props: ManageStatusesPageProps) => {
     }
     if (draft.id !== null) {
       const id = draft.id
-      const existing = statuses.find((s) => s.id === id)
-      const result = await actions.updateStatus(id, { ...fields, isActive: existing ? existing.isActive : true })
+      let result: Awaited<ReturnType<typeof actions.updateStatus>> | undefined
+      await rowAction(id, async () => {
+        // The row switch owns activation: send its current state.
+        result = await actions.updateStatus(id, { ...fields, isActive: rowOf(id)?.isActive ?? true })
+      })
       setBusy(false)
+      if (!result) return // another change to this status is still saving
       if (!result.ok) return setError(result.error)
       setStatuses((list) => ordered(list.map((s) => (s.id === id ? { ...s, ...fields } : s))))
     } else {
@@ -138,18 +164,23 @@ const ManageStatusesPage = (props: ManageStatusesPageProps) => {
     setDraft(null)
   }
 
-  const toggleActive = async (s: Status) => {
-    const result = await actions.updateStatus(s.id, { ...updateInput(s), isActive: !s.isActive })
-    if (result.ok) setStatuses((list) => list.map((x) => (x.id === s.id ? { ...x, isActive: !s.isActive } : x)))
-  }
+  const toggleActive = (id: number) =>
+    rowAction(id, async () => {
+      const row = rowOf(id)
+      if (!row) return
+      const isActive = !row.isActive
+      const result = await actions.updateStatus(id, { ...updateInput(row), isActive })
+      if (result.ok) setStatuses((list) => list.map((x) => (x.id === id ? { ...x, isActive } : x)))
+    })
 
-  const move = async (s: Status, direction: -1 | 1) => {
-    const sortOrder = moveSortOrder(statuses, s.id, direction)
-    if (sortOrder === null) return
-    const updated = { ...s, sortOrder }
-    const result = await actions.updateStatus(s.id, updateInput(updated))
-    if (result.ok) setStatuses((list) => ordered(list.map((x) => (x.id === s.id ? updated : x))))
-  }
+  const move = (id: number, direction: -1 | 1) =>
+    rowAction(id, async () => {
+      const row = rowOf(id)
+      const sortOrder = moveSortOrder(latest.current, id, direction)
+      if (!row || sortOrder === null) return
+      const result = await actions.updateStatus(id, { ...updateInput(row), sortOrder })
+      if (result.ok) setStatuses((list) => ordered(list.map((x) => (x.id === id ? { ...x, sortOrder } : x))))
+    })
 
   const remove = async () => {
     const s = deleting
@@ -227,7 +258,7 @@ const ManageStatusesPage = (props: ManageStatusesPageProps) => {
               <Button variant="ghost" onClick={() => setDraft(null)}>
                 <Trans id="action.cancel">Cancel</Trans>
               </Button>
-              <Button type="submit" variant="primary" loading={busy}>
+              <Button type="submit" variant="primary" loading={busy} disabled={draft.id !== null && pending.includes(draft.id)}>
                 {draft.id === null ? <Trans id="admin.statuses.form.save">Save status</Trans> : <Trans id="admin.statuses.form.update">Update status</Trans>}
               </Button>
             </div>
@@ -257,18 +288,18 @@ const ManageStatusesPage = (props: ManageStatusesPageProps) => {
                 <Button
                   small
                   variant="ghost"
-                  disabled={i === 0}
+                  disabled={i === 0 || pending.includes(s.id)}
                   aria-label={i18n._({ id: "ui2.admin.statuses.up", message: "Move up" }) + ": " + s.label}
-                  onClick={() => move(s, -1)}
+                  onClick={() => move(s.id, -1)}
                 >
                   <span aria-hidden="true">↑</span>
                 </Button>
                 <Button
                   small
                   variant="ghost"
-                  disabled={i === statuses.length - 1}
+                  disabled={i === statuses.length - 1 || pending.includes(s.id)}
                   aria-label={i18n._({ id: "ui2.admin.statuses.down", message: "Move down" }) + ": " + s.label}
-                  onClick={() => move(s, 1)}
+                  onClick={() => move(s.id, 1)}
                 >
                   <span aria-hidden="true">↓</span>
                 </Button>
@@ -290,9 +321,10 @@ const ManageStatusesPage = (props: ManageStatusesPageProps) => {
               <div className="u2-alist__acts">
                 <Toggle
                   checked={s.isActive}
+                  disabled={pending.includes(s.id)}
                   hideLabel
                   label={i18n._({ id: "admin.statuses.table.active", message: "Active" }) + ": " + s.label}
-                  onChange={() => toggleActive(s)}
+                  onChange={() => toggleActive(s.id)}
                 />
                 <Button small variant="ghost" onClick={() => open({ ...s, id: s.id })}>
                   <Trans id="admin.statuses.action.edit">Edit</Trans>

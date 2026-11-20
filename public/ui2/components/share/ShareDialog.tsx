@@ -211,12 +211,22 @@ const ShareDialog = (props: ShareDialogProps) => {
     else if (!submitting) props.onClose()
   }
 
-  // The browser's Back button closes the dialog, as in classic. The count keeps a
-  // StrictMode remount from stepping back out of the entry it just pushed.
+  // Back reads the latest guard state; the listener below is registered once.
+  const backGuard = useRef({ closesNow: false, requestClose })
+  backGuard.current = { closesNow: !confirmClose && !dirty && !submitting, requestClose }
+
+  // The browser's Back button closes the dialog, as in classic, through the same guard as Esc.
+  // The count keeps a StrictMode remount from stepping back out of the entry it just pushed.
   useEffect(() => {
     openCount++
     if (!history.state?.u2share) history.pushState({ u2share: true }, "", location.href)
-    const onPop = () => props.onClose()
+    const onPop = () => {
+      const guard = backGuard.current
+      if (guard.closesNow) return guard.requestClose()
+      // Back already left the dialog's entry: restore it, then ask (or stay put while submitting).
+      history.pushState({ u2share: true }, "", location.href)
+      guard.requestClose()
+    }
     window.addEventListener("popstate", onPop)
     return () => {
       openCount--

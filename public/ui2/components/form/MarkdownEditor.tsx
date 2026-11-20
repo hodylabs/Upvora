@@ -225,7 +225,8 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
       toast.error(late)
       return
     }
-    if (ed.isDestroyed) return
+    // Switched to Markdown mode during the read: an insert would report the rich doc over the raw draft.
+    if (ed.isDestroyed || rawModeRef.current) return
     const bkey = generateBkey(file.name)
     const dataUrl = `data:${file.type};base64,${content}`
     uploads.current.set(bkey, { fileName: file.name, content, contentType: file.type })

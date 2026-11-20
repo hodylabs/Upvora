@@ -147,6 +147,20 @@ describe("ui2 <MarkdownEditor />", () => {
     expect(container.querySelectorAll(".ProseMirror img:not(.ProseMirror-separator)").length).toBe(1)
   })
 
+  test("an image read that ends after switching to markdown mode is dropped, keeping the raw draft", async () => {
+    const onChange = jest.fn()
+    const onImageUploaded = jest.fn()
+    const { container } = renderEditor({ initialValue: "Hello", onChange, onImageUploaded })
+    await waitFor(() => expect(container.querySelector(".ProseMirror")).not.toBeNull())
+    pickImage(container, "a.png")
+    fireEvent.click(container.querySelector(".u2-md__mode") as HTMLButtonElement)
+    fireEvent.change(screen.getByTestId("u2-markdown-raw"), { target: { value: "Raw draft" } })
+    await act(async () => new Promise((r) => setTimeout(r, 20)))
+    expect(onImageUploaded).not.toHaveBeenCalled()
+    expect(onChange).toHaveBeenLastCalledWith("Raw draft")
+    expect((screen.getByTestId("u2-markdown-raw") as HTMLTextAreaElement).value).toBe("Raw draft")
+  })
+
   test("the link dialog footer button is the submit button of its form", async () => {
     const { container } = renderEditor()
     await waitFor(() => expect(container.querySelector(".ProseMirror")).not.toBeNull())

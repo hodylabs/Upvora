@@ -58,28 +58,42 @@ export const choicesToCsv = (raw: unknown): string => {
 
 export const csvToChoices = (s: string, previous?: ScorecardFieldChoice[]): ScorecardFieldChoice[] => {
   const prevByValue = new Map((previous ?? []).map((c) => [c.value, c]))
-  return s
-    .split(",")
-    .map((v) => v.trim())
-    .filter((v) => v.length > 0)
-    .map((entry) => {
-      const sep = entry.lastIndexOf(":")
-      const maybeBucket =
-        sep >= 0
-          ? entry
-              .slice(sep + 1)
-              .trim()
-              .toLowerCase()
-          : ""
-      const hasBucket = VALID_BUCKETS.includes(maybeBucket)
-      const value = hasBucket ? entry.slice(0, sep).trim() : entry
-      const prev = prevByValue.get(value)
-      const choice: ScorecardFieldChoice = { value }
-      if (prev?.color) choice.color = prev.color
-      const bucket = hasBucket ? (maybeBucket as ScorecardFieldChoice["bucket"]) : prev?.bucket
-      if (bucket) choice.bucket = bucket
-      return choice
-    })
+  const parse = (entry: string) => {
+    const sep = entry.lastIndexOf(":")
+    const maybeBucket =
+      sep >= 0
+        ? entry
+            .slice(sep + 1)
+            .trim()
+            .toLowerCase()
+        : ""
+    const hasBucket = VALID_BUCKETS.includes(maybeBucket)
+    return { value: hasBucket ? entry.slice(0, sep).trim() : entry, bucket: hasBucket ? (maybeBucket as ScorecardFieldChoice["bucket"]) : undefined }
+  }
+  const parts = s.split(",")
+  const out: ScorecardFieldChoice[] = []
+  for (let i = 0; i < parts.length; i++) {
+    let entry = parts[i].trim()
+    // A stored value that holds a comma ("Sales, EU") stays one option: take the longest run
+    // of pieces that rejoins into an existing value.
+    for (let j = parts.length; j > i + 1; j--) {
+      const joined = parts.slice(i, j).join(",").trim()
+      if (prevByValue.has(parse(joined).value)) {
+        entry = joined
+        i = j - 1
+        break
+      }
+    }
+    if (entry.length === 0) continue
+    const { value, bucket: stated } = parse(entry)
+    const prev = prevByValue.get(value)
+    const choice: ScorecardFieldChoice = { value }
+    if (prev?.color) choice.color = prev.color
+    const bucket = stated ?? prev?.bucket
+    if (bucket) choice.bucket = bucket
+    out.push(choice)
+  }
+  return out
 }
 
 export const slugifyKey = (s: string): string =>

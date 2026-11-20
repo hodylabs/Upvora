@@ -190,6 +190,22 @@ describe("ui2 ShareIdea", () => {
     await waitFor(() => expect(screen.getAllByRole("dialog")).toHaveLength(2))
   })
 
+  test("browser Back on a non-empty draft asks too, and keeps the dialog's history entry", async () => {
+    renderHost("member")
+    act(() => {
+      requestShare("Something worth keeping")
+    })
+    await dialog()
+    await waitFor(() => expect(window.history.state?.u2share).toBe(true))
+    // what Back does: the dialog's entry is gone, then popstate fires
+    act(() => {
+      window.history.replaceState({}, "", "/")
+      window.dispatchEvent(new PopStateEvent("popstate"))
+    })
+    await waitFor(() => expect(screen.getAllByRole("dialog")).toHaveLength(2))
+    expect(window.history.state?.u2share).toBe(true)
+  })
+
   test("a Vora answer that lands after switching to Write it yourself does not touch the draft", async () => {
     let answer: (v: unknown) => void = () => undefined
     const urls: string[] = []
