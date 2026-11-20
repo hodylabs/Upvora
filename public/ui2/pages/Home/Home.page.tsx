@@ -12,7 +12,7 @@ import { PeekPanel, PeekDetails } from "../../components/PeekPanel"
 import { useRowKeys } from "../../components/useRowKeys"
 import { statusInfo } from "../../lib/status"
 import { BoardInsights, Voter, duplicateOf, fetchInsights } from "../../lib/insights"
-import { postHref, replaceQuery, signInHref } from "../../lib/nav"
+import { postHref, replaceQuery } from "../../lib/nav"
 import { requestShare } from "../../lib/share"
 import { VoraBar, modKey } from "./VoraBar"
 import { BoardControls } from "./BoardControls"
@@ -154,14 +154,8 @@ const HomePage = (props: HomePageProps) => {
 
   const onDetails = (num: number, d: PeekDetails) => d.voters.length > 0 && setVoters((v) => ({ ...v, [num]: d.voters }))
 
-  const share = (title: string) => {
-    if (!signedIn) {
-      navigator.goTo(signInHref())
-      return
-    }
-    // Stage 4's Vora conversation claims the event; until then, say so inline.
-    setShareNote(!requestShare(title))
-  }
+  // ShareIdea (components/share) claims the event and sends signed-out people to sign in.
+  const share = (title: string) => setShareNote(!requestShare(title))
 
   const focusRow = (i: number) => {
     setFocused(i)
