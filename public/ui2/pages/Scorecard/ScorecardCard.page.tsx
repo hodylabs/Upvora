@@ -1,3 +1,4 @@
+import "../../components/form/form.css"
 import "./scorecard.css"
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
@@ -165,13 +166,12 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
   )
 
   // A choice select; a stored value no longer in the list stays selectable, marked retired.
-  // TODO(form-primitives): shared select
   const choiceSelect = (f: ScorecardField, id: string, disabled: boolean) => {
     const strVal = String(values[f.key] ?? "")
     const choices = parseChoices(f.choices)
     const legacy = strVal !== "" && !choices.some((c) => c.value === strVal)
     return (
-      <select id={id} className="u2-sc__control" value={strVal} disabled={disabled} onChange={(e) => setValue(f.key, e.target.value)}>
+      <select id={id} className="u2-ctl" value={strVal} disabled={disabled} onChange={(e) => setValue(f.key, e.target.value)}>
         <option value="">–</option>
         {choices.map((c) => (
           <option key={c.value} value={c.value}>
@@ -209,7 +209,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
             {f.question && <p className="u2-sc__score-q u2-muted">{f.question}</p>}
           </div>
           <div className="u2-sc__slider">
-            {/* TODO(form-primitives): shared range input */}
+            {/* No shared range primitive: a native range styled by .u2-sc__slider. */}
             <input id={id} type="range" min={0} max={5} step={1} value={n} disabled={retired} onChange={(e) => setValue(key, parseInt(e.target.value, 10))} />
             <div className="u2-sc__steps u2-mono" aria-hidden="true">
               {STEPS.map((s) => (
@@ -222,7 +222,6 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
       )
     }
 
-    // TODO(form-primitives): shared inputs and textareas below
     if (f.type === "choice") {
       return (
         <div key={key} className="u2-sc__field">
@@ -238,7 +237,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
           {label}
           <textarea
             id={id}
-            className="u2-sc__control"
+            className="u2-ctl"
             rows={f.type === "note" ? 3 : 1}
             value={strVal}
             disabled={retired}
@@ -254,7 +253,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
           {label}
           <input
             id={id}
-            className="u2-sc__control"
+            className="u2-ctl"
             type="text"
             list={listId}
             value={strVal}
@@ -275,7 +274,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
     return (
       <div key={key} className="u2-sc__field">
         {label}
-        <input id={id} className="u2-sc__control" type={type} value={strVal} disabled={retired} onChange={(e) => setValue(key, e.target.value)} />
+        <input id={id} className="u2-ctl" type={type} value={strVal} disabled={retired} onChange={(e) => setValue(key, e.target.value)} />
       </div>
     )
   }
@@ -317,9 +316,8 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
 
       <section className="u2-panel u2-sc__headcard">
         <div className="u2-sc__titlerow">
-          {/* TODO(form-primitives): shared input */}
           <input
-            className="u2-sc__titleinput"
+            className="u2-ctl u2-sc__titleinput"
             value={title}
             onChange={(e) => changeTitle(e.target.value)}
             aria-label={i18n._({ id: "ui2.scorecard.titlelabel", message: "Scorecard title" })}

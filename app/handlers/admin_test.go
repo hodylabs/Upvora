@@ -13,6 +13,7 @@ import (
 	"github.com/getfider/fider/app/models/query"
 	. "github.com/getfider/fider/app/pkg/assert"
 	"github.com/getfider/fider/app/pkg/bus"
+	"github.com/getfider/fider/app/pkg/crypto"
 	"github.com/getfider/fider/app/pkg/env"
 	"github.com/getfider/fider/app/pkg/mock"
 	"github.com/getfider/fider/app/services/blob/fs"
@@ -263,4 +264,20 @@ func TestManageMembersHandler(t *testing.T) {
 		)
 
 	Expect(code).Equals(http.StatusOK)
+}
+
+// Each look links its own Custom CSS by md5; the route serves the matching one.
+func TestCustomCSSHandler_ServesFilePerLook(t *testing.T) {
+	RegisterT(t)
+
+	tenant := &entity.Tenant{ID: 1, Name: "Acme", Subdomain: "acme", CustomCSS: ".classic{}", UI2CustomCSS: ".u2{}"}
+	serve := func(hash string) string {
+		_, res := mock.NewServer().OnTenant(tenant).AddParam("md5.css", hash+".css").Execute(handlers.CustomCSS())
+		return res.Body.String()
+	}
+
+	Expect(serve(crypto.MD5(".u2{}"))).Equals(".u2{}")
+	Expect(serve(crypto.MD5(".classic{}"))).Equals(".classic{}")
+	// Unknown hashes (an old cached link) get classic's, as before.
+	Expect(serve("0000")).Equals(".classic{}")
 }

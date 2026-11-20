@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/getfider/fider/app/handlers"
@@ -121,9 +120,7 @@ func routes(r *web.Engine) *web.Engine {
 		tenantAssets.Use(middlewares.ClientCache(30 * 24 * time.Hour))
 		tenantAssets.Get("/static/favicon/*bkey", handlers.Favicon())
 		tenantAssets.Get("/static/images/*bkey", handlers.ViewUploadedImage())
-		tenantAssets.Get("/static/custom/:md5.css", func(c *web.Context) error {
-			return c.Blob(http.StatusOK, "text/css", []byte(c.Tenant().CustomCSS))
-		})
+		tenantAssets.Get("/static/custom/:md5.css", handlers.CustomCSS())
 	}
 
 	r.Get("/_design", handlers.Page("Design System", "A preview of Fider UI elements", "DesignSystem/DesignSystem.page"))

@@ -48,6 +48,8 @@ type UpdateTenantSettings struct {
 type UpdateTenantAdvancedSettings struct {
 	CustomCSS      string
 	AllowedSchemes string
+	// The new look's Custom CSS; nil leaves the stored value unchanged.
+	UI2CustomCSS *string
 }
 
 type UpdateTenantSiteBanner struct {

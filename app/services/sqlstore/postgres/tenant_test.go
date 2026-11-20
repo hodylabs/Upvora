@@ -233,6 +233,38 @@ func TestTenantStorage_AdvancedSettings(t *testing.T) {
 	Expect(err).IsNil()
 	Expect(getByDomain.Result.CustomCSS).Equals(".primary { color: red; }")
 	Expect(getByDomain.Result.AllowedSchemes).Equals("^monero:[48]\n^bitcoin:(1|3|bc1)")
+	Expect(getByDomain.Result.UI2CustomCSS).Equals("")
+}
+
+// The new look's Custom CSS round-trips through both tenant reads, and a save
+// that leaves it out (classic's page, older API clients) keeps it.
+func TestTenantStorage_UI2CustomCSS(t *testing.T) {
+	SetupDatabaseTest(t)
+	defer TeardownDatabaseTest()
+
+	ui2 := ".u2-row { gap: 0; }"
+	err := bus.Dispatch(demoTenantCtx, &cmd.UpdateTenantAdvancedSettings{CustomCSS: ".classic {}", UI2CustomCSS: &ui2})
+	Expect(err).IsNil()
+
+	getByDomain := &query.GetTenantByDomain{Domain: "demo"}
+	Expect(bus.Dispatch(demoTenantCtx, getByDomain)).IsNil()
+	Expect(getByDomain.Result.CustomCSS).Equals(".classic {}")
+	Expect(getByDomain.Result.UI2CustomCSS).Equals(ui2)
+
+	first := &query.GetFirstTenant{}
+	Expect(bus.Dispatch(demoTenantCtx, first)).IsNil()
+	Expect(first.Result.UI2CustomCSS).Equals(ui2)
+
+	err = bus.Dispatch(demoTenantCtx, &cmd.UpdateTenantAdvancedSettings{CustomCSS: ".classic2 {}"})
+	Expect(err).IsNil()
+	Expect(bus.Dispatch(demoTenantCtx, getByDomain)).IsNil()
+	Expect(getByDomain.Result.CustomCSS).Equals(".classic2 {}")
+	Expect(getByDomain.Result.UI2CustomCSS).Equals(ui2)
+
+	empty := ""
+	Expect(bus.Dispatch(demoTenantCtx, &cmd.UpdateTenantAdvancedSettings{CustomCSS: ".classic2 {}", UI2CustomCSS: &empty})).IsNil()
+	Expect(bus.Dispatch(demoTenantCtx, getByDomain)).IsNil()
+	Expect(getByDomain.Result.UI2CustomCSS).Equals("")
 }
 
 func TestTenantStorage_SaveFindSet_VerificationKey(t *testing.T) {

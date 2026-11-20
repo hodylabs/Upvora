@@ -24,6 +24,7 @@ type Tenant struct {
 	IsPrivate                  bool           `db:"is_private"`
 	LogoBlobKey                string         `db:"logo_bkey"`
 	CustomCSS                  string         `db:"custom_css"`
+	UI2CustomCSS               string         `db:"ui2_custom_css"`
 	AllowedSchemes             string         `db:"allowed_schemes"`
 	IsEmailAuthAllowed         bool           `db:"is_email_auth_allowed"`
 	IsFeedEnabled              bool           `db:"is_feed_enabled"`
@@ -103,6 +104,7 @@ func (t *Tenant) ToModel() *entity.Tenant {
 		IsPrivate:                t.IsPrivate,
 		LogoBlobKey:              t.LogoBlobKey,
 		CustomCSS:                t.CustomCSS,
+		UI2CustomCSS:             t.UI2CustomCSS,
 		AllowedSchemes:           t.AllowedSchemes,
 		IsEmailAuthAllowed:       t.IsEmailAuthAllowed,
 		IsFeedEnabled:            t.IsFeedEnabled,

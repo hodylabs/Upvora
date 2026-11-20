@@ -298,6 +298,9 @@ func (action *UpdateTenantSettings) Validate(ctx context.Context, user *entity.U
 type UpdateTenantAdvancedSettings struct {
 	CustomCSS      string `json:"customCSS"`
 	AllowedSchemes string `json:"allowedSchemes"`
+	// The new look's own Custom CSS. Omitted (nil) leaves the stored value as is,
+	// so clients that only know customCSS keep working.
+	UI2CustomCSS *string `json:"ui2CustomCSS"`
 }
 
 // IsAuthorized returns true if current user is authorized to perform this action

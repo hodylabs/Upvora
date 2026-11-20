@@ -21,13 +21,14 @@ func GetTenant() web.HandlerFunc {
 	}
 }
 
-// GetAdvancedSettings returns the Advanced tab's fields (CustomCSS is not in
-// the tenant JSON).
+// GetAdvancedSettings returns the Advanced tab's fields (neither Custom CSS is
+// in the tenant JSON). customCSS applies to classic, ui2CustomCSS to the new look.
 func GetAdvancedSettings() web.HandlerFunc {
 	return func(c *web.Context) error {
 		tenant := c.Tenant()
 		return c.Ok(web.Map{
 			"customCSS":      tenant.CustomCSS,
+			"ui2CustomCSS":   tenant.UI2CustomCSS,
 			"allowedSchemes": tenant.AllowedSchemes,
 		})
 	}

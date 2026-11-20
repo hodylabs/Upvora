@@ -93,12 +93,6 @@
   padding-block: 2px;
   font-size: 12px;
 }
-.u2-mod__danger {
-  color: var(--u-danger);
-}
-.u2-mod__danger:hover {
-  border-color: var(--u-danger);
-}
 @media (max-width: 840px) {
   .u2-mod__acts .u2-btn {
     min-height: 44px;

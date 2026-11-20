@@ -1,0 +1,71 @@
+/* Billing plan cards */
+.u2-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-block-start: 14px;
+}
+.u2-plan {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 14px;
+  border: 1px solid var(--u-edge);
+  border-radius: var(--u-radius);
+  background: var(--u-chip);
+}
+.u2-plan--hi {
+  border-color: var(--u-accent);
+}
+.u2-plan--current {
+  box-shadow: 0 0 0 1px var(--u-s-shipped);
+}
+.u2-plan__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.u2-plan__price {
+  margin: 0;
+}
+.u2-plan__price b {
+  font-size: 22px;
+}
+.u2-plan__now {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--u-glass);
+  color: var(--u-muted);
+  text-align: center;
+  font-size: 13px;
+}
+.u2-plan__list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0 0;
+  border-block-start: 1px solid var(--u-line);
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+.u2-plan__list li {
+  display: flex;
+  gap: 8px;
+}
+.u2-plan__list li > span:first-child {
+  color: var(--u-s-shipped);
+}
+.u2-plan__list li.is-neg > span:first-child {
+  color: var(--u-danger);
+}
+.u2-plan__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--u-text);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

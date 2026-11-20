@@ -1,0 +1,47 @@
+/* Authentication and Members pages. */
+.u2-oauth__logo {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+.u2-oauth__preview {
+  justify-self: start;
+  pointer-events: none;
+}
+.u2-oauth__on {
+  color: var(--u-s-shipped);
+}
+.u2-oauth__off {
+  color: var(--u-danger);
+}
+.u2-members {
+  margin-block-start: 12px;
+}
+.u2-members__level {
+  width: auto;
+  min-width: 160px;
+}
+.u2-members__badge--administrator,
+.u2-members__badge--collaborator {
+  color: var(--u-s-planned);
+}
+.u2-members__badge--trusted {
+  color: var(--u-s-shipped);
+}
+.u2-members__badge--blocked {
+  color: var(--u-danger);
+}
+.u2-members__pages {
+  margin-block-start: 10px;
+}
+.u2-members__legend {
+  margin-block-start: 14px;
+  padding-inline-start: 18px;
+  font-size: 13px;
+}
+.u2-bannerprev {
+  border-radius: 8px;
+  white-space: pre-wrap;
+  font-weight: 600;
+}

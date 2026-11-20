@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/getfider/fider/app/actions"
 	"github.com/getfider/fider/app/models/cmd"
@@ -9,6 +10,7 @@ import (
 	"github.com/getfider/fider/app/models/entity"
 	"github.com/getfider/fider/app/models/query"
 	"github.com/getfider/fider/app/pkg/bus"
+	"github.com/getfider/fider/app/pkg/crypto"
 	"github.com/getfider/fider/app/pkg/env"
 	"github.com/getfider/fider/app/pkg/web"
 	"github.com/getfider/fider/app/tasks"
@@ -32,6 +34,7 @@ func AdvancedSettingsPage() web.HandlerFunc {
 			Title: "Advanced · Site Settings",
 			Data: web.Map{
 				"customCSS":      c.Tenant().CustomCSS,
+				"ui2CustomCSS":   c.Tenant().UI2CustomCSS,
 				"allowedSchemes": c.Tenant().AllowedSchemes,
 			},
 		})
@@ -93,6 +96,7 @@ func UpdateAdvancedSettings() web.HandlerFunc {
 		if err := bus.Dispatch(c, &cmd.UpdateTenantAdvancedSettings{
 			CustomCSS:      action.CustomCSS,
 			AllowedSchemes: action.AllowedSchemes,
+			UI2CustomCSS:   action.UI2CustomCSS,
 		}); err != nil {
 			return c.Failure(err)
 		}
@@ -334,5 +338,19 @@ func UpdateMCPSettings() web.HandlerFunc {
 			return c.Failure(err)
 		}
 		return c.Ok(web.Map{})
+	}
+}
+
+// CustomCSS serves a site's Custom CSS at /static/custom/<md5>.css. Each look links
+// its own file by the md5 of its CSS: a hash matching the new look's CSS serves that,
+// anything else serves classic's (as before, so old cached links keep working).
+func CustomCSS() web.HandlerFunc {
+	return func(c *web.Context) error {
+		tenant := c.Tenant()
+		hash := strings.TrimSuffix(c.Param("md5.css"), ".css")
+		if tenant.UI2CustomCSS != "" && hash == crypto.MD5(tenant.UI2CustomCSS) {
+			return c.Blob(http.StatusOK, "text/css", []byte(tenant.UI2CustomCSS))
+		}
+		return c.Blob(http.StatusOK, "text/css", []byte(tenant.CustomCSS))
 	}
 }

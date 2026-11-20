@@ -6,6 +6,7 @@ import { i18n } from "@lingui/core"
 import { User, UserStatus } from "@fider/models"
 import { Result, actions, chopString, formatDate, http, markdown, notify, timeSince } from "@fider/services"
 import { useFider } from "@fider/hooks"
+import { Button } from "../../../components/form"
 
 // The moderation queue (paid plan only). The route is behind RequirePro (proUi) and its
 // data and actions behind RequirePro too (proAdmin, proAdminApi), exactly as classic;
@@ -110,24 +111,18 @@ const Item = (props: { item: ModerationItem; locale: string; busy: boolean; onAc
         </a>
         {item.type === "post" ? <p className="u2-mod__text">{excerpt}</p> : <p className="u2-mod__on u2-muted">{title}</p>}
         <div className="u2-mod__acts">
-          <button type="button" className="u2-btn" disabled={props.busy} onClick={() => props.onAct(item, "approve")} data-verb="approve">
+          <Button disabled={props.busy} onClick={() => props.onAct(item, "approve")} data-verb="approve">
             <Trans id="action.publish">Publish</Trans>
-          </button>
-          <button type="button" className="u2-btn" disabled={props.busy} onClick={() => props.onAct(item, "decline")} data-verb="decline">
+          </Button>
+          <Button disabled={props.busy} onClick={() => props.onAct(item, "decline")} data-verb="decline">
             <Trans id="action.delete">Delete</Trans>
-          </button>
-          <button type="button" className="u2-btn" disabled={props.busy} onClick={() => props.onAct(item, "approveVerify")} data-verb="approveVerify">
+          </Button>
+          <Button disabled={props.busy} onClick={() => props.onAct(item, "approveVerify")} data-verb="approveVerify">
             <Trans id="action.publish.verify">Publish & Trust</Trans>
-          </button>
-          <button
-            type="button"
-            className="u2-btn u2-mod__danger"
-            disabled={props.busy}
-            onClick={() => props.onAct(item, "declineBlock")}
-            data-verb="declineBlock"
-          >
+          </Button>
+          <Button variant="danger" disabled={props.busy} onClick={() => props.onAct(item, "declineBlock")} data-verb="declineBlock">
             <Trans id="action.delete.block">Delete & Block</Trans>
-          </button>
+          </Button>
         </div>
       </div>
     </li>
