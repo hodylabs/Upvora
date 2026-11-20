@@ -3,6 +3,7 @@ import React, { useState } from "react"
 import { i18n } from "@lingui/core"
 import { Trans } from "@lingui/react/macro"
 import { actions, Failure, uploadedImageURL } from "@fider/services"
+import { sameOriginPath } from "@fider/services/url"
 import { useFider } from "@fider/hooks"
 import { EmailVerificationKind } from "@fider/models"
 import { Button, Form, TextInput } from "../../components/form"
@@ -11,18 +12,6 @@ interface CompleteSignInProfilePageProps {
   kind: EmailVerificationKind
   k: string
   c?: string
-}
-
-// Copied from classic's SignIn/CompleteSignInProfile.page.tsx: a path to go to only if
-// it stays on this site.
-export const sameOriginPath = (redirect: string | undefined, origin: string): string | undefined => {
-  if (!redirect || !redirect.startsWith("/")) return undefined
-  try {
-    const u = new URL(redirect, origin)
-    return u.origin === origin ? u.pathname + u.search + u.hash : undefined
-  } catch {
-    return undefined
-  }
 }
 
 const CompleteSignInProfilePage = (props: CompleteSignInProfilePageProps) => {

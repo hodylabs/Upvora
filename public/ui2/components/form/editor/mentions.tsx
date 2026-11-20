@@ -37,7 +37,8 @@ export const MentionList = forwardRef<MentionListHandle, ListProps>((props, ref)
         setSelected((selected + 1) % n)
         return true
       }
-      if (event.key === "Enter") {
+      // With no match, Enter stays a normal newline.
+      if (event.key === "Enter" && n) {
         pick(selected)
         return true
       }

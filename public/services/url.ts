@@ -28,3 +28,21 @@ export const isValidUrl = (url: string, allowedSchemesRegex?: RegExp[]): boolean
   const allowed = [new RegExp("^https?://", "i"), ...(allowedSchemesRegex || [])]
   return allowed.some((pattern) => pattern.test(normalizedUrl))
 }
+
+/**
+ * A redirect target to follow only if it stays on this site: a same-origin relative path.
+ * Rejects absolute URLs, protocol-relative "//host" and anything with a backslash, also after
+ * normalization ("/.//evil.com" becomes "//evil.com", which a browser reads as another host).
+ * @returns the normalized path, or undefined when the target is unsafe
+ */
+export const sameOriginPath = (redirect: string | undefined, origin: string): string | undefined => {
+  if (!redirect || !redirect.startsWith("/") || redirect.startsWith("//") || redirect.includes("\\")) return undefined
+  try {
+    const u = new URL(redirect, origin)
+    if (u.origin !== origin) return undefined
+    const path = u.pathname + u.search + u.hash
+    return path.startsWith("//") || path.startsWith("/\\") ? undefined : path
+  } catch {
+    return undefined
+  }
+}

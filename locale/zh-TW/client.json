@@ -608,6 +608,8 @@
   "ui2.signin.emaildisabled": "",
   "ui2.signin.or": "",
   "ui2.signup.available": "",
+  "ui2.signup.checkfailed": "",
+  "ui2.signup.failed": "",
   "ui2.signup.hello": "",
   "ui2.signup.identify": "",
   "ui2.signup.sitename": "",

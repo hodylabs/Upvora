@@ -6,8 +6,18 @@ import { i18n } from "@lingui/core"
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]'
 
+// Rendered and visible: no display:none on the element or an ancestor inside the dialog, and not
+// visibility:hidden. Computed style rather than offsetParent, which is also null for fixed elements.
+const isShown = (el: HTMLElement, root: HTMLElement) => {
+  if (getComputedStyle(el).visibility === "hidden") return false
+  for (let n: HTMLElement | null = el; n && n !== root; n = n.parentElement) {
+    if (n.hidden || getComputedStyle(n).display === "none") return false
+  }
+  return true
+}
+
 const focusables = (root: HTMLElement) =>
-  Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => !el.closest("[hidden]") && el.getAttribute("aria-hidden") !== "true")
+  Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => !el.closest("[hidden]") && !el.closest('[aria-hidden="true"]') && isShown(el, root))
 
 interface ModalProps {
   open: boolean
@@ -33,6 +43,9 @@ export const Modal = (props: ModalProps) => {
   useEffect(() => {
     if (!props.open) return
     const opener = document.activeElement as HTMLElement | null
+    // Lock page scroll; restore the previous value (not "") so another modal's lock survives.
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
     const dialog = ref.current
     if (dialog) {
       const first = focusables(dialog).find((el) => !el.classList.contains("u2-dlg__close"))
@@ -66,6 +79,7 @@ export const Modal = (props: ModalProps) => {
     document.addEventListener("keydown", onKey, true)
     return () => {
       document.removeEventListener("keydown", onKey, true)
+      document.body.style.overflow = prevOverflow
       if (opener && document.contains(opener)) opener.focus()
     }
   }, [props.open])

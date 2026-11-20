@@ -166,6 +166,8 @@
 textarea.u2-ctl {
   resize: vertical;
   min-height: 72px;
+  max-height: 60vh;
+  overflow-y: auto;
   line-height: 1.45;
 }
 select.u2-ctl {

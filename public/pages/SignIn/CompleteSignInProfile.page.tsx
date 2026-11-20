@@ -2,6 +2,7 @@ import React, { useState } from "react"
 
 import { Button, Form, Input, TenantLogo } from "@fider/components"
 import { actions, Failure } from "@fider/services"
+import { sameOriginPath } from "@fider/services/url"
 import { i18n } from "@lingui/core"
 import { Trans } from "@lingui/react/macro"
 
@@ -16,15 +17,7 @@ interface CompleteSignInProfilePageProps {
 }
 
 // sameOriginPath returns a path to navigate to only if it stays on this site.
-export const sameOriginPath = (redirect: string | undefined, origin: string): string | undefined => {
-  if (!redirect || !redirect.startsWith("/")) return undefined
-  try {
-    const u = new URL(redirect, origin)
-    return u.origin === origin ? u.pathname + u.search + u.hash : undefined
-  } catch {
-    return undefined
-  }
-}
+export { sameOriginPath }
 
 const CompleteSignInProfilePage = (props: CompleteSignInProfilePageProps) => {
   const [name, setName] = useState("")

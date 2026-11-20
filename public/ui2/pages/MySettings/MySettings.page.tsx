@@ -1,5 +1,5 @@
 import "../../components/account/account.css"
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { i18n } from "@lingui/core"
 import { Trans } from "@lingui/react/macro"
 import { actions, Failure, navigator } from "@fider/services"
@@ -59,14 +59,26 @@ const ProfileSection = (props: MySettingsPageProps) => {
     setError(result.error)
   }
 
+  const [emailBusy, setEmailBusy] = useState(false)
+  // A ref, not state: a held Enter fires again before the re-render.
+  const emailBusyRef = useRef(false)
+
   const submitNewEmail = async () => {
-    const result = await actions.changeUserEmail(newEmail)
-    if (result.ok) {
-      setError(undefined)
-      setChangingEmail(false)
-      setEmailSentTo(newEmail)
-    } else {
-      setError(result.error)
+    if (emailBusyRef.current) return
+    emailBusyRef.current = true
+    setEmailBusy(true)
+    try {
+      const result = await actions.changeUserEmail(newEmail)
+      if (result.ok) {
+        setError(undefined)
+        setChangingEmail(false)
+        setEmailSentTo(newEmail)
+      } else {
+        setError(result.error)
+      }
+    } finally {
+      emailBusyRef.current = false
+      setEmailBusy(false)
     }
   }
 
@@ -112,7 +124,7 @@ const ProfileSection = (props: MySettingsPageProps) => {
             <div className="u2-row">
               {changingEmail ? (
                 <>
-                  <Button small variant="primary" onClick={submitNewEmail}>
+                  <Button small variant="primary" loading={emailBusy} onClick={submitNewEmail}>
                     <Trans id="action.confirm">Confirm</Trans>
                   </Button>
                   <Button small variant="ghost" onClick={cancelEmail}>

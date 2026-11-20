@@ -3,7 +3,7 @@ import { createPortal } from "react-dom"
 import { Trans } from "@lingui/react/macro"
 import { uploadedImageURL } from "@fider/services"
 import { useFider } from "@fider/hooks"
-import { applyTheme } from "../lib/theme"
+import { applyTheme, followSystemTheme } from "../lib/theme"
 import { NotificationsBadge } from "../components/NotificationsBadge"
 import { ModerationBadge } from "../components/ModerationBadge"
 import { URL_CHANGE_EVENT } from "../lib/nav"
@@ -43,6 +43,8 @@ const currentTheme = (): Theme => (document.body.getAttribute("data-theme") === 
 
 const ThemeToggle = () => {
   const [theme, setTheme] = useState<Theme>(currentTheme)
+  const siteDefault = useFider().session.tenant?.defaultTheme
+  useEffect(() => followSystemTheme(siteDefault), [siteDefault])
   useEffect(() => {
     const sync = () => setTheme(currentTheme())
     window.addEventListener("ui2:themechange", sync)

@@ -610,6 +610,8 @@
   "ui2.signin.emaildisabled": "Email authentication has been disabled by an administrator. If you have an administrator account and need to bypass this restriction, please <0>click here</0>.",
   "ui2.signin.or": "or",
   "ui2.signup.available": "This subdomain is available!",
+  "ui2.signup.checkfailed": "Could not check this subdomain. Please try again.",
+  "ui2.signup.failed": "Could not create the site. Please check your connection and try again.",
   "ui2.signup.hello": "Hello, <0>{0}</0>",
   "ui2.signup.identify": "We need to identify you to set up your new site.",
   "ui2.signup.sitename": "Site name",

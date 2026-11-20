@@ -8,6 +8,7 @@ import { Trans } from "@lingui/react/macro"
 import { fileToBase64 } from "@fider/services"
 import { generateBkey } from "@fider/services/bkey"
 import { isValidUrl, normalizeUrl } from "@fider/services/url"
+import { fiderImageBkey } from "@fider/services/markdownSyntax"
 import { useAllowedProtocols, useAllowedSchemesRegex } from "@fider/hooks"
 import { ImageUpload } from "@fider/models"
 import { CustomImage } from "./editor/CustomImage"
@@ -40,7 +41,8 @@ export interface MarkdownEditorProps {
   disabled?: boolean
   onChange?: (markdown: string) => void
   onFocus?: () => void
-  // Called with each new image (upload set) and each removed one (remove: true).
+  // Called with each removed image (remove: true) and each added or restored one (remove: false,
+  // with the upload for an image added in this session).
   onImageUploaded?: (upload: ImageUpload) => void
   // Base64 content of an image held by the parent (a restored draft), by bkey.
   onGetImageSrc?: (bkey: string) => string
@@ -57,6 +59,17 @@ const imageBkeys = (editor: Editor): Set<string> => {
     if ((node.type.name === "customImage" || node.type.name === "image") && node.attrs.bkey) keys.add(node.attrs.bkey)
     return true
   })
+  return keys
+}
+
+// Image keys in raw Markdown, in the exact ![](fider-image:<bkey>) form the editor turns into images.
+// shortcut: also counts one inside a code block; switching back to rich mode re-syncs from the editor's parse.
+const rawImageBkeys = (md: string): Set<string> => {
+  const keys = new Set<string>()
+  for (const m of md.matchAll(/!\[\]\((fider-image:[^)\s]+)\)/g)) {
+    const bkey = fiderImageBkey(m[1])
+    if (bkey) keys.add(bkey)
+  }
   return keys
 }
 
@@ -78,6 +91,7 @@ const LinkDialog = (props: LinkDialogProps) => {
   const [url, setUrl] = useState("")
   const [errors, setErrors] = useState<{ text?: string; url?: string }>({})
   const allowed = useAllowedSchemesRegex()
+  const formId = useId()
 
   useEffect(() => {
     if (props.open) {
@@ -107,13 +121,13 @@ const LinkDialog = (props: LinkDialogProps) => {
           <Button variant="ghost" onClick={props.onClose}>
             <Trans id="action.cancel">Cancel</Trans>
           </Button>
-          <Button variant="primary" onClick={submit}>
+          <Button variant="primary" type="submit" form={formId}>
             <Trans id="ui2.editor.link.insert">Insert link</Trans>
           </Button>
         </>
       }
     >
-      <Form onSubmit={submit}>
+      <Form id={formId} onSubmit={submit}>
         <TextInput
           stacked
           name="text"
@@ -157,17 +171,24 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
   const rawModeRef = useRef(rawMode)
   rawModeRef.current = rawMode
   const imagesRef = useRef<Set<string>>(new Set())
-  // data: URLs of images added in this session, by bkey (the Markdown only holds the bkey).
-  const pendingSrc = useRef<Map<string, string>>(new Map())
+  // Upload payloads of images added in this session, by bkey (the Markdown only holds the bkey).
+  // Kept after a removal so Undo can send the image again.
+  const uploads = useRef<Map<string, NonNullable<ImageUpload["upload"]>>>(new Map())
   const initialContent = useRef(props.initialValue ?? "")
 
-  const syncImages = (editor: Editor) => {
-    const now = imageBkeys(editor)
-    imagesRef.current.forEach((bkey) => {
+  // Reports every image that left the text (remove: true) and every one that came back or was
+  // added (remove: false, with the upload when this session holds it; a stored image needs none).
+  const reconcileImages = (now: Set<string>) => {
+    const prev = imagesRef.current
+    imagesRef.current = now
+    prev.forEach((bkey) => {
       if (!now.has(bkey)) propsRef.current.onImageUploaded?.({ bkey, remove: true })
     })
-    imagesRef.current = now
+    now.forEach((bkey) => {
+      if (!prev.has(bkey)) propsRef.current.onImageUploaded?.({ bkey, upload: uploads.current.get(bkey), remove: false })
+    })
   }
+  const syncImages = (editor: Editor) => reconcileImages(imageBkeys(editor))
 
   const validate = (file: File): string => {
     const maxKB = propsRef.current.maxImageSizeKB || 5 * 1024
@@ -191,18 +212,24 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
     const ed = editorRef.current
     if (!ed || ed.isDestroyed) return
     const content = await fileToBase64(file)
+    // Another image may have landed during the read: check the limit again.
+    const late = validate(file)
+    if (late) {
+      toast.error(late)
+      return
+    }
+    if (ed.isDestroyed) return
     const bkey = generateBkey(file.name)
     const dataUrl = `data:${file.type};base64,${content}`
-    pendingSrc.current.set(bkey, dataUrl)
+    uploads.current.set(bkey, { fileName: file.name, content, contentType: file.type })
     const before = ed.state.doc
+    // The update this insert triggers reports the new image through syncImages.
     ed.chain()
       .focus()
       .setImage({ src: dataUrl, alt: file.name, ...({ bkey } as Record<string, string>) })
       .run()
     // An unchanged doc means the insert was dropped: never register a blob the text does not reference.
-    if (ed.state.doc === before) return
-    propsRef.current.onImageUploaded?.({ bkey, upload: { fileName: file.name, content, contentType: file.type }, remove: false })
-    imagesRef.current.add(bkey)
+    if (ed.state.doc === before) uploads.current.delete(bkey)
   }
 
   const editor = useEditor(
@@ -223,8 +250,8 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
           HTMLAttributes: {},
           allowBase64: true,
           onGetImageSrc: (bkey) => {
-            const pending = pendingSrc.current.get(bkey)
-            if (pending) return pending
+            const pending = uploads.current.get(bkey)
+            if (pending) return `data:${pending.contentType};base64,${pending.content}`
             const cached = propsRef.current.onGetImageSrc?.(bkey)
             return cached ? "data:image/jpeg;base64," + cached : ""
           },
@@ -297,6 +324,7 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
     if (!editor) return
     if (rawMode) {
       editor.commands.setContent(rawText, { emitUpdate: false, contentType: "markdown" })
+      syncImages(editor) // the editor's parse is the authority on which images remain
     } else {
       setRawText(editor.getMarkdown().trim())
     }
@@ -422,6 +450,7 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
               setLength(e.target.value.length)
               clearError(props.field)
               props.onChange?.(e.target.value)
+              reconcileImages(rawImageBkeys(e.target.value))
             }}
             data-testid="u2-markdown-raw"
           />
