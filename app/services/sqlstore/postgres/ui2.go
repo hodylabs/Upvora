@@ -13,6 +13,7 @@ import (
 
 	"github.com/getfider/fider/app/models/cmd"
 	"github.com/getfider/fider/app/models/entity"
+	"github.com/getfider/fider/app/models/enum"
 	"github.com/getfider/fider/app/models/query"
 	"github.com/getfider/fider/app/pkg/dbx"
 	"github.com/getfider/fider/app/pkg/errors"
@@ -49,6 +50,7 @@ func getBoardInsights(ctx context.Context, q *query.GetBoardInsights) error {
 			Momentum: map[string]int{},
 			Moved:    map[string]entity.StatusMove{},
 			Notes:    map[string][]entity.InsightNote{},
+			Voters:   map[string][]entity.InsightVoter{},
 		}
 		q.Result = res
 		if len(q.Numbers) == 0 {
@@ -74,6 +76,34 @@ func getBoardInsights(ctx context.Context, q *query.GetBoardInsights) error {
 			}
 			for _, r := range rows {
 				res.Momentum[strconv.Itoa(r.Number)] = r.Votes
+			}
+
+			// Voter faces, staff only like classic's voter list: the latest 3 per post.
+			var voters []*struct {
+				Number     int             `db:"number"`
+				UserID     int             `db:"user_id"`
+				Name       string          `db:"name"`
+				AvatarType enum.AvatarType `db:"avatar_type"`
+				AvatarBKey string          `db:"avatar_bkey"`
+			}
+			err = trx.Select(&voters, `
+				SELECT number, user_id, name, avatar_type, avatar_bkey FROM (
+					SELECT p.number, u.id AS user_id, u.name, u.avatar_type, u.avatar_bkey,
+						ROW_NUMBER() OVER (PARTITION BY p.id ORDER BY v.created_at DESC) AS rn
+					FROM post_votes v
+					INNER JOIN posts p ON p.id = v.post_id AND p.tenant_id = v.tenant_id
+					INNER JOIN users u ON u.id = v.user_id AND u.tenant_id = v.tenant_id
+					WHERE v.tenant_id = $1 AND p.number = ANY($2)`+vis+`
+				) ranked WHERE rn <= 3 ORDER BY number, rn`, tenant.ID, numbers)
+			if err != nil {
+				return errors.Wrap(err, "failed to get recent voters")
+			}
+			for _, v := range voters {
+				key := strconv.Itoa(v.Number)
+				res.Voters[key] = append(res.Voters[key], entity.InsightVoter{
+					Name:      v.Name,
+					AvatarURL: buildAvatarURL(ctx, v.AvatarType, v.UserID, v.Name, v.AvatarBKey),
+				})
 			}
 		}
 

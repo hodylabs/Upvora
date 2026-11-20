@@ -208,3 +208,24 @@ func TestBriefingCounts(t *testing.T) {
 	Expect(bus.Dispatch(jonSnowCtx, staff)).IsNil()
 	Expect(*staff.Result).Equals(entity.BriefingCounts{NewIdeas: 2, StatusMoves: 2, VotedMoved: 0, Duplicates: 1})
 }
+
+// Staff get the latest voters' faces; visitors get none.
+func TestBoardInsights_Voters(t *testing.T) {
+	SetupDatabaseTest(t)
+	defer TeardownDatabaseTest()
+
+	post := &cmd.AddNewPost{Title: "Voters face test idea", Description: ""}
+	Expect(bus.Dispatch(aryaStarkCtx, post)).IsNil()
+	Expect(bus.Dispatch(aryaStarkCtx, &cmd.AddVote{Post: post.Result, User: aryaStark})).IsNil()
+	Expect(bus.Dispatch(jonSnowCtx, &cmd.AddVote{Post: post.Result, User: jonSnow})).IsNil()
+
+	key := strconv.Itoa(post.Result.Number)
+	staff := &query.GetBoardInsights{Numbers: []int{post.Result.Number}}
+	Expect(bus.Dispatch(jonSnowCtx, staff)).IsNil()
+	Expect(len(staff.Result.Voters[key])).Equals(2)
+	Expect(staff.Result.Voters[key][0].Name).Equals("Jon Snow")
+
+	visitor := &query.GetBoardInsights{Numbers: []int{post.Result.Number}}
+	Expect(bus.Dispatch(demoTenantCtx, visitor)).IsNil()
+	Expect(len(visitor.Result.Voters)).Equals(0)
+}

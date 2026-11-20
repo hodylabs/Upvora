@@ -16,12 +16,19 @@ type InsightNote struct {
 	Of    int    `json:"of,omitempty"`
 }
 
+// InsightVoter is one face in a staff row's voter stack.
+type InsightVoter struct {
+	Name      string `json:"name"`
+	AvatarURL string `json:"avatarURL"`
+}
+
 // BoardInsights is the per-row data for the new UI board, keyed by post
 // number as a string. Posts with nothing to show have no entry.
 type BoardInsights struct {
-	Momentum map[string]int           `json:"momentum"`
-	Moved    map[string]StatusMove    `json:"moved"`
-	Notes    map[string][]InsightNote `json:"notes"`
+	Momentum map[string]int            `json:"momentum"`
+	Moved    map[string]StatusMove     `json:"moved"`
+	Notes    map[string][]InsightNote  `json:"notes"`
+	Voters   map[string][]InsightVoter `json:"voters"` // staff only: the latest 3 voters per post
 }
 
 // BriefingCounts are the "since your last visit" numbers of the new UI.
