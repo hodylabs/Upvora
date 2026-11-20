@@ -1,6 +1,6 @@
 import "./form.css"
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from "react"
-import { Editor, EditorContent, useEditor, useEditorState } from "@tiptap/react"
+import { Editor, EditorContent, JSONContent, useEditor, useEditorState } from "@tiptap/react"
 import Link from "@tiptap/extension-link"
 import { Placeholder } from "@tiptap/extensions"
 import { i18n } from "@lingui/core"
@@ -8,7 +8,6 @@ import { Trans } from "@lingui/react/macro"
 import { fileToBase64 } from "@fider/services"
 import { generateBkey } from "@fider/services/bkey"
 import { isValidUrl, normalizeUrl } from "@fider/services/url"
-import { fiderImageBkey } from "@fider/services/markdownSyntax"
 import { useAllowedProtocols, useAllowedSchemesRegex } from "@fider/hooks"
 import { ImageUpload } from "@fider/models"
 import { CustomImage } from "./editor/CustomImage"
@@ -46,6 +45,9 @@ export interface MarkdownEditorProps {
   onImageUploaded?: (upload: ImageUpload) => void
   // Base64 content of an image held by the parent (a restored draft), by bkey.
   onGetImageSrc?: (bkey: string) => string
+  // The full pending upload the parent holds for a bkey (a restored draft), so an image
+  // removed and then restored is sent again with its bytes.
+  onGetUpload?: (bkey: string) => ImageUpload["upload"] | undefined
   maxAttachments?: number
   maxImageSizeKB?: number
   maxLength?: number
@@ -62,14 +64,15 @@ const imageBkeys = (editor: Editor): Set<string> => {
   return keys
 }
 
-// Image keys in raw Markdown, in the exact ![](fider-image:<bkey>) form the editor turns into images.
-// shortcut: also counts one inside a code block; switching back to rich mode re-syncs from the editor's parse.
-const rawImageBkeys = (md: string): Set<string> => {
+// Image keys in raw Markdown, through the editor's own Markdown parser, so raw mode counts
+// exactly the images rich mode would (a title, a code block and so on are handled the same).
+const rawImageBkeys = (editor: Editor | null, md: string): Set<string> => {
   const keys = new Set<string>()
-  for (const m of md.matchAll(/!\[\]\((fider-image:[^)\s]+)\)/g)) {
-    const bkey = fiderImageBkey(m[1])
-    if (bkey) keys.add(bkey)
+  const walk = (node: JSONContent) => {
+    if ((node.type === "customImage" || node.type === "image") && node.attrs?.bkey) keys.add(node.attrs.bkey)
+    node.content?.forEach(walk)
   }
+  if (editor?.markdown) walk(editor.markdown.parse(md))
   return keys
 }
 
@@ -182,7 +185,11 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
     const prev = imagesRef.current
     imagesRef.current = now
     prev.forEach((bkey) => {
-      if (!now.has(bkey)) propsRef.current.onImageUploaded?.({ bkey, remove: true })
+      if (now.has(bkey)) return
+      // Keep a draft upload's bytes before the parent drops them, for a later restore.
+      const held = uploads.current.has(bkey) ? undefined : propsRef.current.onGetUpload?.(bkey)
+      if (held?.content) uploads.current.set(bkey, held)
+      propsRef.current.onImageUploaded?.({ bkey, remove: true })
     })
     now.forEach((bkey) => {
       if (!prev.has(bkey)) propsRef.current.onImageUploaded?.({ bkey, upload: uploads.current.get(bkey), remove: false })
@@ -450,7 +457,7 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
               setLength(e.target.value.length)
               clearError(props.field)
               props.onChange?.(e.target.value)
-              reconcileImages(rawImageBkeys(e.target.value))
+              reconcileImages(rawImageBkeys(editorRef.current, e.target.value))
             }}
             data-testid="u2-markdown-raw"
           />

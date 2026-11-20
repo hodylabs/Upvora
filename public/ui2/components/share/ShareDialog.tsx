@@ -358,6 +358,7 @@ const ShareDialog = (props: ShareDialogProps) => {
                   })}
                   onImageUploaded={handleImageUploaded}
                   onGetImageSrc={getImageSrc}
+                  onGetUpload={(bkey) => attachments.find((a) => a.bkey === bkey)?.upload}
                 />
               </Field>
               {canAttachFiles && (

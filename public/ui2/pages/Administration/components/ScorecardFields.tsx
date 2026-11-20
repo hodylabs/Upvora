@@ -1,6 +1,6 @@
 import "./adminc.css"
 
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { i18n } from "@lingui/core"
 import { Trans } from "@lingui/react/macro"
 import { ScorecardField, ScorecardFieldChoice } from "@fider/models"
@@ -137,6 +137,21 @@ export const ScorecardFields = (props: { fields: ScorecardField[]; usage: { [key
   const [error, setError] = useState<Failure | undefined>()
   const [busy, setBusy] = useState(false)
   const [toDelete, setToDelete] = useState<ScorecardField | undefined>()
+  // Rows with a request in flight. The update endpoint replaces the whole row, so a
+  // second action on the same row waits until the first one's result is in local state.
+  const [pending, setPending] = useState<number[]>([])
+  const pendingRef = useRef(new Set<number>())
+  const rowAction = async (id: number, run: () => Promise<void>) => {
+    if (pendingRef.current.has(id)) return
+    pendingRef.current.add(id)
+    setPending([...pendingRef.current])
+    try {
+      await run()
+    } finally {
+      pendingRef.current.delete(id)
+      setPending([...pendingRef.current])
+    }
+  }
   const adding = mode === "add"
   const editing = typeof mode === "number" ? fields.find((f) => f.id === mode) : undefined
   const t = (id: string, message: string) => i18n._({ id, message })
@@ -174,7 +189,9 @@ export const ScorecardFields = (props: { fields: ScorecardField[]; usage: { [key
   const save = async () => {
     let choices: ScorecardFieldChoice[] | undefined
     if (draft.type === "choice") {
-      choices = csvToChoices(draft.choicesCSV, editing?.choices)
+      // Untouched choices go back exactly as stored (a value may hold a comma or a ":review" suffix).
+      const unchanged = !!editing && draft.choicesCSV === choicesToCsv(editing.choices)
+      choices = unchanged && editing?.choices ? editing.choices : csvToChoices(draft.choicesCSV, editing?.choices)
       if (choices.length === 0) {
         setError({ errors: [{ field: "choices", message: t("ui2.admin.scorecard.choicesneeded", "Enter at least one option (comma-separated).") }] })
         return
@@ -205,15 +222,19 @@ export const ScorecardFields = (props: { fields: ScorecardField[]; usage: { [key
       return
     }
     // System rows keep their choices (a locked score row has none anyway).
-    const result = await actions.updateScorecardField(editing.id, {
-      label: draft.label,
-      choices: editing.type === "choice" ? choices : undefined,
-      weight,
-      question: draft.type === "score" ? draft.question : undefined,
-      sortOrder: draft.sortOrder,
-      isActive: draft.isActive,
+    let result: Awaited<ReturnType<typeof actions.updateScorecardField>> | undefined
+    await rowAction(editing.id, async () => {
+      result = await actions.updateScorecardField(editing.id, {
+        label: draft.label,
+        choices: editing.type === "choice" ? choices : undefined,
+        weight,
+        question: draft.type === "score" ? draft.question : undefined,
+        sortOrder: draft.sortOrder,
+        isActive: draft.isActive,
+      })
     })
     setBusy(false)
+    if (!result) return
     if (!result.ok) return setError(result.error)
     setMode("none")
     setFields((list) =>
@@ -243,11 +264,12 @@ export const ScorecardFields = (props: { fields: ScorecardField[]; usage: { [key
   }
 
   // The lifecycle action for answered fields, which cannot be deleted.
-  const setActive = async (f: ScorecardField, isActive: boolean) => {
-    const result = await actions.updateScorecardField(f.id, { ...rowUpdate(f), isActive })
-    if (result.ok) setFields((list) => list.map((x) => (x.id === f.id ? { ...x, isActive } : x)))
-    else setError(result.error)
-  }
+  const setActive = (f: ScorecardField, isActive: boolean) =>
+    rowAction(f.id, async () => {
+      const result = await actions.updateScorecardField(f.id, { ...rowUpdate(f), isActive })
+      if (result.ok) setFields((list) => list.map((x) => (x.id === f.id ? { ...x, isActive } : x)))
+      else setError(result.error)
+    })
 
   const move = async (f: ScorecardField, direction: -1 | 1) => {
     const same = fields.filter((x) => x.groupKey === f.groupKey).sort(byGroupThenOrder)
@@ -255,8 +277,10 @@ export const ScorecardFields = (props: { fields: ScorecardField[]; usage: { [key
     const neighbor = same[idx + direction]
     if (idx < 0 || !neighbor) return
     const sortOrder = direction === -1 ? neighbor.sortOrder - 1 : neighbor.sortOrder + 1
-    const result = await actions.updateScorecardField(f.id, { ...rowUpdate(f), sortOrder })
-    if (result.ok) setFields((list) => list.map((x) => (x.id === f.id ? { ...x, sortOrder } : x)).sort(byGroupThenOrder))
+    await rowAction(f.id, async () => {
+      const result = await actions.updateScorecardField(f.id, { ...rowUpdate(f), sortOrder })
+      if (result.ok) setFields((list) => list.map((x) => (x.id === f.id ? { ...x, sortOrder } : x)).sort(byGroupThenOrder))
+    })
   }
 
   const sum = weightSum(fields)
@@ -424,15 +448,17 @@ export const ScorecardFields = (props: { fields: ScorecardField[]; usage: { [key
                       values: { answers },
                     })
                 : t("ui2.admin.scorecard.never", "never answered")
+            // Locked while a request for this row runs or its edit form is open.
+            const locked = !canEdit || pending.includes(f.id) || mode === f.id
             return (
               <li key={f.id} data-field={f.key} className={f.isActive ? undefined : "u2-sf--inactive"}>
                 <div className="u2-row u2-sf__order">
-                  <IconButton small variant="ghost" label={t("ui2.admin.scorecard.up", "Move up")} onClick={() => move(f, -1)} disabled={!canEdit}>
+                  <IconButton small variant="ghost" label={t("ui2.admin.scorecard.up", "Move up")} onClick={() => move(f, -1)} disabled={locked}>
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M12 19V5M5 12l7-7 7 7" />
                     </svg>
                   </IconButton>
-                  <IconButton small variant="ghost" label={t("ui2.admin.scorecard.down", "Move down")} onClick={() => move(f, 1)} disabled={!canEdit}>
+                  <IconButton small variant="ghost" label={t("ui2.admin.scorecard.down", "Move down")} onClick={() => move(f, 1)} disabled={locked}>
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M12 5v14M5 12l7 7 7-7" />
                     </svg>
@@ -455,11 +481,11 @@ export const ScorecardFields = (props: { fields: ScorecardField[]; usage: { [key
                   </div>
                 </div>
                 <div className="u2-alist__acts">
-                  <Button small variant="ghost" onClick={() => openEdit(f)} disabled={!canEdit}>
+                  <Button small variant="ghost" onClick={() => openEdit(f)} disabled={locked}>
                     <Trans id="action.edit">Edit</Trans>
                   </Button>
                   {answers > 0 ? (
-                    <Button small onClick={() => setActive(f, !f.isActive)} disabled={!canEdit}>
+                    <Button small onClick={() => setActive(f, !f.isActive)} disabled={locked}>
                       {f.isActive ? (
                         <Trans id="ui2.admin.scorecard.deactivate">Deactivate</Trans>
                       ) : (
@@ -467,7 +493,7 @@ export const ScorecardFields = (props: { fields: ScorecardField[]; usage: { [key
                       )}
                     </Button>
                   ) : (
-                    <Button small variant="danger" onClick={() => setToDelete(f)} disabled={!canEdit} data-act="delete">
+                    <Button small variant="danger" onClick={() => setToDelete(f)} disabled={locked} data-act="delete">
                       <Trans id="action.delete">Delete</Trans>
                     </Button>
                   )}

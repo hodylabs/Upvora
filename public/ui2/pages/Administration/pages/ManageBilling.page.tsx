@@ -125,7 +125,9 @@ const ManageBillingPage = (props: ManageBillingPageProps) => {
     { text: t("ui2.admin.billing.pro2", "Unlimited suggestions") },
     { text: t("ui2.admin.billing.pro3", "Content moderation") },
     { text: t("ui2.admin.billing.pro4", "Search engine indexing") },
-    { text: t("ui2.admin.billing.annual", "Option to pay annually"), onClick: startAnnualCheckout },
+    // With a Stripe subscription, annual billing is a change to it in the portal: a new checkout
+    // would start a second subscription (the server refuses that too).
+    { text: t("ui2.admin.billing.annual", "Option to pay annually"), onClick: props.stripeSubscriptionID ? openPortal : startAnnualCheckout },
   ]
   const legacyFeatures: PlanFeature[] = [
     { text: t("ui2.admin.billing.legacy1", "Same features as Pro") },

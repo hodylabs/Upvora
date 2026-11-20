@@ -86,6 +86,37 @@ describe("ui2 <MarkdownEditor />", () => {
     await waitFor(() => expect(onImageUploaded).toHaveBeenCalledWith(expect.objectContaining({ remove: false, upload: expect.anything() })))
   })
 
+  test("raw mode counts images with the editor's parser: a titled reference is still the same image", async () => {
+    const onImageUploaded = jest.fn()
+    const { container } = renderEditor({ initialValue: "![](fider-image:attachments/a.png)", onImageUploaded })
+    await waitFor(() => expect(container.querySelector(".ProseMirror img")).not.toBeNull())
+    fireEvent.click(container.querySelector(".u2-md__mode") as HTMLButtonElement)
+    fireEvent.change(screen.getByTestId("u2-markdown-raw"), { target: { value: '![](fider-image:attachments/a.png "caption")' } })
+    expect(onImageUploaded).not.toHaveBeenCalledWith(expect.objectContaining({ remove: true }))
+    // inside a code block it is text, not an image
+    fireEvent.change(screen.getByTestId("u2-markdown-raw"), { target: { value: "```\n![](fider-image:attachments/a.png)\n```" } })
+    expect(onImageUploaded).toHaveBeenLastCalledWith({ bkey: "attachments/a.png", remove: true })
+  })
+
+  test("an image from a cached draft, removed and restored, is sent again with its bytes", async () => {
+    const onImageUploaded = jest.fn()
+    const draft = { fileName: "d.png", content: "AAAA", contentType: "image/png" }
+    const md = "![](fider-image:attachments/draft.png)"
+    const { container } = renderEditor({
+      initialValue: md,
+      onImageUploaded,
+      onGetImageSrc: () => "AAAA",
+      onGetUpload: (bkey) => (bkey === "attachments/draft.png" ? draft : undefined),
+    })
+    await waitFor(() => expect(container.querySelector(".ProseMirror img")).not.toBeNull())
+    fireEvent.click(container.querySelector(".u2-md__mode") as HTMLButtonElement)
+    const raw = screen.getByTestId("u2-markdown-raw")
+    fireEvent.change(raw, { target: { value: "gone" } })
+    expect(onImageUploaded).toHaveBeenLastCalledWith({ bkey: "attachments/draft.png", remove: true })
+    fireEvent.change(raw, { target: { value: md } })
+    expect(onImageUploaded).toHaveBeenLastCalledWith({ bkey: "attachments/draft.png", upload: draft, remove: false })
+  })
+
   test("re-checks the image limit after reading the file", async () => {
     const onImageUploaded = jest.fn()
     const { container } = renderEditor({ onImageUploaded, maxAttachments: 1 })

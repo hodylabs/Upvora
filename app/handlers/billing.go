@@ -71,6 +71,16 @@ func CreateStripePortalSession() web.HandlerFunc {
 // generated — the subscription itself is created in the webhook handler, where we
 // can attach the UK VAT tax rate if the customer's address country is GB.
 func createCheckoutSession(c *web.Context, priceID string) error {
+	// A site with a live Stripe subscription changes it in the billing portal: a new
+	// checkout would create a second subscription and charge twice.
+	billingState := &query.GetStripeBillingState{}
+	if err := bus.Dispatch(c, billingState); err != nil {
+		return c.Failure(err)
+	}
+	if billingState.Result != nil && billingState.Result.SubscriptionID != "" {
+		return c.BadRequest(web.Map{"message": "This site already has a subscription. Change it in the billing portal."})
+	}
+
 	stripe.Key = env.Config.Stripe.SecretKey
 
 	returnURL := c.BaseURL() + "/admin/billing"

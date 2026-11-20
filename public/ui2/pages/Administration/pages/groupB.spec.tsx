@@ -9,7 +9,7 @@ import ManageThemePage, { themeRequest } from "./ManageTheme.page"
 import ManageWebhooksPage from "./ManageWebhooks.page"
 import { moveSortOrder, ordered } from "./ManageStatuses.page"
 import { parseTagsFile, tagSorter } from "./ManageTags.page"
-import { slugify } from "./ManageProducts.page"
+import ManageProductsPage, { slugify } from "./ManageProducts.page"
 
 // Trans renders empty under jest (@lingui/react is mocked), so these assert calls and structure.
 
@@ -208,5 +208,21 @@ describe("ui2 tags", () => {
   })
   test("product slugs", () => {
     expect(slugify("  Hello, World! ")).toBe("hello-world")
+  })
+
+  test("saving a product's details keeps an activation change made with the row toggle", async () => {
+    const mock = httpMock.alwaysOk()
+    const product = { id: 3, name: "App", slug: "app", description: "", color: "", sortOrder: 10, isActive: true }
+    const { container } = withFider(<ManageProductsPage products={[product] as never[]} counts={{}} />)
+    const row = container.querySelector('[data-id="3"]') as HTMLElement
+    fireEvent.click(row.querySelector(".u2-btn--ghost") as HTMLElement)
+    await act(async () => {
+      fireEvent.click(row.querySelector('[role="switch"]') as HTMLElement)
+    })
+    expect(mock.put).toHaveBeenLastCalledWith("/_api/admin/products/3", expect.objectContaining({ isActive: false }))
+    await act(async () => {
+      fireEvent.submit(container.querySelector("form") as HTMLFormElement)
+    })
+    expect(mock.put).toHaveBeenLastCalledWith("/_api/admin/products/3", expect.objectContaining({ name: "App", isActive: false }))
   })
 })

@@ -388,6 +388,7 @@ export const CommentComposer = (props: ComposerProps) => {
           onChange={change}
           onImageUploaded={handleImageUploaded}
           onGetImageSrc={getImageSrc}
+          onGetUpload={(bkey) => attachments.find((a) => a.bkey === bkey)?.upload}
           maxAttachments={MAX_IMAGES}
           maxImageSizeKB={MAX_IMAGE_KB}
           maxLength={MAX_LENGTH}
