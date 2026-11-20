@@ -4,7 +4,7 @@ import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "rea
 import { Trans } from "@lingui/react/macro"
 import { i18n } from "@lingui/core"
 import { Post, Tag, Product, PostStatus } from "@fider/models"
-import { actions, cache, markdown, navigator } from "@fider/services"
+import { actions, cache, markdown } from "@fider/services"
 import { useFider, usePostOverlay } from "@fider/hooks"
 import { SidebarSlot } from "../../shell/Shell"
 import { IdeaTable } from "../../components/IdeaTable"
