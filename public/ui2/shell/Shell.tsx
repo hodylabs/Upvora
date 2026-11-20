@@ -135,6 +135,8 @@ const Sidebar = (props: { id: string; open: boolean }) => {
   const fider = useFider()
   const path = location.pathname
   const products = (fider.session.tenant.products || []).filter((p) => p.isActive)
+  // Same rule as classic's header: staff only, when the scorecard is on.
+  const showScorecard = fider.session.tenant.isScorecardEnabled && fider.session.isAuthenticated && (fider.session.user.isCollaborator || fider.session.user.isAdministrator)
   const link = (href: string, label: React.ReactNode) => (
     <li>
       <a href={href} aria-current={path === href ? "page" : undefined}>
@@ -150,6 +152,7 @@ const Sidebar = (props: { id: string; open: boolean }) => {
       <ul className="u2-side__list">
         {link("/", <Trans id="ui2.shell.allideas">All ideas</Trans>)}
         {link("/roadmap", <Trans id="ui2.shell.roadmap">Roadmap</Trans>)}
+        {showScorecard && link("/scorecard", <Trans id="header.nav.scorecard">Scorecard</Trans>)}
       </ul>
       {products.length > 0 && (
         <>
