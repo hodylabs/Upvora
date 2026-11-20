@@ -132,6 +132,24 @@ describe("ui2 MySettings", () => {
     const { container } = withFider(signedIn(), <MySettingsPage userSettings={{}} />)
     expect(container.querySelector("#u2-set-api")).toBeNull()
   })
+
+  test("regenerating the API key asks first", async () => {
+    const mock = httpMock.alwaysOk()
+    mock.post = jest.fn(() => Promise.resolve({ ok: true, data: { apiKey: "k-123" } })) as never
+    const staff = Fider.initialize({
+      page: "MySettings/MySettings.page",
+      settings: { environment: "development", oauth: [], baseURL: "http://demo.test" },
+      tenant: { name: "Demo", isEmailAuthAllowed: true },
+      user: { name: "Ada", email: "ada@demo.test", avatarType: UserAvatarType.Letter, isCollaborator: true },
+    })
+    const { container } = withFider(staff, <MySettingsPage userSettings={{}} />)
+    fireEvent.click(container.querySelector("#u2-set-api ~ .u2-btn") as HTMLElement)
+    expect(mock.post).not.toHaveBeenCalledWith("/_api/user/regenerate-apikey")
+    const dialog = await screen.findByRole("dialog")
+    await act(async () => fireEvent.click(dialog.querySelector(".u2-btn--danger-solid") as HTMLElement))
+    expect(mock.post).toHaveBeenCalledWith("/_api/user/regenerate-apikey")
+    expect(screen.getByTestId("u2-apikey").textContent).toBe("k-123")
+  })
 })
 
 describe("ui2 SignIn", () => {

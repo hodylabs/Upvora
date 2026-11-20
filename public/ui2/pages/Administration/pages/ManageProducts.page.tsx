@@ -48,6 +48,10 @@ const ManageProductsPage = (props: ManageProductsPageProps) => {
   const [error, setError] = useState<Failure | undefined>()
   const [busy, setBusy] = useState(false)
   const [deleting, setDeleting] = useState<Product | null>(null)
+  // Products with an active-switch request in flight. One mutation per product at a time,
+  // so a save never lands an activation value older than the switch.
+  const [toggling, setToggling] = useState<Set<number>>(new Set())
+  const isPending = (id: number | null) => id !== null && (toggling.has(id) || (busy && draft?.id === id))
 
   const set = (patch: Partial<Draft>) => setDraft((d) => (d ? { ...d, ...patch } : d))
 
@@ -75,7 +79,7 @@ const ManageProductsPage = (props: ManageProductsPageProps) => {
     setDraft((d) => (d ? { ...d, name, slug: d.id === null && (d.slug === "" || d.slug === slugify(d.name)) ? slugify(name) : d.slug } : d))
 
   const save = async () => {
-    if (!draft) return
+    if (!draft || (draft.id !== null && toggling.has(draft.id))) return
     const color = draft.colorMode === "default" ? "" : draft.color
     setBusy(true)
     if (draft.id === null) {
@@ -97,13 +101,23 @@ const ManageProductsPage = (props: ManageProductsPageProps) => {
   }
 
   const toggleActive = async (p: Product) => {
-    const result = await actions.updateProduct(p.id, {
-      name: p.name,
-      description: p.description,
-      color: p.color,
-      sortOrder: p.sortOrder,
-      isActive: !p.isActive,
-    })
+    if (isPending(p.id)) return
+    setToggling((s) => new Set(s).add(p.id))
+    const result = await actions
+      .updateProduct(p.id, {
+        name: p.name,
+        description: p.description,
+        color: p.color,
+        sortOrder: p.sortOrder,
+        isActive: !p.isActive,
+      })
+      .finally(() =>
+        setToggling((s) => {
+          const next = new Set(s)
+          next.delete(p.id)
+          return next
+        })
+      )
     if (result.ok) setProducts((list) => list.map((x) => (x.id === p.id ? { ...x, isActive: !p.isActive } : x)))
   }
 
@@ -179,7 +193,7 @@ const ManageProductsPage = (props: ManageProductsPageProps) => {
               <Button variant="ghost" onClick={() => setDraft(null)}>
                 <Trans id="action.cancel">Cancel</Trans>
               </Button>
-              <Button type="submit" variant="primary" loading={busy} disabled={!isAdmin}>
+              <Button type="submit" variant="primary" loading={busy} disabled={!isAdmin || (draft.id !== null && toggling.has(draft.id))}>
                 {editing ? <Trans id="ui2.admin.products.savechanges">Save changes</Trans> : <Trans id="ui2.admin.products.addbtn">Add product</Trans>}
               </Button>
             </div>
@@ -222,6 +236,7 @@ const ManageProductsPage = (props: ManageProductsPageProps) => {
               <div className="u2-alist__acts">
                 <Toggle
                   checked={p.isActive}
+                  disabled={isPending(p.id)}
                   hideLabel
                   label={i18n._({ id: "ui2.admin.products.active", message: "Active" }) + ": " + p.name}
                   onChange={() => toggleActive(p)}

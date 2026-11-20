@@ -278,10 +278,12 @@ const ThemeSection = () => {
 const APIKeySection = () => {
   const [apiKey, setApiKey] = useState("")
   const [busy, setBusy] = useState(false)
+  const [confirming, setConfirming] = useState(false)
   const regenerate = async () => {
     setBusy(true)
     const result = await actions.regenerateAPIKey()
     setBusy(false)
+    setConfirming(false)
     if (result.ok) setApiKey(result.data.apiKey)
   }
   return (
@@ -301,9 +303,21 @@ const APIKeySection = () => {
           .
         </Trans>
       </p>
-      <Button small onClick={regenerate} loading={busy}>
+      <Button small onClick={() => setConfirming(true)} loading={busy}>
         <Trans id="mysettings.apikey.generate">Regenerate API Key</Trans>
       </Button>
+      <ConfirmDialog
+        open={confirming}
+        danger
+        title={<Trans id="ui2.settings.apikey.confirmtitle">Regenerate your API key?</Trans>}
+        confirmLabel={<Trans id="mysettings.apikey.generate">Regenerate API Key</Trans>}
+        onCancel={() => setConfirming(false)}
+        onConfirm={regenerate}
+      >
+        <Trans id="ui2.settings.apikey.confirmtext">
+          Your current key stops working immediately. Anything that uses it will fail until you give it the new key.
+        </Trans>
+      </ConfirmDialog>
       {apiKey && (
         <div className="u2-apikey" role="status">
           <span>

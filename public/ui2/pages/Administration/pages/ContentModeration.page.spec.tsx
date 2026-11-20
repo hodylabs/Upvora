@@ -1,5 +1,5 @@
 import React from "react"
-import { render, waitFor, fireEvent } from "@testing-library/react"
+import { render, waitFor, fireEvent, screen } from "@testing-library/react"
 import { Fider, FiderContext, http, notify } from "@fider/services"
 import ContentModerationPage, { ModerationItem } from "./ContentModeration.page"
 import { ModerationBadge } from "../../../components/ModerationBadge"
@@ -86,9 +86,23 @@ describe("ui2 Content moderation", () => {
     const { container } = renderPage()
     await waitFor(() => expect(ids(container)).toHaveLength(2))
     act(container, key, verb)
+    if (verb === "declineBlock") fireEvent.click((await screen.findByRole("dialog")).querySelector(".u2-btn--danger-solid") as HTMLElement)
     await waitFor(() => expect(ids(container)).not.toContain(key))
     expect(post).toHaveBeenCalledWith(url)
     expect(success).toHaveBeenCalled()
+  })
+
+  test.each(["post-11", "comment-22"])("%s Delete & Block asks first, naming the person, and cancel sends nothing", async (key) => {
+    const { container } = renderPage()
+    await waitFor(() => expect(ids(container)).toHaveLength(2))
+    act(container, key, "declineBlock")
+    const dialog = await screen.findByRole("dialog")
+    expect(post).not.toHaveBeenCalled()
+    expect(dialog.textContent).toContain("Sam")
+    fireEvent.click(dialog.querySelector(".u2-btn--ghost") as HTMLElement)
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+    expect(post).not.toHaveBeenCalled()
+    expect(ids(container)).toEqual(["post-11", "comment-22"])
   })
 
   test("a refused action keeps the item and says so", async () => {

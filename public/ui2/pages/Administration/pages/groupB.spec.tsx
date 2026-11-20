@@ -1,6 +1,6 @@
 import React from "react"
 import { act, fireEvent, render, screen } from "@testing-library/react"
-import { Fider, FiderContext } from "@fider/services"
+import { Fider, FiderContext, http } from "@fider/services"
 import { httpMock } from "@fider/services/testing"
 import { Status, WebhookStatus, WebhookType } from "@fider/models"
 import { ColorInput, isHex, normalizeHex, expandHex } from "../components/ColorInput"
@@ -224,5 +224,41 @@ describe("ui2 tags", () => {
       fireEvent.submit(container.querySelector("form") as HTMLFormElement)
     })
     expect(mock.put).toHaveBeenLastCalledWith("/_api/admin/products/3", expect.objectContaining({ name: "App", isActive: false }))
+  })
+
+  test("the row toggle is blocked while that product's save is pending, and the reverse", async () => {
+    let finish: (r: unknown) => void = () => undefined
+    const put = jest.fn(() => new Promise((r) => (finish = r)))
+    http.put = put as unknown as typeof http.put
+    const product = { id: 3, name: "App", slug: "app", description: "", color: "", sortOrder: 10, isActive: true }
+    const { container } = withFider(<ManageProductsPage products={[product] as never[]} counts={{}} />)
+    const row = container.querySelector('[data-id="3"]') as HTMLElement
+    const toggle = () => row.querySelector('[role="switch"]') as HTMLButtonElement
+
+    fireEvent.click(row.querySelector(".u2-btn--ghost") as HTMLElement)
+    await act(async () => {
+      fireEvent.submit(container.querySelector("form") as HTMLFormElement)
+    })
+    expect(put).toHaveBeenCalledTimes(1)
+    expect(toggle().disabled).toBe(true)
+    fireEvent.click(toggle())
+    expect(put).toHaveBeenCalledTimes(1)
+    await act(async () => finish({ ok: true, data: {} }))
+    expect(toggle().disabled).toBe(false)
+
+    // A pending toggle blocks a second toggle and the editor's save.
+    await act(async () => {
+      fireEvent.click(toggle())
+    })
+    expect(put).toHaveBeenCalledTimes(2)
+    expect(toggle().disabled).toBe(true)
+    fireEvent.click(row.querySelector(".u2-btn--ghost") as HTMLElement)
+    await act(async () => {
+      fireEvent.submit(container.querySelector("form") as HTMLFormElement)
+    })
+    expect(put).toHaveBeenCalledTimes(2)
+    await act(async () => finish({ ok: true, data: {} }))
+    expect(toggle().disabled).toBe(false)
+    expect(toggle().getAttribute("aria-checked")).toBe("false")
   })
 })

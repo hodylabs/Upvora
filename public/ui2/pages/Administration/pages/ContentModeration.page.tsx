@@ -7,6 +7,7 @@ import { User, UserStatus } from "@fider/models"
 import { Result, actions, chopString, formatDate, http, markdown, notify, timeSince } from "@fider/services"
 import { useFider } from "@fider/hooks"
 import { Button } from "../../../components/form"
+import { ConfirmDialog } from "../../../components/feedback"
 import { AdminLayout } from "../AdminLayout"
 
 // The moderation queue (paid plan only). The route is behind RequirePro (proUi) and its
@@ -135,6 +136,7 @@ const ContentModerationPage = () => {
   const [items, setItems] = useState<ModerationItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
+  const [blocking, setBlocking] = useState<ModerationItem | null>(null)
 
   useEffect(() => {
     const failed = () => notify.error(i18n._({ id: "moderation.fetch.error", message: "Failed to fetch moderation items" }))
@@ -146,6 +148,8 @@ const ContentModerationPage = () => {
   }, [])
 
   const act = async (item: ModerationItem, verb: Verb) => {
+    // Blocking a person is the one action that reaches past this item: confirm it first.
+    if (verb === "declineBlock" && blocking !== item) return setBlocking(item)
     const key = `${item.type}-${item.id}`
     setBusy(key)
     const res = await run(item, verb).catch(() => ({ ok: false }) as Result)
@@ -194,6 +198,30 @@ const ContentModerationPage = () => {
           </>
         )}
       </div>
+      <ConfirmDialog
+        open={!!blocking}
+        danger
+        title={
+          blocking?.type === "comment" ? (
+            <Trans id="ui2.moderation.blockcomment.title">Delete this comment and block its author?</Trans>
+          ) : (
+            <Trans id="ui2.moderation.blockpost.title">Delete this idea and block its author?</Trans>
+          )
+        }
+        confirmLabel={<Trans id="action.delete.block">Delete & Block</Trans>}
+        onCancel={() => setBlocking(null)}
+        onConfirm={async () => {
+          if (blocking) await act(blocking, "declineBlock")
+          setBlocking(null)
+        }}
+      >
+        {blocking &&
+          i18n._({
+            id: "ui2.moderation.block.text",
+            message: "{name} will be blocked and can no longer sign in or take part until an administrator unblocks them.",
+            values: { name: blocking.user.name },
+          })}
+      </ConfirmDialog>
     </AdminLayout>
   )
 }

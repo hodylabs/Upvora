@@ -25,10 +25,10 @@ export const NotYet = () => {
   return (
     <section className="u2-panel u2-notyet" aria-labelledby="u2-notyet-title">
       <h1 id="u2-notyet-title">
-        <Trans id="ui2.notyet.title">This page is not in the new look yet</Trans>
+        <Trans id="ui2.notyet.title">This page is not in the Upvora look yet</Trans>
       </h1>
       <p className="u2-muted">
-        <Trans id="ui2.notyet.text">The new look is being built page by page. Everything else on this site keeps working.</Trans>
+        <Trans id="ui2.notyet.text">The Upvora look is being built page by page. Everything else on this site keeps working.</Trans>
       </p>
       <p className="u2-mono u2-muted">{fider.session.page}</p>
       {isAdmin && (

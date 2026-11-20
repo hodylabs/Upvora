@@ -243,7 +243,7 @@ const GeneralSettingsPage = () => {
             defaultValue={fider.session.tenant.ui || "classic"}
             options={[
               { value: "classic", label: "Classic" },
-              { value: "new", label: "The new look" },
+              { value: "new", label: "Upvora" },
             ]}
             onChange={(o) => handleLookChange(o?.value || "classic")}
           >

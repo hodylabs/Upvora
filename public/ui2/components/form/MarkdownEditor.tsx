@@ -309,7 +309,8 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
   }, [editor])
 
   useEffect(() => {
-    editor?.setEditable(!props.disabled)
+    // No update event: in raw mode it would report the stale rich-text document over the raw draft.
+    editor?.setEditable(!props.disabled, false)
   }, [editor, props.disabled])
 
   const active = useEditorState({

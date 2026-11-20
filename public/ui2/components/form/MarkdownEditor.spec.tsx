@@ -38,6 +38,23 @@ describe("ui2 <MarkdownEditor />", () => {
     expect(onChange).toHaveBeenLastCalledWith("Bye")
   })
 
+  test("locking the editor in markdown mode keeps the raw draft", async () => {
+    const onChange = jest.fn()
+    const { container, rerender } = renderEditor({ initialValue: "Hello", onChange })
+    await waitFor(() => expect(container.querySelector(".ProseMirror")).not.toBeNull())
+    fireEvent.click(container.querySelector(".u2-md__mode") as HTMLButtonElement)
+    fireEvent.change(screen.getByTestId("u2-markdown-raw"), { target: { value: "Raw draft" } })
+    expect(onChange).toHaveBeenLastCalledWith("Raw draft")
+    onChange.mockClear()
+    rerender(
+      <FiderContext.Provider value={fider}>
+        <MarkdownEditor field="description" label="Description" initialValue="Hello" onChange={onChange} disabled />
+      </FiderContext.Provider>
+    )
+    expect(onChange).not.toHaveBeenCalled()
+    expect((screen.getByTestId("u2-markdown-raw") as HTMLTextAreaElement).value).toBe("Raw draft")
+  })
+
   const editorOf = (container: HTMLElement) => (container.querySelector(".ProseMirror") as unknown as { editor: Editor }).editor
   const pickImage = (container: HTMLElement, name: string) =>
     fireEvent.change(container.querySelector('input[type="file"]') as HTMLInputElement, {

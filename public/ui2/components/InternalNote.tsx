@@ -56,11 +56,15 @@ export const InternalNote = (props: { postNumber: number; initial?: Note | null;
     do {
       again.current = false
       const value = latest.current
-      const r = await actions.setInternalNote(props.postNumber, value)
-      if (!r.ok) {
+      // A rejected request (network, bad JSON) counts as a failed save, so the latch is released.
+      const r = await actions.setInternalNote(props.postNumber, value).catch(() => undefined)
+      if (!r?.ok) {
         failed = true
+        // Newer text typed during the failed save gets its own try; otherwise the next edit or blur retries.
+        if (again.current && latest.current !== value) continue
         break
       }
+      failed = false
       stored.current = value
       setNote(r.data)
     } while (again.current)

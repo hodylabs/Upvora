@@ -86,14 +86,14 @@ export default class AdvancedSettingsPage extends AdminBasePage<AdvancedSettings
 
         <TextArea
           field="ui2CustomCSS"
-          label="Custom CSS for the new look"
+          label="Custom CSS for the Upvora look"
           disabled={!Fider.session.user.isAdministrator}
           minRows={6}
           value={this.state.ui2CustomCSS}
           onChange={this.setUI2CustomCSS}
         >
           <p className="text-muted">
-            Used only when the site is on the new look (Admin, General, Look); the field above applies only to this Classic look. Set it here to prepare your
+            Used only when the site is on the Upvora look (Admin, General, Look); the field above applies only to this Classic look. Set it here to prepare your
             branding before you switch.
           </p>
         </TextArea>

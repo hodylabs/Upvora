@@ -72,7 +72,7 @@ export const LookPicker = (props: LookPickerProps) => {
                   <span className="u2-look__sw u2-look__sw--new" aria-hidden="true" />
                   <span>
                     <b>
-                      <Trans id="ui2.admin.general.looknew">New look</Trans>
+                      <Trans id="ui2.admin.general.looknew">Upvora</Trans>
                     </b>
                     <span className="u2-look__d">
                       <Trans id="ui2.admin.general.looknewd">Dense, with Vora built in</Trans>

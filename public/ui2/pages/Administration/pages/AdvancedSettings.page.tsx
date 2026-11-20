@@ -57,10 +57,10 @@ const AdvancedSettingsPage = (props: AdvancedSettingsPageProps) => {
       <Form error={error} onSubmit={save}>
         <TextArea
           name="ui2CustomCSS"
-          label={<Trans id="ui2.admin.advanced.ui2css">Custom CSS for the new look</Trans>}
+          label={<Trans id="ui2.admin.advanced.ui2css">Custom CSS for the Upvora look</Trans>}
           hint={
             <>
-              <Trans id="ui2.admin.advanced.ui2csshint">Applies only when the site uses the new look. Its classes start with u2-.</Trans> {cssAdvice}
+              <Trans id="ui2.admin.advanced.ui2csshint">Applies only when the site uses the Upvora look. Its classes start with u2-.</Trans> {cssAdvice}
             </>
           }
           rows={10}

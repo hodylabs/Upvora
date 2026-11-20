@@ -80,7 +80,7 @@ const DesignSystemPage = () => {
             <Trans id="ui2.design.title">Design system</Trans>
           </h1>
           <p className="u2-page__sub">
-            <Trans id="ui2.design.subtitle">Tokens and components of the new look.</Trans>
+            <Trans id="ui2.design.subtitle">Tokens and components of the Upvora look.</Trans>
           </p>
         </div>
         <Button onClick={flipTheme} className="u2-ds__theme">

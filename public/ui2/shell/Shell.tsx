@@ -90,6 +90,8 @@ const AccountMenu = () => {
   return (
     <Menu
       triggerClassName="u2-avatarbtn"
+      // The name text is hidden on phones; this keeps the button named there.
+      triggerLabel={user.name}
       items={items}
       trigger={
         <>

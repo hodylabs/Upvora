@@ -4,6 +4,7 @@ import { Fider, FiderContext, http, cache } from "@fider/services"
 import { Post } from "@fider/models"
 import HomePage, { NUDGE_KEY } from "./Home.page"
 import { SHARE_IDEA_EVENT } from "../../lib/share"
+import { toast } from "../../components/feedback/toast"
 
 const post = (number: number, extra: Partial<Post> = {}): Post =>
   ({
@@ -99,5 +100,15 @@ describe("ui2 Home page", () => {
     expect(handler.mock.calls[0][0].defaultPrevented).toBe(true)
     expect(screen.queryByRole("status")).toBeNull()
     window.removeEventListener(SHARE_IDEA_EVENT, handler)
+  })
+
+  test("an unclaimed share click shows an error toast", async () => {
+    const error = jest.spyOn(toast, "error").mockImplementation(() => 0)
+    window.history.replaceState({}, "", "/?query=outlook")
+    const { container } = renderHome("member", [])
+    await act(() => Promise.resolve())
+    fireEvent.click(container.querySelector(".u2-empty .u2-btn--primary") as HTMLElement)
+    expect(error).toHaveBeenCalledTimes(1)
+    error.mockRestore()
   })
 })

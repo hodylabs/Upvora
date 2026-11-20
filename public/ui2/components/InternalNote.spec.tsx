@@ -69,4 +69,47 @@ describe("ui2 <InternalNote />", () => {
     expect(set).toHaveBeenCalledTimes(2)
     expect(set).toHaveBeenLastCalledWith(URL, { content: "xy" })
   })
+
+  test("a rejected save releases the latch, so the next edit saves", async () => {
+    const set = jest
+      .fn()
+      .mockReturnValueOnce(Promise.reject(new Error("network")))
+      .mockReturnValueOnce(Promise.resolve(note("ab")))
+    http.put = set as unknown as typeof http.put
+    render(<InternalNote postNumber={1} initial={{ content: "" } as Note} />)
+    type("a")
+    await act(async () => fireEvent.blur(box()))
+    expect(set).toHaveBeenCalledTimes(1)
+    type("ab")
+    await act(async () => fireEvent.blur(box()))
+    expect(set).toHaveBeenCalledTimes(2)
+    expect(set).toHaveBeenLastCalledWith(URL, { content: "ab" })
+  })
+
+  test("text queued during a failed save is still sent", async () => {
+    const first = deferred()
+    const set = jest
+      .fn()
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(Promise.resolve(note("xy")))
+    http.put = set as unknown as typeof http.put
+    render(<InternalNote postNumber={1} initial={{ content: "" } as Note} />)
+    type("x")
+    fireEvent.blur(box())
+    type("xy")
+    fireEvent.blur(box())
+    await act(async () => first.resolve({ ok: false, data: {} as Note }))
+    expect(set).toHaveBeenCalledTimes(2)
+    expect(set).toHaveBeenLastCalledWith(URL, { content: "xy" })
+  })
+
+  test("a failed save with nothing newer does not retry on its own", async () => {
+    const set = jest.fn().mockReturnValue(Promise.resolve({ ok: false, data: {} }))
+    http.put = set as unknown as typeof http.put
+    render(<InternalNote postNumber={1} initial={{ content: "" } as Note} />)
+    type("x")
+    await act(async () => fireEvent.blur(box()))
+    act(() => jest.advanceTimersByTime(NOTE_SAVE_DELAY * 3))
+    expect(set).toHaveBeenCalledTimes(1)
+  })
 })

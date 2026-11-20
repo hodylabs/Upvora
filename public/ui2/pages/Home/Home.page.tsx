@@ -14,6 +14,7 @@ import { statusInfo } from "../../lib/status"
 import { BoardInsights, Voter, duplicateOf, fetchInsights } from "../../lib/insights"
 import { postHref, replaceQuery } from "../../lib/nav"
 import { requestShare } from "../../lib/share"
+import { toast } from "../../components/feedback/toast"
 import { VoraBar, modKey } from "./VoraBar"
 import { BoardControls } from "./BoardControls"
 import { Briefing } from "./Briefing"
@@ -154,8 +155,11 @@ const HomePage = (props: HomePageProps) => {
   const onDetails = (num: number, d: PeekDetails) => d.voters.length > 0 && setVoters((v) => ({ ...v, [num]: d.voters }))
 
   // ShareIdea (components/share) claims the event and sends signed-out people to sign in.
+  // Nobody claims it only when the share host failed to load (read-only hides the buttons).
   const share = (title: string) => {
-    requestShare(title)
+    if (!requestShare(title)) {
+      toast.error(i18n._({ id: "ui2.share.unavailable", message: "Sharing ideas did not load. Reload the page and try again." }))
+    }
   }
 
   const focusRow = (i: number) => {
