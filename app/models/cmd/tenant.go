@@ -119,6 +119,11 @@ type SetTenantTheme struct {
 	DefaultTheme string
 }
 
+// SetTenantUI switches the site between the classic look and the new UI.
+type SetTenantUI struct {
+	UI string
+}
+
 // UpdateTenantMCPSettings changes who may use MCP on this site.
 type UpdateTenantMCPSettings struct {
 	Enabled    bool

@@ -90,6 +90,7 @@ func (s Service) Init() {
 	bus.AddHandler(countPostPerProduct)
 	bus.AddHandler(setPostProduct)
 	bus.AddHandler(setTenantTheme)
+	bus.AddHandler(setTenantUI)
 	bus.AddHandler(setAISettings)
 	bus.AddHandler(upsertAIAgent)
 	bus.AddHandler(listAIAgents)

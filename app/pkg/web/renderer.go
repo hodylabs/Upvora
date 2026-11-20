@@ -48,6 +48,10 @@ type Renderer struct {
 	templates     map[string]*template.Template
 	assets        *clientAssets
 	chunkedAssets map[string]*clientAssets
+	// The new UI's bundle (dist/ui2), served to sites whose look is "new".
+	// nil when that bundle was not built; those sites then get classic.
+	ui2Assets        *clientAssets
+	ui2ChunkedAssets map[string]*clientAssets
 	mutex         sync.RWMutex
 	reactRenderer *ReactRenderer
 }
@@ -74,41 +78,51 @@ func (r *Renderer) loadAssets() error {
 		return nil
 	}
 
-	assetsFilePath := "/dist/assets.json"
+	assetsDir := "/dist"
 	if env.IsTest() {
 		// Load a fake assets.json for Unit Testing
-		assetsFilePath = "/app/pkg/web/testdata/assets.json"
+		assetsDir = "/app/pkg/web/testdata"
 	}
 
-	jsonFile, err := os.Open(env.Path(assetsFilePath))
+	file, err := readAssetsFile(assetsDir + "/assets.json")
 	if err != nil {
-		return errors.Wrap(err, "failed to open file: assets.json")
+		return err
 	}
-	defer func() { _ = jsonFile.Close() }()
+	r.assets, r.chunkedAssets = buildClientAssets(file, "/assets/")
 
-	jsonBytes, _ := io.ReadAll(jsonFile)
-	file := &assetsFile{}
-	err = json.Unmarshal([]byte(jsonBytes), file)
-	if err != nil {
-		return errors.Wrap(err, "failed to parse file: assets.json")
-	}
-
-	r.assets = &clientAssets{
-		CSS: make([]string, 0),
-		JS:  make([]string, 0),
-	}
-
-	r.assets = getClientAssets(file.Entrypoints.Main.Assets)
-	r.chunkedAssets = make(map[string]*clientAssets)
-
-	for chunkName, chunkGroup := range file.ChunkGroups {
-		r.chunkedAssets[chunkName] = getClientAssets(chunkGroup.Assets)
+	// The new UI is optional at runtime: without its build, every site gets classic.
+	r.ui2Assets, r.ui2ChunkedAssets = nil, nil
+	if ui2File, err := readAssetsFile(assetsDir + "/ui2/assets.json"); err == nil {
+		r.ui2Assets, r.ui2ChunkedAssets = buildClientAssets(ui2File, "/assets/ui2/")
 	}
 
 	return nil
 }
 
-func getClientAssets(assets []distAsset) *clientAssets {
+func readAssetsFile(path string) (*assetsFile, error) {
+	jsonFile, err := os.Open(env.Path(path))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to open file: %s", path)
+	}
+	defer func() { _ = jsonFile.Close() }()
+
+	jsonBytes, _ := io.ReadAll(jsonFile)
+	file := &assetsFile{}
+	if err := json.Unmarshal(jsonBytes, file); err != nil {
+		return nil, errors.Wrap(err, "failed to parse file: %s", path)
+	}
+	return file, nil
+}
+
+func buildClientAssets(file *assetsFile, prefix string) (*clientAssets, map[string]*clientAssets) {
+	chunked := make(map[string]*clientAssets)
+	for chunkName, chunkGroup := range file.ChunkGroups {
+		chunked[chunkName] = getClientAssets(chunkGroup.Assets, prefix)
+	}
+	return getClientAssets(file.Entrypoints.Main.Assets, prefix), chunked
+}
+
+func getClientAssets(assets []distAsset, prefix string) *clientAssets {
 	clientAssets := &clientAssets{
 		CSS: make([]string, 0),
 		JS:  make([]string, 0),
@@ -119,7 +133,7 @@ func getClientAssets(assets []distAsset) *clientAssets {
 			continue
 		}
 
-		assetURL := "/assets/" + asset.Name
+		assetURL := prefix + asset.Name
 		if strings.HasSuffix(asset.Name, ".css") {
 			clientAssets.CSS = append(clientAssets.CSS, assetURL)
 		} else if strings.HasSuffix(asset.Name, ".js") {
@@ -168,7 +182,15 @@ func (r *Renderer) Render(w io.Writer, statusCode int, props Props, ctx *Context
 		public["description"] = fmt.Sprintf("%.150s", description)
 	}
 
-	private["assets"] = r.assets
+	// Sites on the new look get the ui2 bundle. Crawlers keep classic, whose SSR
+	// they are served below, so the new UI needs no server renderer of its own.
+	assets, chunkedAssets := r.assets, r.chunkedAssets
+	useUI2 := tenant != nil && tenant.UI == "new" && r.ui2Assets != nil && !ctx.Request.IsCrawler()
+	if useUI2 {
+		assets, chunkedAssets = r.ui2Assets, r.ui2ChunkedAssets
+	}
+	private["ui2"] = useUI2
+	private["assets"] = assets
 	private["logo"] = LogoURL(ctx)
 	private["defaultTheme"] = defaultTheme
 	if tenant != nil {
@@ -184,8 +206,8 @@ func (r *Renderer) Render(w io.Writer, statusCode int, props Props, ctx *Context
 	// webpack replaces "/" and "." with "-", so we do the same here
 	pageChunkName := strings.ReplaceAll(strings.ReplaceAll(props.Page, ".", "-"), "/", "-")
 	private["preloadAssets"] = []*clientAssets{
-		r.chunkedAssets[localeChunkName],
-		r.chunkedAssets[pageChunkName],
+		chunkedAssets[localeChunkName],
+		chunkedAssets[pageChunkName],
 	}
 
 	if tenant == nil || tenant.LogoBlobKey == "" {

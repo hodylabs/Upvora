@@ -55,7 +55,8 @@ module.exports = {
     path: __dirname + "/dist",
     filename: "js/[name].[contenthash].js",
     publicPath: "/assets/",
-    clean: true,
+    // dist/ui2 belongs to the new UI build (webpack.ui2.config.js)
+    clean: { keep: /^ui2[\\/]/ },
   },
   devtool: "source-map",
   resolve: {

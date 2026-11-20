@@ -24,8 +24,9 @@ build: build-server build-ssr build-ui ## Build server and ui
 build-server: ## Build server
 	go build -ldflags '-s -w $(LDFLAGS)' -o fider .
 
-build-ui: ## Build all UI assets
+build-ui: ## Build all UI assets (classic, then the new UI into dist/ui2)
 	NODE_ENV=production npx webpack-cli
+	NODE_ENV=production npx webpack-cli -c webpack.ui2.config.js
 
 build-ssr: ## Build SSR script and locales
 	npx lingui extract public/
@@ -107,13 +108,16 @@ test-e2e-ui-scenario-headed: ## Run specific E2E test scenario with visible brow
 ##@ Running (Watch Mode)
 
 watch:
-	make -j4 watch-server watch-ui
+	make -j4 watch-server watch-ui watch-ui2
 
 watch-server: migrate ## Build and run server in watch mode
 	air -c air.conf
 
 watch-ui: ## Build and run server in watch mode
 	npx webpack-cli -w
+
+watch-ui2: ## Build the new UI in watch mode
+	npx webpack-cli -w -c webpack.ui2.config.js
 
 
 

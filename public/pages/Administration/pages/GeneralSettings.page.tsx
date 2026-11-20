@@ -25,6 +25,25 @@ const GeneralSettingsPage = () => {
   const [cname, setCNAME] = useState<string>(fider.session.tenant.cname)
   const [locale, setLocale] = useState<string>(fider.session.tenant.locale)
   const [error, setError] = useState<Failure | undefined>(undefined)
+  const [lookError, setLookError] = useState<Failure | undefined>(undefined)
+  const [lookSaving, setLookSaving] = useState(false)
+  const [lookKey, setLookKey] = useState(0)
+
+  // The look is saved on its own and reloads straight into it. One save at a time;
+  // a failed save puts the picker back on the stored look so the admin can retry.
+  const handleLookChange = async (ui: string) => {
+    if (lookSaving || (ui !== "classic" && ui !== "new")) return
+    setLookSaving(true)
+    setLookError(undefined)
+    const result = await actions.updateTenantUI(ui)
+    if (result.ok) {
+      location.reload()
+      return
+    }
+    setLookError(result.error)
+    setLookSaving(false)
+    setLookKey((k) => k + 1)
+  }
 
   const handleSave = async (e: ButtonClickEvent) => {
     const result = await actions.updateTenantSettings({
@@ -215,6 +234,25 @@ const GeneralSettingsPage = () => {
             </>
           )}
         </Select>
+
+        {fider.session.user.isAdministrator && (
+          <Select
+            key={lookKey}
+            label="Look"
+            field="ui"
+            defaultValue={fider.session.tenant.ui || "classic"}
+            options={[
+              { value: "classic", label: "Classic" },
+              { value: "new", label: "The new look" },
+            ]}
+            onChange={(o) => handleLookChange(o?.value || "classic")}
+          >
+            <p className="text-muted">
+              Applies to everyone on this site. Switching reloads the page in the other look; your data, links and sign-ins stay the same. Saved immediately.
+            </p>
+            {lookError && <p className="text-red-700">The look could not be changed. Please try again.</p>}
+          </Select>
+        )}
 
         <SubmissionToggle field="fileAttachmentsEnabled" label="File attachments on ideas">
           Lets people attach PDF, .txt and .md files to ideas, besides images: up to 3 attachments, 5 MB each, viewed inside the board. PDFs with scripts,

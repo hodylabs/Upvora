@@ -84,7 +84,7 @@
     </script>
 
   {{template "end-of-body" .}}
-  {{ if .public.tenant }} 
+  {{ if and .public.tenant (not .private.ui2) }} 
     {{ if .public.tenant.CustomCSS }} 
     <link rel="stylesheet" href="{{ .public.settings.assetsURL }}/static/custom/{{ .public.tenant.CustomCSS | md5 }}.css" />
     {{ end }}

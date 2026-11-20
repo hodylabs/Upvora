@@ -1,0 +1,16 @@
+{
+  "entrypoints": {
+    "main": {
+      "assets": [
+        { "name": "css/ui2main.css", "size": 100 },
+        { "name": "js/ui2main.js", "size": 100 },
+        { "name": "js/ui2main.js.map", "size": 100 }
+      ]
+    }
+  },
+  "namedChunkGroups": {
+    "Test-page": {
+      "assets": [{ "name": "js/Test.page.ui2.js", "size": 100 }]
+    }
+  }
+}

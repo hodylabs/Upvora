@@ -290,8 +290,8 @@ func createTenant(ctx context.Context, c *cmd.CreateTenant) error {
 
 		var id int
 		err := trx.Get(&id,
-			`INSERT INTO tenants (name, subdomain, created_at, cname, invitation, welcome_message, status, is_private, custom_css, logo_bkey, locale, is_email_auth_allowed, is_feed_enabled, prevent_indexing, is_moderation_enabled)
-			 VALUES ($1, $2, $3, '', '', '', $4, false, '', '', $5, true, true, true, false)
+			`INSERT INTO tenants (name, subdomain, created_at, cname, invitation, welcome_message, status, is_private, custom_css, logo_bkey, locale, is_email_auth_allowed, is_feed_enabled, prevent_indexing, is_moderation_enabled, ui)
+			 VALUES ($1, $2, $3, '', '', '', $4, false, '', '', $5, true, true, true, false, 'new')
 			 RETURNING id`, c.Name, c.Subdomain, now, c.Status, env.Config.Locale)
 		if err != nil {
 			return err
@@ -310,7 +310,7 @@ func getFirstTenant(ctx context.Context, q *query.GetFirstTenant) error {
 
 	err := trx.Get(&tenant, `
 		SELECT t.id, t.name, t.subdomain, t.cname, t.invitation, t.locale, t.welcome_message, t.welcome_header, t.description_template, t.status, t.is_private, t.logo_bkey, t.custom_css, t.allowed_schemes, t.is_email_auth_allowed, t.is_feed_enabled, t.is_moderation_enabled, t.is_signup_disabled, t.members_private_ideas, t.members_can_publish_private, t.vora_required, t.vora_bypass_admins, t.vora_bypass_collaborators, t.file_attachments_enabled, t.mcp_enabled, t.mcp_min_role, t.mcp_dcr_enabled, t.prevent_indexing, t.is_pro, t.scheduled_deletion_at, t.deletion_cancel_key,
-			t.share_idea_instructions, t.rail_cta_heading, t.rail_cta_text, t.rail_cta_button, t.default_theme, t.theme_primary, t.theme_accents::text AS theme_accents, t.site_banner_enabled, t.site_banner_message, t.site_banner_variant,
+			t.share_idea_instructions, t.rail_cta_heading, t.rail_cta_text, t.rail_cta_button, t.default_theme, t.ui, t.theme_primary, t.theme_accents::text AS theme_accents, t.site_banner_enabled, t.site_banner_message, t.site_banner_variant,
 			t.is_scorecard_enabled, t.scorecard_band_strong, t.scorecard_band_good, t.scorecard_band_refine, t.scorecard_band_low, t.scorecard_trigger_status_slug,
 			t.scorecard_band_strong_label, t.scorecard_band_good_label, t.scorecard_band_refine_label, t.scorecard_band_low_label, t.scorecard_band_none_label,
 			t.ai_enabled, t.ai_provider, t.ai_api_key, t.ai_model, t.ai_custom_base_url, t.ai_custom_model,
@@ -335,7 +335,7 @@ func getTenantByDomain(ctx context.Context, q *query.GetTenantByDomain) error {
 
 	err := trx.Get(&tenant, `
 		SELECT t.id, t.name, t.subdomain, t.cname, t.invitation, t.locale, t.welcome_message, t.welcome_header, t.description_template, t.status, t.is_private, t.logo_bkey, t.custom_css, t.allowed_schemes, t.is_email_auth_allowed, t.is_feed_enabled, t.is_moderation_enabled, t.is_signup_disabled, t.members_private_ideas, t.members_can_publish_private, t.vora_required, t.vora_bypass_admins, t.vora_bypass_collaborators, t.file_attachments_enabled, t.mcp_enabled, t.mcp_min_role, t.mcp_dcr_enabled, t.prevent_indexing, t.is_pro, t.scheduled_deletion_at, t.deletion_cancel_key,
-			t.share_idea_instructions, t.rail_cta_heading, t.rail_cta_text, t.rail_cta_button, t.default_theme, t.theme_primary, t.theme_accents::text AS theme_accents, t.site_banner_enabled, t.site_banner_message, t.site_banner_variant,
+			t.share_idea_instructions, t.rail_cta_heading, t.rail_cta_text, t.rail_cta_button, t.default_theme, t.ui, t.theme_primary, t.theme_accents::text AS theme_accents, t.site_banner_enabled, t.site_banner_message, t.site_banner_variant,
 			t.is_scorecard_enabled, t.scorecard_band_strong, t.scorecard_band_good, t.scorecard_band_refine, t.scorecard_band_low, t.scorecard_trigger_status_slug,
 			t.scorecard_band_strong_label, t.scorecard_band_good_label, t.scorecard_band_refine_label, t.scorecard_band_low_label, t.scorecard_band_none_label,
 			t.ai_enabled, t.ai_provider, t.ai_api_key, t.ai_model, t.ai_custom_base_url, t.ai_custom_model,
@@ -383,6 +383,17 @@ func invalidatePreviousSignUpKeys(ctx context.Context, c *cmd.InvalidatePrevious
 		if err != nil {
 			return errors.Wrap(err, "failed to invalidate previous signup keys for tenant '%d'", tenant.ID)
 		}
+		return nil
+	})
+}
+
+func setTenantUI(ctx context.Context, c *cmd.SetTenantUI) error {
+	return using(ctx, func(trx *dbx.Trx, tenant *entity.Tenant, _ *entity.User) error {
+		_, err := trx.Execute(`UPDATE tenants SET ui = $1 WHERE id = $2`, c.UI, tenant.ID)
+		if err != nil {
+			return errors.Wrap(err, "failed to update tenant ui")
+		}
+		tenant.UI = c.UI
 		return nil
 	})
 }

@@ -15,6 +15,11 @@ export interface Tenant {
   railCtaText: string
   railCtaButton: string
   defaultTheme: string
+  // Which look the site serves: "classic" or "new" (the new UI). Per site, set by admins.
+  ui: "classic" | "new"
+  siteBannerEnabled?: boolean
+  siteBannerMessage?: string
+  siteBannerVariant?: string
   themePrimary?: string
   themeAccents?: { [key: string]: string }
   status: TenantStatus

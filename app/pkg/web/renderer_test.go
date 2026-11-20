@@ -210,3 +210,36 @@ func TestRenderer_WithOAuth(t *testing.T) {
 	renderer.Render(buf, http.StatusOK, web.Props{}, ctx)
 	compareRendererResponse(buf, "/app/pkg/web/testdata/oauth.html", ctx)
 }
+
+// A site on the new look gets the ui2 bundle and never the classic custom CSS;
+// crawlers on that site still get classic (and its server-rendered HTML).
+func TestRenderer_NewUI(t *testing.T) {
+	RegisterT(t)
+
+	bus.AddHandler(func(ctx context.Context, q *query.ListActiveOAuthProviders) error {
+		return nil
+	})
+
+	render := func(ui string, headers map[string]string) string {
+		buf := new(bytes.Buffer)
+		ctx := newGetContext("https://demo.test.fider.io:3000/", headers)
+		ctx.SetTenant(&entity.Tenant{Name: "Acme", Locale: "en", UI: ui, CustomCSS: ".x{color:red}"})
+		web.NewRenderer().Render(buf, http.StatusOK, web.Props{Page: "Test.page"}, ctx)
+		return buf.String()
+	}
+
+	newUI := render("new", nil)
+	Expect(newUI).ContainsSubstring("/assets/ui2/js/ui2main.js")
+	Expect(newUI).ContainsSubstring("/assets/ui2/css/ui2main.css")
+	Expect(newUI).ContainsSubstring("/assets/ui2/js/Test.page.ui2.js")
+	Expect(strings.Contains(newUI, "/assets/js/file1.js")).IsFalse()
+	Expect(strings.Contains(newUI, "/static/custom/")).IsFalse()
+
+	classic := render("classic", nil)
+	Expect(classic).ContainsSubstring("/assets/js/file1.js")
+	Expect(classic).ContainsSubstring("/static/custom/")
+	Expect(strings.Contains(classic, "/assets/ui2/")).IsFalse()
+
+	crawler := render("new", map[string]string{"User-Agent": "Googlebot"})
+	Expect(strings.Contains(crawler, "/assets/ui2/")).IsFalse()
+}

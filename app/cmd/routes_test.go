@@ -50,7 +50,7 @@ var apiV1Surface = []string{
 	"GET /api/v1/admin/scorecard-fields", "POST /api/v1/admin/scorecard-fields",
 	"PUT /api/v1/admin/scorecard-fields/:id", "DELETE /api/v1/admin/scorecard-fields/:id",
 	"GET /api/v1/admin/scorecard-settings", "POST /api/v1/admin/scorecard-settings",
-	"POST /api/v1/admin/settings/theme",
+	"POST /api/v1/admin/settings/theme", "POST /api/v1/admin/settings/look",
 	"GET /api/v1/admin/products", "POST /api/v1/admin/products",
 	"PUT /api/v1/admin/products/:id", "DELETE /api/v1/admin/products/:id",
 

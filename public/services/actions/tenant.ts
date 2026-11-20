@@ -43,6 +43,11 @@ export const updateTenantSettings = async (request: UpdateTenantSettingsRequest)
   return await http.post("/_api/admin/settings/general", request)
 }
 
+// Switches the whole site between the classic look and the new UI. The caller reloads.
+export const updateTenantUI = async (ui: "classic" | "new"): Promise<Result> => {
+  return await http.post("/_api/admin/settings/look", { ui })
+}
+
 export const updateTenantAdvancedSettings = async (customCSS: string, allowedSchemes: string): Promise<Result> => {
   return await http.post("/_api/admin/settings/advanced", { customCSS, allowedSchemes })
 }

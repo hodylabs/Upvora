@@ -1,0 +1,65 @@
+/* The new UI's design tokens ("Technical + personality", approved 2026-11-12).
+   Light is the base; dark overrides on body[data-theme="dark"], which base.html sets
+   before first paint. The signal color follows the site's own primary color when the
+   admin set one (--colors-primary-base from Admin, Theme), else safety orange. */
+body.u2 {
+  --u-bg: #eef1f4;
+  --u-glass: rgba(255, 255, 255, 0.72);
+  --u-edge: rgba(30, 45, 70, 0.14);
+  --u-line: rgba(30, 45, 70, 0.07);
+  --u-text: #141a23;
+  --u-text2: #3a4452;
+  --u-muted: #5d6878;
+  --u-accent: var(--colors-primary-base, #f25c05);
+  --u-accent-soft: color-mix(in srgb, var(--u-accent) 10%, transparent);
+  --u-on-accent: #ffffff;
+  --u-grid: rgba(30, 45, 70, 0.03);
+  --u-chip: rgba(255, 255, 255, 0.85);
+  --u-pop: rgba(255, 255, 255, 0.97);
+  --u-shadow: 0 12px 30px -20px rgba(30, 45, 70, 0.4);
+  --u-danger: #c43a3a;
+  --u-warn: #8a5a00;
+  --u-s-review: #4d5869;
+  --u-s-planned: #2f5fb3;
+  --u-s-progress: #c2560a;
+  --u-s-shipped: #18804b;
+
+  --u-font: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --u-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --u-radius: 10px;
+  --u-radius-lg: 14px;
+  --u-row: 42px;
+}
+
+body.u2[data-theme="dark"] {
+  color-scheme: dark;
+  --u-bg: #15171b;
+  --u-glass: rgba(255, 255, 255, 0.045);
+  --u-edge: rgba(255, 255, 255, 0.1);
+  --u-line: rgba(255, 255, 255, 0.06);
+  --u-text: #e9eaee;
+  --u-text2: #c2c6cf;
+  --u-muted: #8c9099;
+  --u-accent: var(--colors-primary-base, #ff5f1f);
+  --u-accent-soft: color-mix(in srgb, var(--u-accent) 12%, transparent);
+  --u-on-accent: #140700;
+  --u-grid: rgba(255, 255, 255, 0.02);
+  --u-chip: rgba(255, 255, 255, 0.05);
+  --u-pop: rgba(24, 26, 31, 0.96);
+  --u-shadow: 0 12px 32px -18px rgba(0, 0, 0, 0.7);
+  --u-danger: #ff6b6b;
+  --u-warn: #ffc46b;
+  --u-s-review: #c2c6cf;
+  --u-s-planned: #9fb4cc;
+  --u-s-progress: #ff9a3c;
+  --u-s-shipped: #6fd39a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.u2 *,
+  body.u2 *::before,
+  body.u2 *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

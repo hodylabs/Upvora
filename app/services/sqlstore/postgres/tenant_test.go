@@ -520,3 +520,22 @@ func TestTenantStorage_SubmissionSettings_OmittedStaysUnchanged(t *testing.T) {
 	Expect(get().VoraBypassCollaborators).IsTrue()
 	Expect(get().FileAttachmentsEnabled).IsTrue()
 }
+
+// Existing sites stay on classic; sites created after the new UI shipped start on it.
+func TestTenantStorage_UI(t *testing.T) {
+	SetupDatabaseTest(t)
+	defer TeardownDatabaseTest()
+
+	getByDomain := &query.GetTenantByDomain{Domain: "demo"}
+	Expect(bus.Dispatch(demoTenantCtx, getByDomain)).IsNil()
+	Expect(getByDomain.Result.UI).Equals("classic")
+
+	Expect(bus.Dispatch(demoTenantCtx, &cmd.SetTenantUI{UI: "new"})).IsNil()
+	getByDomain = &query.GetTenantByDomain{Domain: "demo"}
+	Expect(bus.Dispatch(demoTenantCtx, getByDomain)).IsNil()
+	Expect(getByDomain.Result.UI).Equals("new")
+
+	createTenant := &cmd.CreateTenant{Name: "Fresh Site", Subdomain: "freshsite", Status: enum.TenantActive}
+	Expect(bus.Dispatch(demoTenantCtx, createTenant)).IsNil()
+	Expect(createTenant.Result.UI).Equals("new")
+}
