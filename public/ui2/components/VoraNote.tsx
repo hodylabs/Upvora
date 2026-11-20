@@ -37,7 +37,7 @@ export const VoraNote = (props: VoraNoteProps) => {
     }
     case "duplicate": {
       const of = chip.of
-      // TODO(Stage 3): open the merge dialog prefilled instead of the idea page.
+      // On the board this opens the idea overlay, whose merge dialog reads "#merge=N".
       return (
         <a className="u2-chip u2-chip--vora u2-chip--action" data-chip="duplicate" href={postHref(post, `#merge=${of}`)}>
           <Trans id="ui2.note.duplicate">Likely duplicate of #{of}</Trans>

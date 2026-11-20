@@ -104,7 +104,9 @@ var (
 																		COALESCE(agg_t.tags, ARRAY[]::text[]) AS tags,
 																COALESCE(%s, false) AS has_voted,
 																p.is_approved,
-																p.is_private
+																p.is_private,
+																p.prev_status_slug,
+																p.status_changed_at
 													FROM posts p
 													LEFT JOIN products pr
 													ON pr.id = p.product_id
