@@ -1,0 +1,380 @@
+/* Roadmap: status lanes as glass columns with dense, row-like tiles. Phones get
+   one lane at a time behind lane tabs. Logical properties only. */
+.u2-roadmap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.u2-roadmap__head h1,
+.u2-roadmap__blank h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.u2-roadmap__head p {
+  margin: 4px 0 0;
+}
+.u2-roadmap__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.u2-roadmap__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+/* TODO(form-primitives): replace with the shared input */
+.u2-rinput {
+  min-height: 32px;
+  min-width: 200px;
+  padding: 4px 10px;
+  border: 1px solid var(--u-edge);
+  border-radius: 8px;
+  background: var(--u-chip);
+  color: var(--u-text);
+  font: inherit;
+}
+
+.u2-roadmap__tabs {
+  display: none;
+}
+.u2-roadmap__lanes {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(270px, 1fr);
+  gap: 12px;
+  align-items: start;
+  overflow-x: auto;
+  padding-block-end: 4px;
+}
+
+.u2-lane {
+  --u-lane: var(--u-s-review);
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+.u2-lane::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  height: 2px;
+  background: var(--u-lane);
+}
+.u2-lane--planned {
+  --u-lane: var(--u-s-planned);
+}
+.u2-lane--progress {
+  --u-lane: var(--u-s-progress);
+}
+.u2-lane--shipped {
+  --u-lane: var(--u-s-shipped);
+}
+.u2-lane.is-over {
+  outline: 2px dashed var(--u-lane);
+  outline-offset: -2px;
+}
+.u2-lane__h {
+  margin: 0;
+  font-size: inherit;
+}
+.u2-lane__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: var(--u-text);
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+.u2-lane__n {
+  font-size: 12px;
+  color: var(--u-muted);
+}
+.u2-lane__chev {
+  width: 14px;
+  height: 14px;
+  margin-inline-start: auto;
+  fill: none;
+  stroke: var(--u-muted);
+  stroke-width: 2;
+  transition: transform 0.15s;
+}
+.u2-lane.is-collapsed .u2-lane__chev {
+  transform: rotate(-90deg);
+}
+.u2-lane__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.u2-lane__empty {
+  margin: 0;
+  padding: 10px 12px 14px;
+  font-size: 13px;
+}
+.u2-lane__more {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  border: 0;
+  border-block-start: 1px solid var(--u-line);
+  background: none;
+  color: var(--u-accent);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Tile: a dense row (vote, then title, chips and count) */
+.u2-rtile {
+  position: relative;
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  min-height: var(--u-row);
+  padding: 7px 12px;
+  border-block-start: 1px solid var(--u-line);
+}
+.u2-rtile[draggable="true"] {
+  cursor: grab;
+}
+.u2-rtile:hover,
+.u2-rtile:focus-within {
+  background: color-mix(in srgb, var(--u-text) 4%, transparent);
+}
+.u2-rtile.is-mine::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 6px;
+  width: 3px;
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
+  background: var(--u-accent);
+}
+.u2-rtile.is-shipped .u2-rtile__title {
+  opacity: 0.62;
+}
+.u2-rtile__vote {
+  padding-block-start: 1px;
+}
+.u2-rtile__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--u-s-shipped);
+}
+.u2-rtile__done svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+}
+.u2-rtile__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.u2-rtile__line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 28px;
+}
+.u2-rtile__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--u-text) !important;
+  font-weight: 500;
+  text-decoration: none;
+}
+.u2-rtile__title:hover {
+  text-decoration: underline;
+}
+.u2-rtile__desc {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--u-muted);
+}
+.u2-rtile__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.u2-rtile__cmts {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--u-muted);
+}
+.u2-rtile__cmts svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+/* "Move to…" (staff): shows on hover or keyboard focus, stays tabbable */
+.u2-move {
+  position: relative;
+  margin-inline-start: auto;
+}
+.u2-move__btn {
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--u-edge);
+  border-radius: 6px;
+  background: var(--u-chip);
+  color: var(--u-text2);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+}
+.u2-rtile:hover .u2-move__btn,
+.u2-rtile:focus-within .u2-move__btn,
+.u2-move__btn[aria-expanded="true"] {
+  opacity: 1;
+}
+.u2-move__list {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-start: calc(100% + 4px);
+  z-index: 6;
+  min-width: 180px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--u-pop);
+}
+.u2-move__list button {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--u-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.u2-move__list button:hover,
+.u2-move__list button:focus-visible {
+  background: var(--u-chip);
+}
+
+/* Blank state and upsell over faint ghost lanes */
+.u2-roadmap__blank {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 120px 16px;
+  text-align: center;
+}
+.u2-roadmap__blank > :not(.u2-roadmap__ghost) {
+  position: relative;
+}
+.u2-roadmap__blank p {
+  margin: 0;
+}
+.u2-roadmap__ghost {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.u2-roadmap__ghost > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+}
+.u2-roadmap__ghost i {
+  display: block;
+  height: 42px;
+  border-radius: 8px;
+  background: var(--u-chip);
+}
+
+/* Phone: lane tabs, one lane at a time, 44 px targets */
+@media (max-width: 840px) {
+  .u2-roadmap__tabs {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  .u2-rtab {
+    flex: none;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: none;
+    color: var(--u-text2);
+    font: inherit;
+    cursor: pointer;
+  }
+  .u2-rtab[aria-pressed="true"] {
+    border-color: var(--u-edge);
+    background: var(--u-glass);
+    color: var(--u-text);
+    font-weight: 600;
+  }
+  .u2-roadmap__lanes {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    overflow: visible;
+  }
+  .u2-lane:not(.is-active) {
+    display: none;
+  }
+  .u2-rinput {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .u2-rtile {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+  .u2-rtile__title {
+    white-space: normal;
+  }
+  .u2-move__btn {
+    min-height: 44px;
+    opacity: 1;
+  }
+  .u2-lane__more {
+    min-height: 44px;
+  }
+}

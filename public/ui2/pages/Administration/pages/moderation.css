@@ -1,0 +1,106 @@
+/* Moderation queue: one dense list per kind, actions always visible (keyboard too). */
+.u2-mod {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.u2-mod__head h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.u2-mod__head p {
+  margin: 4px 0 0;
+}
+.u2-mod__empty {
+  margin: 0;
+  padding: 28px 16px;
+  text-align: center;
+}
+.u2-mod__section {
+  overflow: hidden;
+}
+.u2-mod__h {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.u2-mod__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.u2-mod__item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 14px;
+  border-block-start: 1px solid var(--u-line);
+}
+.u2-mod__item:hover,
+.u2-mod__item:focus-within {
+  background: color-mix(in srgb, var(--u-text) 4%, transparent);
+}
+.u2-mod__avatar {
+  border-radius: 50%;
+  object-fit: cover;
+}
+.u2-mod__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.u2-mod__who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 13px;
+}
+.u2-mod__time {
+  margin-inline-start: auto;
+  font-size: 12px;
+}
+.u2-mod__link {
+  color: var(--u-text) !important;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.u2-mod__link:hover {
+  text-decoration: underline;
+}
+.u2-mod__text,
+.u2-mod__on {
+  margin: 0;
+  font-size: 13px;
+  color: var(--u-text2);
+  overflow-wrap: anywhere;
+}
+.u2-mod__on {
+  color: var(--u-muted);
+}
+.u2-mod__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block-start: 4px;
+}
+.u2-mod__acts .u2-btn {
+  min-height: 30px;
+  padding-block: 2px;
+  font-size: 12px;
+}
+.u2-mod__danger {
+  color: var(--u-danger);
+}
+.u2-mod__danger:hover {
+  border-color: var(--u-danger);
+}
+@media (max-width: 840px) {
+  .u2-mod__acts .u2-btn {
+    min-height: 44px;
+  }
+}

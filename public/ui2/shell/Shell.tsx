@@ -5,6 +5,7 @@ import { uploadedImageURL } from "@fider/services"
 import { useFider } from "@fider/hooks"
 import { applyTheme } from "../lib/theme"
 import { NotificationsBadge } from "../components/NotificationsBadge"
+import { ModerationBadge } from "../components/ModerationBadge"
 import { URL_CHANGE_EVENT } from "../lib/nav"
 
 // The new UI's app shell: top bar (site, account, theme), optional site banner,
@@ -234,6 +235,7 @@ export const Shell = (props: { children: React.ReactNode }) => {
           <span>{tenant.name}</span>
         </a>
         <div className="u2-top__end">
+          <ModerationBadge />
           <ThemeToggle />
           <NotificationsBadge />
           <AccountMenu />
