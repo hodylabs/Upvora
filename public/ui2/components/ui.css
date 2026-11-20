@@ -248,8 +248,15 @@ a.u2-chip--product:hover {
   min-width: 0;
   overflow: hidden;
 }
-.u2-tr__title {
+/* The title wins: it keeps its width and the chips after it give way and clip. */
+.u2-tr__idea > :not(.u2-tr__title) {
+  flex: 0 1 auto;
   min-width: 0;
+  overflow: hidden;
+}
+.u2-tr__title {
+  flex: 0 0 auto;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -364,4 +371,9 @@ a.u2-chip--product:hover {
   .u2-peek {
     display: none;
   }
+}
+
+/* With the quick peek open the table is narrower: drop the tag chips. */
+.u2-board.has-peek .u2-chip--tag {
+  display: none;
 }
