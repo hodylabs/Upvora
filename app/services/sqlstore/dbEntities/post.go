@@ -39,6 +39,8 @@ type Post struct {
 	ProductName        dbx.NullString `db:"product_name"`
 	ProductSlug        dbx.NullString `db:"product_slug"`
 	ProductColor       dbx.NullString `db:"product_color"`
+	PrevStatusSlug     dbx.NullString `db:"prev_status_slug"`
+	StatusChangedAt    dbx.NullTime   `db:"status_changed_at"`
 }
 
 func (i *Post) ToModel(ctx context.Context) *entity.Post {
@@ -58,6 +60,10 @@ func (i *Post) ToModel(ctx context.Context) *entity.Post {
 		Tags:          i.Tags,
 		IsApproved:    i.IsApproved,
 		IsPrivate:     i.IsPrivate,
+		PrevStatus:    i.PrevStatusSlug.String,
+	}
+	if i.StatusChangedAt.Valid {
+		post.StatusChangedAt = &i.StatusChangedAt.Time
 	}
 
 	if i.Response.Valid {

@@ -1,11 +1,11 @@
 import "./home.css"
 
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react"
 import { Trans } from "@lingui/react/macro"
 import { i18n } from "@lingui/core"
 import { Post, Tag, Product, PostStatus } from "@fider/models"
 import { actions, cache, markdown, navigator } from "@fider/services"
-import { useFider } from "@fider/hooks"
+import { useFider, usePostOverlay } from "@fider/hooks"
 import { SidebarSlot } from "../../shell/Shell"
 import { IdeaTable } from "../../components/IdeaTable"
 import { PeekPanel, PeekDetails } from "../../components/PeekPanel"
@@ -28,6 +28,9 @@ export interface HomePageProps {
   product?: Product
   countPerProduct?: { [id: string]: number }
 }
+
+// The idea overlay loads on first open, so the board does not carry the idea page's code.
+const IdeaOverlay = lazy(() => import(/* webpackChunkName: "idea" */ "../ShowPost/IdeaOverlay"))
 
 export const NUDGE_KEY = "ui2.nudge.dismissed"
 const SEARCH_DELAY = 300
@@ -72,6 +75,28 @@ const HomePage = (props: HomePageProps) => {
   const seq = useRef(0)
   const searchTimer = useRef<number>()
   const hoverTimer = useRef<number>()
+
+  // Opening an idea shows it over the board and pushes its URL, as classic's overlay does;
+  // Esc, the close button or Back return to the board URL.
+  const { selectedPostId, handlePostClick, handleCloseOverlay, setIsPostDirty } = usePostOverlay({
+    basePath: props.product ? `/p/${props.product.slug}` : "/",
+    onPostClosed: (num) => actions.getPost(num).then((r) => r.ok && r.data && setPosts((list) => list.map((p) => (p.number === num ? r.data : p)))),
+  })
+  const openIdea = (href: string) => {
+    const m = /^\/posts\/(\d+)\/([^/?#]*)(#.*)?$/.exec(href)
+    if (!m) return false
+    handlePostClick(parseInt(m[1], 10), m[2])
+    // "#merge=N" and "#comment" ride along for the idea view to act on.
+    if (m[3]) history.replaceState(history.state, "", `/posts/${m[1]}/${m[2]}${m[3]}`)
+    return true
+  }
+  // Idea links on the board (titles, Vora notes, the peek's "Open idea") open the overlay;
+  // modified clicks (new tab, new window) keep the browser's default.
+  const onBoardClick = (e: React.MouseEvent) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    const a = (e.target as HTMLElement).closest?.("a[href^='/posts/']")
+    if (a && openIdea(a.getAttribute("href") || "")) e.preventDefault()
+  }
 
   const statusOf = (p: Post) => statusInfo(tenant, p.status, p.statusKind)
   const statusLabel = (slug: string) => statusInfo(tenant, slug).label
@@ -144,16 +169,17 @@ const HomePage = (props: HomePageProps) => {
   }
 
   useRowKeys({
-    count: posts.length,
+    // The overlay owns the keyboard while it is open.
+    count: selectedPostId === null ? posts.length : 0,
     focused,
     setFocused: focusRow,
     onVote: (i) => document.querySelector<HTMLButtonElement>(`.u2-tr[data-index="${i}"] .u2-vote`)?.click(),
-    onOpen: (i) => navigator.goTo(postHref(posts[i])),
-    // TODO(Stage 3): open the merge dialog (prefilled from Vora's duplicate note) instead of the idea page.
+    onOpen: (i) => openIdea(postHref(posts[i])),
+    // Merge into Vora's likely original when it has one, else the merge dialog opens empty.
     onMerge: staff
       ? (i) => {
           const of = duplicateOf(insights, posts[i].number)
-          navigator.goTo(postHref(posts[i], of ? `#merge=${of}` : "#merge"))
+          openIdea(postHref(posts[i], of ? `#merge=${of}` : "#merge"))
         }
       : undefined,
     onEscape: () => {
@@ -273,7 +299,7 @@ What can we do better? This is the place for you to vote, discuss and share idea
             tags={props.tags || []}
             scoped={!!props.product}
           />
-          <div className={`u2-board${peekPost ? " has-peek" : ""}`}>
+          <div className={`u2-board${peekPost ? " has-peek" : ""}`} onClick={onBoardClick}>
             <div className="u2-board__list u2-panel" aria-busy={loading}>
               {showNudge && (
                 <div className="u2-nudge">
@@ -381,6 +407,11 @@ What can we do better? This is the place for you to vote, discuss and share idea
             )}
           </div>
         </>
+      )}
+      {selectedPostId !== null && (
+        <Suspense fallback={null}>
+          <IdeaOverlay number={selectedPostId} onClose={handleCloseOverlay} onDataChanged={() => setIsPostDirty(true)} />
+        </Suspense>
       )}
     </div>
   )

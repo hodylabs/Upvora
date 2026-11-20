@@ -19,6 +19,8 @@ interface VoteButtonProps {
   onChange?: (number: number, voted: boolean, count: number) => void
   size?: "row" | "large"
   children?: React.ReactNode
+  // Closed ideas and locked sites take no votes (the server refuses them too).
+  disabled?: boolean
 }
 
 // Toggles the vote through the same action classic uses, with an optimistic count.
@@ -86,6 +88,7 @@ export const VoteButton = (props: VoteButtonProps) => {
       aria-pressed={voted}
       aria-label={label}
       onClick={toggle}
+      disabled={props.disabled}
       data-vote={post.number}
     >
       <svg viewBox="0 0 24 24" aria-hidden="true">

@@ -44,6 +44,10 @@ export interface Post {
   isApproved: boolean
   isPrivate: boolean
   product?: ProductInfo
+  // When the status last changed and what it was before (single and list reads;
+  // missing for changes made before the server recorded them).
+  prevStatus?: string
+  statusChangedAt?: string
 }
 
 export interface Product {

@@ -27,6 +27,10 @@ type Post struct {
 	IsApproved  bool          `json:"isApproved"`
 	IsPrivate   bool          `json:"isPrivate"`
 	Product     *ProductInfo  `json:"product,omitempty"`
+	// Status history for the new UI's idea page: when the status last changed
+	// and what it was before (unknown for changes made before it was recorded).
+	PrevStatus      string     `json:"prevStatus,omitempty"`
+	StatusChangedAt *time.Time `json:"statusChangedAt,omitempty"`
 }
 
 // CanBeVoted returns true if this post can have its vote changed.
