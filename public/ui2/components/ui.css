@@ -1,0 +1,367 @@
+/* Shared board components: vote button, status pill, chips, avatar stack, idea table,
+   quick peek. Logical properties only, so right-to-left locales mirror. */
+
+.u2-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Vote button: a plain count with an up arrow; filled when it's your vote. */
+.u2-vote {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 62px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--u-edge);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--u-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.u2-vote svg {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.u2-vote:hover {
+  border-color: var(--u-accent);
+}
+.u2-vote.is-on {
+  background: var(--u-accent);
+  border-color: transparent;
+  color: var(--u-on-accent);
+}
+.u2-vote--large {
+  width: auto;
+  flex: 1;
+  height: 36px;
+  font-size: 13px;
+}
+.u2-vote__n {
+  display: inline-block;
+}
+.u2-vote__n.is-pop {
+  animation: u2-pop 0.35s ease;
+}
+@keyframes u2-pop {
+  40% {
+    transform: scale(1.22);
+  }
+}
+
+/* Status pill: the four tones run in order. */
+.u2-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.u2-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.u2-pill--review {
+  color: var(--u-s-review);
+}
+.u2-pill--planned {
+  color: var(--u-s-planned);
+}
+.u2-pill--progress {
+  color: var(--u-s-progress);
+}
+.u2-pill--shipped {
+  color: var(--u-s-shipped);
+}
+
+/* Chips: product, tag, Vora notes, moved, warnings. */
+.u2-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px;
+  border: 1px solid var(--u-edge);
+  border-radius: 6px;
+  background: var(--u-chip);
+  color: var(--u-text2);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.u2-chip--product::before,
+.u2-chip--tag[style]::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--u-chip-dot, var(--u-accent));
+}
+a.u2-chip--product:hover {
+  border-color: var(--u-accent);
+}
+.u2-chip--vora {
+  border-color: transparent;
+  background: var(--u-accent-soft);
+  color: var(--u-accent);
+  font-weight: 500;
+}
+.u2-chip--action:hover,
+.u2-chip--action:focus-visible {
+  border-color: var(--u-accent);
+}
+.u2-chip--moved {
+  border: 1px dashed var(--u-s-progress);
+  background: transparent;
+  color: var(--u-s-progress);
+}
+.u2-chip--warn {
+  color: var(--u-warn);
+}
+
+/* Avatar stack */
+.u2-faces {
+  display: inline-flex;
+  align-items: center;
+  padding-inline-end: 6px;
+}
+.u2-faces img {
+  width: 20px;
+  height: 20px;
+  margin-inline-end: -6px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--u-bg);
+  object-fit: cover;
+}
+
+/* Idea table */
+.u2-table {
+  --u-cols: 70px minmax(0, 1fr) 126px;
+  overflow: hidden;
+}
+.u2-table--staff {
+  --u-cols: 70px 48px minmax(0, 1fr) 76px 126px 70px 44px;
+}
+.u2-table__head,
+.u2-tr {
+  display: grid;
+  grid-template-columns: var(--u-cols);
+  gap: 10px;
+  align-items: center;
+  padding-inline: 14px;
+}
+.u2-table__head {
+  height: 34px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--u-muted);
+}
+.u2-tr {
+  position: relative;
+  min-height: var(--u-row);
+  border-block-start: 1px solid var(--u-line);
+  transition: background 0.15s;
+}
+.u2-tr:hover {
+  background: color-mix(in srgb, var(--u-text) 4%, transparent);
+}
+/* Your vote: an accent edge on the inline-start side; no layout shift. */
+.u2-tr.is-mine::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 6px;
+  width: 3px;
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
+  background: var(--u-accent);
+}
+.u2-tr.is-focused {
+  outline: 2px solid var(--u-accent);
+  outline-offset: -2px;
+  border-radius: 8px;
+  background: var(--u-accent-soft);
+}
+.u2-tr.is-shipped .u2-tr__title,
+.u2-tr.is-shipped .u2-vote {
+  opacity: 0.62;
+}
+.u2-tr.is-new {
+  animation: u2-slidein 0.45s ease both;
+}
+@keyframes u2-slidein {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.u2-tr__num,
+.u2-tr__week,
+.u2-tr__cmts {
+  font-size: 12px;
+  color: var(--u-muted);
+}
+.u2-tr__week.is-up {
+  color: var(--u-s-shipped);
+  font-weight: 600;
+}
+.u2-tr__cmts {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.u2-tr__cmts svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.u2-tr__idea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+.u2-tr__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--u-text) !important;
+  font-weight: 500;
+  text-decoration: none;
+}
+.u2-tr__title:hover {
+  text-decoration: underline;
+}
+
+/* Quick peek */
+.u2-peek {
+  position: sticky;
+  inset-block-start: 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  animation: u2-slidein 0.3s ease;
+}
+.u2-peek__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--u-muted);
+}
+.u2-peek__close {
+  margin-inline-start: auto;
+  width: 28px;
+  height: 28px;
+}
+.u2-peek__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.u2-peek__meta {
+  font-size: 12px;
+}
+.u2-peek__lbl {
+  margin: 4px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--u-muted);
+}
+.u2-peek__lbl--vora {
+  color: var(--u-accent);
+}
+.u2-peek__vora {
+  padding: 10px 12px;
+  border-radius: var(--u-radius);
+  background: var(--u-accent-soft);
+}
+.u2-peek p {
+  margin: 0;
+  color: var(--u-text2);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.u2-peek__acts {
+  display: flex;
+  gap: 8px;
+  margin-block-start: 6px;
+}
+.u2-peek__acts .u2-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Phone: one column; compact rows with 44 px vote targets. */
+@media (max-width: 840px) {
+  .u2-table__head {
+    display: none;
+  }
+  .u2-table,
+  .u2-table--staff {
+    --u-cols: 52px minmax(0, 1fr);
+  }
+  .u2-tr {
+    grid-template-areas: "vote idea" "vote status";
+    row-gap: 4px;
+    padding-block: 10px;
+  }
+  .u2-tr__vote {
+    grid-area: vote;
+  }
+  .u2-tr__idea {
+    grid-area: idea;
+    flex-wrap: wrap;
+  }
+  .u2-tr__title {
+    white-space: normal;
+  }
+  .u2-tr__status {
+    grid-area: status;
+  }
+  .u2-tr__num,
+  .u2-tr__week,
+  .u2-tr__faces,
+  .u2-tr__cmts {
+    display: none;
+  }
+  .u2-vote {
+    width: 48px;
+    height: 44px;
+    flex-direction: column;
+    gap: 0;
+  }
+  .u2-peek {
+    display: none;
+  }
+}

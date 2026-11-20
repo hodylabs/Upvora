@@ -1,11 +1,38 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { createContext, useContext, useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { Trans } from "@lingui/react/macro"
 import { cache, uploadedImageURL } from "@fider/services"
 import { useFider } from "@fider/hooks"
+import { URL_CHANGE_EVENT } from "../lib/nav"
 
 // The new UI's app shell: top bar (site, account, theme), optional site banner,
 // sidebar (views and products; behind a menu button on phones), the page, footer.
-// Pages fill the main slot; the Vora briefing joins the sidebar in a later stage.
+// Pages fill the main slot. Any page can add to the end of the sidebar with
+// <SidebarSlot>, e.g. the board's Vora briefing.
+
+const SidebarSlotContext = createContext<HTMLElement | null>(null)
+
+export const SidebarSlot = (props: { children: React.ReactNode }) => {
+  const el = useContext(SidebarSlotContext)
+  return el ? createPortal(props.children, el) : null
+}
+
+// The current path and query. Pages that change the query with replaceState fire
+// URL_CHANGE_EVENT so the sidebar's aria-current stays right.
+const readLocation = () => ({ path: location.pathname, params: new URLSearchParams(location.search) })
+const useLocation = () => {
+  const [loc, setLoc] = useState(readLocation)
+  useEffect(() => {
+    const update = () => setLoc(readLocation())
+    window.addEventListener(URL_CHANGE_EVENT, update)
+    window.addEventListener("popstate", update)
+    return () => {
+      window.removeEventListener(URL_CHANGE_EVENT, update)
+      window.removeEventListener("popstate", update)
+    }
+  }, [])
+  return loc
+}
 
 type Theme = "light" | "dark"
 
@@ -131,26 +158,33 @@ const Notices = () => {
   )
 }
 
-const Sidebar = (props: { id: string; open: boolean }) => {
+const Sidebar = (props: { id: string; open: boolean; slotRef: (el: HTMLElement | null) => void }) => {
   const fider = useFider()
-  const path = location.pathname
+  const { path, params } = useLocation()
+  const signedIn = fider.session.isAuthenticated
   const products = (fider.session.tenant.products || []).filter((p) => p.isActive)
   // Same rule as classic's header: staff only, when the scorecard is on.
-  const showScorecard = fider.session.tenant.isScorecardEnabled && fider.session.isAuthenticated && (fider.session.user.isCollaborator || fider.session.user.isAdministrator)
-  const link = (href: string, label: React.ReactNode) => (
+  const showScorecard =
+    fider.session.tenant.isScorecardEnabled && fider.session.isAuthenticated && (fider.session.user.isCollaborator || fider.session.user.isAdministrator)
+  const link = (href: string, label: React.ReactNode, current = path === href) => (
     <li>
-      <a href={href} aria-current={path === href ? "page" : undefined}>
+      <a href={href} aria-current={current ? "page" : undefined}>
         {label}
       </a>
     </li>
   )
+  // Board views share "/" and differ by query; "All ideas" is current with neither on.
+  const myVotes = path === "/" && params.get("myvotes") === "true"
+  const myPosts = path === "/" && params.get("myposts") === "true"
   return (
     <nav id={props.id} className={`u2-side${props.open ? " is-open" : ""}`} aria-label="Board">
       <h2 className="u2-side__h">
         <Trans id="ui2.shell.views">Views</Trans>
       </h2>
       <ul className="u2-side__list">
-        {link("/", <Trans id="ui2.shell.allideas">All ideas</Trans>)}
+        {link("/", <Trans id="ui2.shell.allideas">All ideas</Trans>, path === "/" && !myVotes && !myPosts)}
+        {signedIn && link("/?myvotes=true", <Trans id="ui2.shell.myvotes">My votes</Trans>, myVotes)}
+        {signedIn && link("/?myposts=true", <Trans id="ui2.shell.myposts">My ideas</Trans>, myPosts)}
         {link("/roadmap", <Trans id="ui2.shell.roadmap">Roadmap</Trans>)}
         {showScorecard && link("/scorecard", <Trans id="header.nav.scorecard">Scorecard</Trans>)}
       </ul>
@@ -162,6 +196,7 @@ const Sidebar = (props: { id: string; open: boolean }) => {
           <ul className="u2-side__list">{products.map((p) => link(`/p/${p.slug}`, p.name))}</ul>
         </>
       )}
+      <div ref={props.slotRef} className="u2-side__extra" />
     </nav>
   )
 }
@@ -170,6 +205,7 @@ export const Shell = (props: { children: React.ReactNode }) => {
   const fider = useFider()
   const tenant = fider.session.tenant
   const [menuOpen, setMenuOpen] = useState(false)
+  const [slotEl, setSlotEl] = useState<HTMLElement | null>(null)
   const logo = uploadedImageURL(tenant.logoBlobKey, 64)
 
   return (
@@ -202,9 +238,9 @@ export const Shell = (props: { children: React.ReactNode }) => {
       </header>
       <Banner />
       <div className="u2-body">
-        <Sidebar id="u2-side" open={menuOpen} />
+        <Sidebar id="u2-side" open={menuOpen} slotRef={setSlotEl} />
         <main id="u2-main" className="u2-main" tabIndex={-1}>
-          {props.children}
+          <SidebarSlotContext.Provider value={slotEl}>{props.children}</SidebarSlotContext.Provider>
         </main>
       </div>
       <footer className="u2-foot">

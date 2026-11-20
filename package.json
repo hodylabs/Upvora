@@ -93,7 +93,7 @@
       "node"
     ],
     "moduleNameMapper": {
-      ".*\\.(png|scss|svg)$": "<rootDir>/public/jest.assets.ts",
+      ".*\\.(png|scss|svg|css)$": "<rootDir>/public/jest.assets.ts",
       "@fider/(.*)": "<rootDir>/public/$1",
       "@locale/(.*)": "<rootDir>/locale/$1"
     },
