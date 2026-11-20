@@ -11,6 +11,7 @@ import { Fider, FiderContext, actions, activateI18N } from "@fider/services"
 import { ErrorBoundary } from "./shell/ErrorBoundary"
 import { Shell } from "./shell/Shell"
 import { pageFor } from "./pages"
+import { ShareIdea } from "./components/share/ShareIdea"
 
 const logError = (err: Error) => {
   if (Fider.isProduction()) {
@@ -43,6 +44,7 @@ const bootstrap = (i18n: I18n) => {
                 <Page {...fider.session.props} />
               </Suspense>
             </Shell>
+            <ShareIdea />
           </FiderContext.Provider>
         </I18nProvider>
       </ErrorBoundary>
