@@ -214,13 +214,15 @@ func similarInsightFor(trx *dbx.Trx, tenant *entity.Tenant, user *entity.User, p
 	}
 
 	result := similarInsight{expires: now.Add(similarCacheTTL)}
-	if preprocessSearchQuery(p.Title) != "" {
+	// Gate on the exact text the query receives: a title of only punctuation
+	// leaves it empty, and to_tsquery would fail on that.
+	if tsq := ToTSQuery(SanitizeString(p.Title)); tsq != "" {
 		match, score := similarSearchExprs(tenant, "p", "$3")
 		var found []*insightPost
 		err := trx.Select(&found, fmt.Sprintf(sqlInsightPosts,
 			"p.number <> $2 AND COALESCE(ps.kind, '') IN ('open', 'active', 'closed-completed', 'closed-declined') AND ("+match+")",
 			visiblePostsClause(scopeUser)+" ORDER BY "+score+" DESC LIMIT "+strconv.Itoa(maxSimilar)),
-			tenant.ID, p.Number, ToTSQuery(SanitizeString(p.Title)))
+			tenant.ID, p.Number, tsq)
 		if err != nil {
 			return result, errors.Wrap(err, "failed to find similar posts for insights")
 		}

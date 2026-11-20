@@ -60,6 +60,7 @@ const HomePage = (props: HomePageProps) => {
   const [filter, setFilter] = useState<BoardFilter>(filterFromURL)
   const [posts, setPosts] = useState<Post[]>(props.posts || [])
   const [loading, setLoading] = useState(false)
+  const [searchFailed, setSearchFailed] = useState(false)
   const [newNumbers, setNewNumbers] = useState<Set<number>>(new Set())
   const [insights, setInsights] = useState<BoardInsights | null>(null)
   const [voters, setVoters] = useState<{ [num: number]: Voter[] }>({})
@@ -91,13 +92,21 @@ const HomePage = (props: HomePageProps) => {
           .then((res) => {
             if (id !== seq.current) return
             setLoading(false)
-            if (!res.ok) return
+            if (!res.ok) {
+              setSearchFailed(true)
+              return
+            }
+            setSearchFailed(false)
             const list = res.data || []
             setPosts(list)
             setNewNumbers(reset ? new Set() : new Set(list.filter((p) => !before.has(p.number)).map((p) => p.number)))
             if (reset) setFocused(-1)
           })
-          .catch(() => id === seq.current && setLoading(false))
+          .catch(() => {
+            if (id !== seq.current) return
+            setLoading(false)
+            setSearchFailed(true)
+          })
       },
       "query" in patch ? SEARCH_DELAY : 0
     )
@@ -230,6 +239,7 @@ What can we do better? This is the place for you to vote, discuss and share idea
         canShare={canShare}
         onShare={share}
         onVoteChange={onVoteChange}
+        boardPosts={posts}
       />
       {shareNote && (
         <p className="u2-note" role="status">
@@ -280,7 +290,12 @@ What can we do better? This is the place for you to vote, discuss and share idea
                   </button>
                 </div>
               )}
-              {posts.length > 0 ? (
+              {searchFailed && (
+                <p className="u2-note u2-danger" role="alert">
+                  <Trans id="ui2.search.failed">The search could not run. The list below is from before it; try again.</Trans>
+                </p>
+              )}
+              {searchFailed && posts.length === 0 ? null : posts.length > 0 ? (
                 <IdeaTable
                   posts={posts}
                   staff={staff}

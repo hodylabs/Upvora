@@ -229,3 +229,15 @@ func TestBoardInsights_Voters(t *testing.T) {
 	Expect(bus.Dispatch(demoTenantCtx, visitor)).IsNil()
 	Expect(len(visitor.Result.Voters)).Equals(0)
 }
+
+// A title made only of punctuation must not break the insights call.
+func TestBoardInsights_PunctuationTitle(t *testing.T) {
+	SetupDatabaseTest(t)
+	defer TeardownDatabaseTest()
+
+	post := &cmd.AddNewPost{Title: "?!?! ... !!!", Description: ""}
+	Expect(bus.Dispatch(jonSnowCtx, post)).IsNil()
+	q := &query.GetBoardInsights{Numbers: []int{post.Result.Number}}
+	Expect(bus.Dispatch(jonSnowCtx, q)).IsNil()
+	Expect(len(q.Result.Notes[strconv.Itoa(post.Result.Number)])).Equals(0)
+}

@@ -27,7 +27,19 @@ const latestComment = (list: Comment[]): Comment | undefined =>
 export const loadPeekDetails = (num: number, signedIn: boolean): Promise<PeekDetails> => {
   const cached = detailsCache.get(num)
   if (cached) return cached
-  const safe = <T,>(p: Promise<T>, fallback: T) => p.catch(() => fallback)
+  // A failed part falls back to empty, and the entry is then not cached, so
+  // reopening the idea asks again once the service recovers.
+  let failed = false
+  const safe = <T extends { ok: boolean }>(p: Promise<T>, fallback: T) =>
+    p
+      .then((r) => {
+        if (!r.ok) failed = true
+        return r
+      })
+      .catch(() => {
+        failed = true
+        return fallback
+      })
   const p = Promise.all([
     // The brief endpoint is members only; visitors skip it (it would ask them to sign in).
     signedIn ? safe(actions.getIdeaBrief(num), { ok: false, data: { content: "", createdAt: "" } }) : Promise.resolve(null),
@@ -40,6 +52,9 @@ export const loadPeekDetails = (num: number, signedIn: boolean): Promise<PeekDet
     voters: votes.ok && Array.isArray(votes.data) ? votes.data.slice(0, 5).map((v) => ({ name: v.user.name, avatarURL: v.user.avatarURL })) : [],
   }))
   detailsCache.set(num, p)
+  p.then(() => {
+    if (failed) detailsCache.delete(num)
+  })
   return p
 }
 
@@ -136,7 +151,7 @@ export const PeekPanel = (props: PeekPanelProps) => {
         </section>
       )}
       <div className="u2-peek__acts">
-        <VoteButton post={post} onChange={props.onVoteChange} size="large" />
+        <VoteButton key={post.number} post={post} onChange={props.onVoteChange} size="large" />
         <a className="u2-btn" href={postHref(post)}>
           <Trans id="ui2.peek.open">Open idea</Trans>
         </a>

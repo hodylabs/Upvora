@@ -385,6 +385,7 @@
   "ui2.peek.open": "Open idea",
   "ui2.peek.summary": "Vora's summary",
   "ui2.peek.votes": "{votes, plural, one {# vote} other {# votes}}",
+  "ui2.search.failed": "The search could not run. The list below is from before it; try again.",
   "ui2.shell.admin": "Site settings",
   "ui2.shell.allideas": "All ideas",
   "ui2.shell.dev": "Development environment",

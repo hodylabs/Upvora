@@ -15,6 +15,8 @@ interface VoraBarProps {
   canShare: boolean
   onShare: (title: string) => void
   onVoteChange: (number: number, voted: boolean, count: number) => void
+  // The board's rows: a suggestion that is also on the board shows the board's vote state.
+  boardPosts?: Post[]
 }
 
 const SUGGEST_DELAY = 400
@@ -61,15 +63,16 @@ export const VoraBar = (props: VoraBarProps) => {
   useEffect(() => {
     const q = similarQuery(props.query.trim(), props.noiseWords)
     const id = ++seq.current
+    // Old suggestions never sit under a new query, even if the next lookup fails.
+    setSuggestions([])
     if (q.length < 2) {
-      setSuggestions([])
       return
     }
     const timer = window.setTimeout(() => {
       actions
         .findSimilarPosts(q)
         .then((res) => {
-          if (id === seq.current && res.ok) setSuggestions((res.data || []).slice(0, MAX_SUGGESTIONS))
+          if (id === seq.current) setSuggestions(res.ok ? (res.data || []).slice(0, MAX_SUGGESTIONS) : [])
         })
         .catch(() => undefined)
     }, SUGGEST_DELAY)
@@ -137,12 +140,17 @@ export const VoraBar = (props: VoraBarProps) => {
             <Trans id="ui2.vora.similar">Vora found ideas like this</Trans>
           </p>
           <ul className="u2-vora__list">
-            {suggestions.map((p) => (
-              <li key={p.id}>
-                <VoteButton post={p} onChange={onVote} />
-                <a href={postHref(p)}>{p.title}</a>
-              </li>
-            ))}
+            {suggestions
+              .map((s) => {
+                const onBoard = props.boardPosts?.find((b) => b.number === s.number)
+                return onBoard ? { ...s, hasVoted: onBoard.hasVoted, votesCount: onBoard.votesCount } : s
+              })
+              .map((p) => (
+                <li key={p.id}>
+                  <VoteButton post={p} onChange={onVote} />
+                  <a href={postHref(p)}>{p.title}</a>
+                </li>
+              ))}
           </ul>
           {props.canShare && (
             <div className="u2-vora__foot">
