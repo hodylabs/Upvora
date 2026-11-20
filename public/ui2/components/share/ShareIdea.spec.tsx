@@ -189,6 +189,72 @@ describe("ui2 ShareIdea", () => {
     fireEvent.keyDown(document, { key: "Escape" })
     await waitFor(() => expect(screen.getAllByRole("dialog")).toHaveLength(2))
   })
+
+  test("a Vora answer that lands after switching to Write it yourself does not touch the draft", async () => {
+    let answer: (v: unknown) => void = () => undefined
+    const urls: string[] = []
+    http.post = jest.fn((url: string) => {
+      urls.push(url)
+      if (url === "/api/v1/ai/ideate") return new Promise((r) => (answer = r))
+      return Promise.resolve({ ok: true, data: { title: "From Vora", description: "Vora text", brief: "b", tags: [], voraToken: "t" } })
+    }) as unknown as typeof http.post
+    renderHost("member", vora)
+    act(() => {
+      requestShare("")
+    })
+    await dialog()
+    await waitFor(() => expect(composer()).not.toBeNull())
+    fireEvent.change(composer() as HTMLTextAreaElement, { target: { value: "We need a CSV export" } })
+    fireEvent.keyDown(composer() as HTMLTextAreaElement, { key: "Enter" })
+    await waitFor(() => expect(urls).toContain("/api/v1/ai/ideate"))
+
+    fireEvent.click(document.querySelectorAll<HTMLButtonElement>(".u2-share__mode")[1])
+    await waitFor(() => expect(titleInput()).not.toBeNull())
+    fireEvent.change(titleInput() as HTMLInputElement, { target: { value: "My own title here" } })
+    await act(async () => answer({ ok: true, data: { reply: "Done.", ready: true } }))
+
+    expect(urls).not.toContain("/api/v1/ai/finalize")
+    expect(titleInput()?.value).toBe("My own title here")
+  })
+
+  test("the site's share instructions render as sanitized Markdown, not raw text", async () => {
+    renderHost("member", { shareIdeaInstructions: "**Read this** first <img src=x onerror=alert(1)>" })
+    act(() => {
+      requestShare("")
+    })
+    await dialog()
+    const box = document.querySelector(".u2-share__instructions") as HTMLElement
+    expect(box.querySelector("strong")?.textContent).toBe("Read this")
+    expect(box.innerHTML).not.toContain("**")
+    expect(box.querySelector("img")).toBeNull()
+  })
+
+  test("opened on a product board, the dialog starts on that board's product", async () => {
+    window.history.replaceState({}, "", "/p/kahalia")
+    const products = [
+      { id: 1, slug: "upvora", name: "Upvora", isActive: true },
+      { id: 2, slug: "kahalia", name: "Kahalia", isActive: true },
+    ]
+    renderHost("member", { products } as unknown as Partial<Tenant>)
+    act(() => {
+      requestShare("")
+    })
+    await dialog()
+    expect(document.querySelector<HTMLSelectElement>('select[name="productId"]')?.value).toBe("2")
+  })
+
+  test("on the main board the dialog starts on the first product, as classic", async () => {
+    const products = [
+      { id: 1, slug: "upvora", name: "Upvora", isActive: true },
+      { id: 2, slug: "kahalia", name: "Kahalia", isActive: true },
+    ]
+    renderHost("member", { products } as unknown as Partial<Tenant>)
+    act(() => {
+      requestShare("")
+    })
+    await dialog()
+    expect(document.querySelector<HTMLSelectElement>('select[name="productId"]')?.value).toBe("1")
+  })
 })
 
 describe("ui2 share: when the plain form is allowed", () => {

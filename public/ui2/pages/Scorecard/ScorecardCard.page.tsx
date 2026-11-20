@@ -10,8 +10,9 @@ import { useFider } from "@fider/hooks"
 import { postHref } from "../../lib/nav"
 import { bandForScore, computeWeightedScore, isAnswered, parseChoices } from "./score"
 import { ScoreRing } from "./ScoreRing"
-import { InternalNotes } from "./InternalNotes"
+import { InternalNote as TeamNote } from "../../components/InternalNote"
 import { BriefButton } from "./BriefButton"
+import { Range } from "../../components/form/Range"
 
 // Same props the server sends classic (app/handlers/scorecard_card.go).
 export interface ScorecardCardPageProps {
@@ -57,8 +58,6 @@ type SaveState = "idle" | "dirty" | "saving" | "saved" | "error"
 export const SAVE_DEBOUNCE_MS = 1000
 export const SAVE_RETRY_MS = 4000
 
-const STEPS = [0, 1, 2, 3, 4, 5]
-
 const ScorecardCardPage = (props: ScorecardCardPageProps) => {
   const fider = useFider()
   const tenant = fider.session.tenant
@@ -76,6 +75,8 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
   const timer = useRef<number | undefined>(undefined)
   const inflight = useRef(false)
   const queued = useRef(false)
+  // Bumped on every edit: a save only marks the card clean when nothing changed after it was sent.
+  const revision = useRef(0)
   const saveStateRef = useRef<SaveState>("idle")
   saveStateRef.current = saveState
 
@@ -86,6 +87,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
     }
     inflight.current = true
     setSaveState("saving")
+    const sent = revision.current
     const res = await actions.updateScorecard(card.id, { title: latest.current.title, values: latest.current.values }).catch(() => ({ ok: false }))
     inflight.current = false
     if (res.ok) {
@@ -93,7 +95,8 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
         queued.current = false
         void doSave()
       } else {
-        setSaveState("saved")
+        // Newer edits are still waiting on their debounce timer, which saves them.
+        setSaveState(revision.current === sent ? "saved" : "dirty")
       }
     } else {
       setSaveState("error")
@@ -103,6 +106,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
   }
 
   const scheduleSave = () => {
+    revision.current++
     setSaveState("dirty")
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => void doSave(), SAVE_DEBOUNCE_MS)
@@ -208,15 +212,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
             <span className="u2-mono u2-muted">×{f.weight ?? 0}</span>
             {f.question && <p className="u2-sc__score-q u2-muted">{f.question}</p>}
           </div>
-          <div className="u2-sc__slider">
-            {/* No shared range primitive: a native range styled by .u2-sc__slider. */}
-            <input id={id} type="range" min={0} max={5} step={1} value={n} disabled={retired} onChange={(e) => setValue(key, parseInt(e.target.value, 10))} />
-            <div className="u2-sc__steps u2-mono" aria-hidden="true">
-              {STEPS.map((s) => (
-                <span key={s}>{s}</span>
-              ))}
-            </div>
-          </div>
+          <Range id={id} className="u2-sc__slider" min={0} max={5} value={n} disabled={retired} ticks onChange={(v) => setValue(key, v)} />
           <span className={`u2-sc__score-val u2-mono${n === 0 ? " is-unset" : ""}`}>{n === 0 ? "–" : n}</span>
         </div>
       )
@@ -376,7 +372,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
         )}
       </section>
 
-      {post && isStaff && <InternalNotes postNumber={post.number} initialNote={props.internalNote} />}
+      {post && isStaff && <TeamNote postNumber={post.number} initial={props.internalNote} />}
 
       {GROUP_ORDER.map((g) => {
         const rows = grouped[g]

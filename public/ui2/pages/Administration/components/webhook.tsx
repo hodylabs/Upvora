@@ -192,7 +192,7 @@ export const WebhookTemplateInfoModal = (props: { type: WebhookType; open: boole
     <Modal
       open={props.open}
       onClose={props.onClose}
-      wide
+      size="lg"
       title={<Trans id="ui2.admin.webhooks.help.title">Webhook template formatting help</Trans>}
       footer={
         <Button variant="ghost" onClick={props.onClose}>
@@ -306,7 +306,7 @@ export const WebhookFailInfo = (props: { result: WebhookTriggerResult; open: boo
   <Modal
     open={props.open}
     onClose={props.onClose}
-    wide
+    size="lg"
     title={<Trans id="ui2.admin.webhooks.fail.title">Webhook trigger failure details</Trans>}
     footer={
       <Button variant="ghost" onClick={props.onClose}>

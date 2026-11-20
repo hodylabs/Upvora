@@ -19,13 +19,20 @@ const isShown = (el: HTMLElement, root: HTMLElement) => {
 const focusables = (root: HTMLElement) =>
   Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => !el.closest("[hidden]") && !el.closest('[aria-hidden="true"]') && isShown(el, root))
 
+// Open dialogs, oldest first. Only the last one (the topmost) traps Tab and handles Esc,
+// so a confirm or link dialog opened over another dialog closes on its own.
+const stack: object[] = []
+
+export type ModalSize = "sm" | "md" | "lg" | "full"
+
 interface ModalProps {
   open: boolean
   onClose: () => void
   title: React.ReactNode
   children: React.ReactNode
   footer?: React.ReactNode
-  wide?: boolean
+  // sm 360 px, md 480 px (default), lg 760 px, full: a large working area (960 px; whole screen on phones).
+  size?: ModalSize
   // When true, Esc and the backdrop do nothing (e.g. while a save is running).
   locked?: boolean
 }
@@ -42,6 +49,8 @@ export const Modal = (props: ModalProps) => {
 
   useEffect(() => {
     if (!props.open) return
+    const token = {}
+    stack.push(token)
     const opener = document.activeElement as HTMLElement | null
     // Lock page scroll; restore the previous value (not "") so another modal's lock survives.
     const prevOverflow = document.body.style.overflow
@@ -52,7 +61,7 @@ export const Modal = (props: ModalProps) => {
       ;(first || dialog).focus()
     }
     const onKey = (e: KeyboardEvent) => {
-      if (!ref.current) return
+      if (!ref.current || stack[stack.length - 1] !== token) return
       if (e.key === "Escape") {
         e.stopPropagation()
         if (!locked.current) onClose.current()
@@ -79,6 +88,7 @@ export const Modal = (props: ModalProps) => {
     document.addEventListener("keydown", onKey, true)
     return () => {
       document.removeEventListener("keydown", onKey, true)
+      stack.splice(stack.indexOf(token), 1)
       document.body.style.overflow = prevOverflow
       if (opener && document.contains(opener)) opener.focus()
     }
@@ -94,7 +104,7 @@ export const Modal = (props: ModalProps) => {
         if (e.target === e.currentTarget && !props.locked) props.onClose()
       }}
     >
-      <div ref={ref} className={props.wide ? "u2-dlg u2-dlg--wide" : "u2-dlg"} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
+      <div ref={ref} className={`u2-dlg u2-dlg--${props.size || "md"}`} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
         <div className="u2-dlg__head">
           <h2 id={titleId} className="u2-dlg__title">
             {props.title}

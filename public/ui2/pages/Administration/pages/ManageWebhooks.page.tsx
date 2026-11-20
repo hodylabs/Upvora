@@ -84,9 +84,9 @@ const ManageWebhooksPage = (props: ManageWebhooksPageProps) => {
     <>
       <p>
         <Trans id="ui2.admin.webhooks.intro">
-          Use webhooks to integrate Upvora with other applications like Slack, Discord, Zapier and many others.{" "}
+          Use webhooks to integrate Upvora with other applications like Slack, Discord, Zapier and many others. See the{" "}
           <a href="https://docs.fider.io/using-webhooks" target="_blank" rel="noopener">
-            Learn more in our documentation
+            template reference
           </a>
           .
         </Trans>

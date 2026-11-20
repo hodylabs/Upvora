@@ -195,7 +195,7 @@ const ScorecardPage = (props: ScorecardPageProps) => {
                   </td>
                   <td className="is-end">
                     {scored ? (
-                      <span className="u2-sc__score">
+                      <span className="u2-sc__total">
                         <span className="u2-mono" data-score={score}>
                           <b>{score}</b>
                           <span className="u2-muted">/100</span>

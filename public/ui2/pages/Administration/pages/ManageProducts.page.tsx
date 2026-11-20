@@ -85,7 +85,9 @@ const ManageProductsPage = (props: ManageProductsPageProps) => {
       setProducts((list) => [...list, result.data as Product].sort(bySort))
     } else {
       const id = draft.id
-      const input = { name: draft.name, description: draft.description, color, sortOrder: draft.sortOrder, isActive: draft.isActive }
+      // The row toggle owns activation: send its current state, not the one from when the editor opened.
+      const isActive = products.find((p) => p.id === id)?.isActive ?? draft.isActive
+      const input = { name: draft.name, description: draft.description, color, sortOrder: draft.sortOrder, isActive }
       const result = await actions.updateProduct(id, input)
       setBusy(false)
       if (!result.ok) return setError(result.error)

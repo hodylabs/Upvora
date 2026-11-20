@@ -7,6 +7,7 @@ import { User, UserStatus } from "@fider/models"
 import { Result, actions, chopString, formatDate, http, markdown, notify, timeSince } from "@fider/services"
 import { useFider } from "@fider/hooks"
 import { Button } from "../../../components/form"
+import { AdminLayout } from "../AdminLayout"
 
 // The moderation queue (paid plan only). The route is behind RequirePro (proUi) and its
 // data and actions behind RequirePro too (proAdmin, proAdminApi), exactly as classic;
@@ -172,28 +173,28 @@ const ContentModerationPage = () => {
     )
 
   return (
-    <div className="u2-mod">
-      <header className="u2-mod__head">
-        <h1>
-          <Trans id="moderation.title">Moderation Queue</Trans>
-        </h1>
-        <p className="u2-muted">
-          <Trans id="moderation.subtitle">These ideas and comments are from people outside of your trusted users list, you decide if they get published.</Trans>
-        </p>
-      </header>
-      {loading ? (
-        <div className="u2-loading" aria-busy="true" />
-      ) : items.length === 0 ? (
-        <p className="u2-panel u2-mod__empty">
-          <Trans id="moderation.empty">All content has been moderated. You&apos;re all caught up!</Trans>
-        </p>
-      ) : (
-        <>
-          {section("post", posts)}
-          {section("comment", comments)}
-        </>
-      )}
-    </div>
+    <AdminLayout
+      name="moderation"
+      title={<Trans id="moderation.title">Moderation Queue</Trans>}
+      subtitle={
+        <Trans id="moderation.subtitle">These ideas and comments are from people outside of your trusted users list, you decide if they get published.</Trans>
+      }
+    >
+      <div className="u2-mod">
+        {loading ? (
+          <div className="u2-loading" aria-busy="true" />
+        ) : items.length === 0 ? (
+          <p className="u2-panel u2-mod__empty">
+            <Trans id="moderation.empty">All content has been moderated. You&apos;re all caught up!</Trans>
+          </p>
+        ) : (
+          <>
+            {section("post", posts)}
+            {section("comment", comments)}
+          </>
+        )}
+      </div>
+    </AdminLayout>
   )
 }
 

@@ -125,7 +125,9 @@ const ManageBillingPage = (props: ManageBillingPageProps) => {
     { text: t("ui2.admin.billing.pro2", "Unlimited suggestions") },
     { text: t("ui2.admin.billing.pro3", "Content moderation") },
     { text: t("ui2.admin.billing.pro4", "Search engine indexing") },
-    { text: t("ui2.admin.billing.annual", "Option to pay annually"), onClick: startAnnualCheckout },
+    // With a Stripe subscription, annual billing is a change to it in the portal: a new checkout
+    // would start a second subscription (the server refuses that too).
+    { text: t("ui2.admin.billing.annual", "Option to pay annually"), onClick: props.stripeSubscriptionID ? openPortal : startAnnualCheckout },
   ]
   const legacyFeatures: PlanFeature[] = [
     { text: t("ui2.admin.billing.legacy1", "Same features as Pro") },
@@ -140,7 +142,7 @@ const ManageBillingPage = (props: ManageBillingPageProps) => {
       subtitle={<Trans id="ui2.admin.billing.sub">Manage your subscription and billing</Trans>}
     >
       <p>
-        <Trans id="ui2.admin.billing.intro">Fider is free forever. But if you need advanced features and support, consider upgrading to Pro.</Trans>
+        <Trans id="ui2.admin.billing.intro">Upvora is free forever. But if you need advanced features and support, consider upgrading to Pro.</Trans>
       </p>
       {isPaddleCustomer && (
         <div className="u2-admin__note" role="note" data-testid="u2-paddle">

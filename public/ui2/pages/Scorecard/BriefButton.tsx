@@ -42,7 +42,7 @@ export const BriefButton = (props: { postNumber: number }) => {
       </Button>
       <Modal
         open={open}
-        wide
+        size="lg"
         onClose={() => setOpen(false)}
         title={i18n._({ id: "ui2.ideabrief.title", message: "Idea brief" })}
         footer={

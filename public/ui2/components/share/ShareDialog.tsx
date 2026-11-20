@@ -20,11 +20,13 @@ import { Markdown } from "../content/Markdown"
 import { VoteButton } from "../VoteButton"
 import { postHref } from "../../lib/nav"
 import { VoraChat } from "./VoraChat"
-import { IdeaFiles } from "./IdeaFiles"
+import { IdeaFilesEditor } from "../content/IdeaFiles"
 import { CREATED_MODERATION, CREATED_SUCCESS, DRAFT_KEYS, MAX_ATTACHMENTS, fileKind, titleLongEnough, voraGate } from "./rules"
 
 interface ShareDialogProps {
   initialTitle: string
+  // The product board it was opened from, if any.
+  initialProductId?: number
   onClose: () => void
 }
 
@@ -47,7 +49,7 @@ const ShareDialog = (props: ShareDialogProps) => {
   const staff = !!user?.isCollaborator
   const products = tenant.products ?? []
 
-  const [productId, setProductId] = useState<number>(products[0]?.id ?? 0)
+  const [productId, setProductId] = useState<number>(props.initialProductId ?? products[0]?.id ?? 0)
   const gate = voraGate(tenant, user, productId)
 
   // Vora's output, carried to create exactly as classic does.
@@ -204,8 +206,7 @@ const ShareDialog = (props: ShareDialogProps) => {
     attachments.some((a) => !a.remove)
 
   const requestClose = () => {
-    // A dialog opened from inside this one (a link or the confirm) handles its own Esc.
-    if (confirmClose || document.querySelectorAll(".u2-dlg").length > 1) return
+    if (confirmClose) return
     if (dirty && !submitting) setConfirmClose(true)
     else if (!submitting) props.onClose()
   }
@@ -233,7 +234,7 @@ const ShareDialog = (props: ShareDialogProps) => {
     <>
       <Modal
         open={true}
-        wide
+        size="full"
         locked={submitting}
         onClose={requestClose}
         title={<Trans id="ui2.vora.share">Share an idea</Trans>}
@@ -357,9 +358,14 @@ const ShareDialog = (props: ShareDialogProps) => {
                   })}
                   onImageUploaded={handleImageUploaded}
                   onGetImageSrc={getImageSrc}
+                  onGetUpload={(bkey) => attachments.find((a) => a.bkey === bkey)?.upload}
                 />
               </Field>
-              {canAttachFiles && <IdeaFiles attachments={attachments} onChange={handleImageUploaded} disabled={fider.isReadOnly} />}
+              {canAttachFiles && (
+                <Field stacked group label={<Trans id="ideafiles.label">Files</Trans>}>
+                  <IdeaFilesEditor attachments={attachments} onChange={handleImageUploaded} disabled={fider.isReadOnly} />
+                </Field>
+              )}
               {canEditTags && (
                 <Field stacked group label={<Trans id="label.tags">Tags</Trans>}>
                   <div className="u2-share__tags">

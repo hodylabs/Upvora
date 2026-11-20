@@ -20,7 +20,7 @@ import { statusInfo } from "../../lib/status"
 import { postHref } from "../../lib/nav"
 import { CommentComposer, CommentItem } from "./Comments"
 import { DeleteDialog, FeedDialog, ResponseDialog, TranscriptDialog, VotersDialog } from "./Dialogs"
-import { InternalNote } from "./InternalNote"
+import { InternalNote } from "../../components/InternalNote"
 import { canDeleteIdea, canEditIdea, canSeeVoters, canTogglePrivacy, canVote, isStaff, mergeTarget } from "./rules"
 
 // Everything the server sends classic's ShowPost page (app/handlers/post.go, PostDetails).
@@ -57,8 +57,6 @@ export const loadIdea = async (num: number, signedIn: boolean): Promise<IdeaData
 
 const MAX_FACES = 8
 const SESSION_TOASTS: [string, () => string][] = [
-  ["POST_CREATED_SUCCESS", () => i18n._({ id: "ui2.idea.created", message: "Your idea has been added." })],
-  ["POST_CREATED_MODERATION", () => i18n._({ id: "ui2.idea.created.moderation", message: "Your idea is awaiting moderation." })],
   ["COMMENT_CREATED_MODERATION", () => i18n._({ id: "ui2.idea.comment.moderation", message: "Your comment is awaiting moderation." })],
 ]
 

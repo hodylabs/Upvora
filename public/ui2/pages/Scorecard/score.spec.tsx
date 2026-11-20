@@ -175,6 +175,37 @@ describe("ui2 Scorecard card", () => {
     expect(put).toHaveBeenCalledWith("/_api/scorecards/5", { title: "Alpha", values: { impact: 5, effort: 5 } })
   })
 
+  test("an older save that finishes after a newer edit leaves the card unsaved until that edit saves", async () => {
+    jest.useFakeTimers()
+    let finish: (v: unknown) => void = () => undefined
+    const put = jest
+      .fn()
+      .mockReturnValueOnce(new Promise((r) => (finish = r)))
+      .mockReturnValue(Promise.resolve({ ok: true, data: {} }))
+    http.put = put as unknown as typeof http.put
+    http.get = jest.fn(() => Promise.resolve({ ok: false, data: {} })) as unknown as typeof http.get
+    const { container } = render(
+      <FiderContext.Provider value={fiderWith()}>
+        <ScorecardCardPage scorecard={{ id: 5, title: "Alpha", values: {}, createdAt: "2026-11-01T00:00:00Z", updatedAt: "" }} />
+      </FiderContext.Provider>
+    )
+    const state = () => container.querySelector(".u2-sc__save")?.getAttribute("data-state")
+    fireEvent.change(container.querySelector("#sc-effort") as HTMLInputElement, { target: { value: "3" } })
+    await act(async () => {
+      jest.advanceTimersByTime(SAVE_DEBOUNCE_MS)
+    })
+    expect(put).toHaveBeenCalledTimes(1)
+    // A newer edit while the first save runs; its debounce has not fired yet.
+    fireEvent.change(container.querySelector("#sc-effort") as HTMLInputElement, { target: { value: "4" } })
+    await act(async () => finish({ ok: true, data: {} }))
+    expect(state()).toBe("dirty")
+    await act(async () => {
+      jest.advanceTimersByTime(SAVE_DEBOUNCE_MS)
+    })
+    expect(put).toHaveBeenLastCalledWith("/_api/scorecards/5", { title: "Alpha", values: { effort: 4 } })
+    expect(state()).toBe("saved")
+  })
+
   test("retired fields show only where this card answered them, read only; legacy choices stay selectable", () => {
     const fields = [
       statusField,

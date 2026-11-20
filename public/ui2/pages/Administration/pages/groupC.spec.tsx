@@ -6,8 +6,9 @@ import ManageAIPage, { agentList } from "./ManageAI.page"
 import ManageMCPPage from "./ManageMCP.page"
 import ManageBillingPage, { billingState } from "./ManageBilling.page"
 import { toBand } from "./ScorecardSettings.page"
-import { csvToChoices, choicesToCsv, weightSum } from "../components/ScorecardFields"
+import { ScorecardFields, csvToChoices, choicesToCsv, weightSum } from "../components/ScorecardFields"
 import { ScorecardField } from "@fider/models"
+import { i18n } from "@lingui/core"
 
 // Trans renders empty under jest (@lingui/react is mocked), so these assert calls and structure.
 
@@ -149,6 +150,18 @@ describe("ui2 Admin billing", () => {
     await act(async () => fireEvent.click(container.querySelector(".u2-plan--hi .u2-btn") as HTMLButtonElement))
     expect(http.post).toHaveBeenCalledWith("/_api/admin/billing/portal")
   })
+
+  test("annual billing starts a checkout only without a Stripe subscription; with one it opens the portal", async () => {
+    refuse()
+    const free = withFider(<ManageBillingPage {...base} />)
+    await act(async () => fireEvent.click(free.container.querySelector(".u2-plan__link") as HTMLButtonElement))
+    expect(http.post).toHaveBeenLastCalledWith("/_api/admin/billing/checkout/annual")
+    free.unmount()
+
+    const pro = withFider(<ManageBillingPage {...base} stripeCustomerID="c" stripeSubscriptionID="s" isPro={true} />)
+    await act(async () => fireEvent.click(pro.container.querySelector(".u2-plan__link") as HTMLButtonElement))
+    expect(http.post).toHaveBeenLastCalledWith("/_api/admin/billing/portal")
+  })
 })
 
 describe("ui2 Admin scorecard settings", () => {
@@ -168,6 +181,46 @@ describe("ui2 Admin scorecard settings", () => {
       { value: "Maybe" },
     ])
     expect(choicesToCsv(prev)).toBe("Yes:review, No")
+  })
+
+  const sf = (id: number, key: string, extra: Partial<ScorecardField> = {}) =>
+    ({ id, key, label: key, groupKey: "context", type: "text", sortOrder: id, isSystem: false, isActive: true, ...extra }) as ScorecardField
+
+  test("a row action blocks the other actions on that row until its result is in", async () => {
+    // the usage text uses a plural, which needs an active locale
+    i18n.loadAndActivate({ locale: "en", messages: {} })
+    let finish: (v: unknown) => void = () => undefined
+    http.put = jest.fn(() => new Promise((r) => (finish = r))) as unknown as typeof http.put
+    const { container } = withFider(<ScorecardFields fields={[sf(1, "a"), sf(2, "b")]} usage={{ b: 3 }} />)
+    const row = container.querySelector('[data-field="b"]') as HTMLElement
+    const buttons = () => Array.from(row.querySelectorAll("button"))
+    const deactivate = buttons()[buttons().length - 1]
+    fireEvent.click(deactivate)
+    expect(http.put).toHaveBeenCalledTimes(1)
+    buttons().forEach((b) => expect(b).toBeDisabled())
+    fireEvent.click(row.querySelector('[aria-label="Move up"]') as HTMLElement)
+    expect(http.put).toHaveBeenCalledTimes(1)
+    await act(async () => finish({ ok: true, data: {} }))
+    buttons().forEach((b) => expect(b).not.toBeDisabled())
+    // the next action carries the new state
+    http.put = jest.fn(() => Promise.resolve({ ok: true, data: {} })) as unknown as typeof http.put
+    await act(async () => {
+      fireEvent.click(row.querySelector('[aria-label="Move up"]') as HTMLElement)
+    })
+    expect(http.put).toHaveBeenCalledWith("/_api/admin/scorecard-fields/2", expect.objectContaining({ isActive: false, sortOrder: 0 }))
+  })
+
+  test("a label-only edit sends the stored choices unchanged, commas and suffixes included", async () => {
+    httpMock.alwaysOk()
+    const choices = [{ value: "Sales, EMEA", color: "blue" }, { value: "Escalate:review" }]
+    const { container } = withFider(<ScorecardFields fields={[sf(4, "region", { type: "choice", choices })]} usage={{}} />)
+    const row = container.querySelector('[data-field="region"]') as HTMLElement
+    fireEvent.click(row.querySelector("button.u2-btn--ghost:not(.u2-btn--icon)") as HTMLElement)
+    fireEvent.change(container.querySelector('input[name="label"]') as HTMLInputElement, { target: { value: "Sales region" } })
+    await act(async () => {
+      fireEvent.submit(container.querySelector("form") as HTMLFormElement)
+    })
+    expect(http.put).toHaveBeenCalledWith("/_api/admin/scorecard-fields/4", expect.objectContaining({ label: "Sales region", choices }))
   })
 
   test("only active score rows count toward the 100 weights", () => {

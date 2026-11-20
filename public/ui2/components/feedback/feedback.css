@@ -21,8 +21,25 @@
   box-shadow: var(--u-shadow);
   animation: u2-dlg-in 0.14s ease-out;
 }
-.u2-dlg--wide {
+.u2-dlg--sm {
+  width: min(360px, 100%);
+}
+.u2-dlg--lg {
   width: min(760px, 100%);
+}
+/* A working area (e.g. "Share an idea"): fixed height, the body scrolls. */
+.u2-dlg--full {
+  display: flex;
+  flex-direction: column;
+  width: min(960px, 100%);
+  height: min(780px, calc(100vh - 32px));
+  overflow: hidden;
+}
+.u2-dlg--full .u2-dlg__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-block-end: 12px;
 }
 .u2-dlg:focus {
   outline: none;
@@ -120,7 +137,31 @@
     inset-block-end: 72px;
     width: auto;
   }
+  .u2-toast .u2-iconbtn {
+    width: 44px;
+    height: 44px;
+  }
+  /* Phones: every dialog fills the screen. */
   .u2-dlg-back {
-    place-items: end center;
+    padding: 0;
+  }
+  .u2-dlg {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .u2-dlg__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .u2-dlg__foot .u2-btn,
+  .u2-dlg__close {
+    min-height: 44px;
+    min-width: 44px;
   }
 }

@@ -4,15 +4,6 @@
   flex-direction: column;
   gap: 12px;
 }
-.u2-mod__head h1 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-.u2-mod__head p {
-  margin: 4px 0 0;
-}
 .u2-mod__empty {
   margin: 0;
   padding: 28px 16px;

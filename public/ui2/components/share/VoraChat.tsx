@@ -32,6 +32,16 @@ export const VoraChat = (props: VoraChatProps) => {
   const logRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const finalizingRef = useRef(false)
+  // The current turn. Leaving the conversation (another product, "Write it yourself",
+  // closing the dialog) or starting a newer turn moves it on, so a late answer from an
+  // abandoned request never touches the draft.
+  const turn = useRef(0)
+  useEffect(
+    () => () => {
+      turn.current++
+    },
+    [props.productId]
+  )
 
   useEffect(() => {
     logRef.current?.scrollTo?.({ top: logRef.current.scrollHeight })
@@ -53,18 +63,20 @@ export const VoraChat = (props: VoraChatProps) => {
 
   const wrapUp = async (history: AIMessage[]) => {
     if (finalizingRef.current || history.length < 2) return
+    const id = ++turn.current
     finalizingRef.current = true
     setFinalizing(true)
     const failMessage = i18n._({ id: "ui2.share.vora.wrapfailed", message: "Vora could not draft the idea. Try once more." })
     try {
       const res = await actions.aiFinalize(props.productId, history)
+      if (id !== turn.current) return
       if (res.ok) {
         props.onDone(res.data, history)
         return
       }
       toast.error(failMessage)
     } catch {
-      toast.error(failMessage)
+      if (id === turn.current) toast.error(failMessage)
     } finally {
       finalizingRef.current = false
       setFinalizing(false)
@@ -72,14 +84,16 @@ export const VoraChat = (props: VoraChatProps) => {
   }
 
   const run = async (history: AIMessage[]) => {
+    const id = ++turn.current
     props.onMessages(history)
     setFailed(false)
     setBusy(true)
     let res = await deliver(history)
-    if (res === null) {
+    if (res === null && id === turn.current) {
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY))
-      res = await deliver(history)
+      if (id === turn.current) res = await deliver(history)
     }
+    if (id !== turn.current) return
     setBusy(false)
     if (res === null) {
       setFailed(true)

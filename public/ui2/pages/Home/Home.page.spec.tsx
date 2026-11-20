@@ -91,15 +91,12 @@ describe("ui2 Home page", () => {
     const button = container.querySelector(".u2-empty .u2-btn--primary") as HTMLElement
     expect(button).not.toBeNull()
 
-    // Nothing handles the event yet (Stage 4): an inline note says so.
-    fireEvent.click(button)
-    expect(screen.getByRole("status")).toBeDefined()
-
-    // A handler claims it: no note.
+    // The share host claims the event; the board shows no fallback note.
     const handler = jest.fn((e: Event) => e.preventDefault())
     window.addEventListener(SHARE_IDEA_EVENT, handler)
     fireEvent.click(button)
     expect((handler.mock.calls[0][0] as CustomEvent).detail).toEqual({ title: "outlook" })
+    expect(handler.mock.calls[0][0].defaultPrevented).toBe(true)
     expect(screen.queryByRole("status")).toBeNull()
     window.removeEventListener(SHARE_IDEA_EVENT, handler)
   })

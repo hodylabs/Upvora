@@ -486,3 +486,21 @@ select.u2-ctl:dir(rtl) {
     height: 44px;
   }
 }
+
+/* Range slider */
+.u2-range input {
+  width: 100%;
+  accent-color: var(--u-accent);
+}
+.u2-range__ticks {
+  display: flex;
+  justify-content: space-between;
+  padding-inline: 4px;
+  font-size: 10px;
+  color: var(--u-muted);
+}
+@media (max-width: 700px) {
+  .u2-range input {
+    min-height: 44px;
+  }
+}

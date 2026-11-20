@@ -10,6 +10,12 @@ import { CREATED_MODERATION, CREATED_SUCCESS, DRAFT_KEYS, SHARE_FLAG, shareSignI
 // The editor and chat load only when someone opens "Share an idea".
 const ShareDialog = lazy(() => import(/* webpackChunkName: "ui2-share" */ "./ShareDialog"))
 
+// On a product board (/p/<slug>) the new idea starts on that product, as classic.
+export const boardProductId = (products: { id: number; slug: string }[], path = location.pathname): number | undefined => {
+  const m = /^\/p\/([^/]+)/.exec(path)
+  return m ? products.find((p) => p.slug === decodeURIComponent(m[1]))?.id : undefined
+}
+
 // Mounted once next to the shell. It claims the board's "share an idea" event, sends
 // signed-out people to sign in (coming back with ?share=1, which reopens it), and
 // shows the "idea added" toast after the redirect to the new idea.
@@ -56,7 +62,7 @@ export const ShareIdea = () => {
   if (!open) return null
   return (
     <Suspense fallback={null}>
-      <ShareDialog initialTitle={open.title} onClose={() => setOpen(null)} />
+      <ShareDialog initialTitle={open.title} initialProductId={boardProductId(fider.session.tenant.products ?? [])} onClose={() => setOpen(null)} />
     </Suspense>
   )
 }
