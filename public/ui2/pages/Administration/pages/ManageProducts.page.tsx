@@ -51,7 +51,10 @@ const ManageProductsPage = (props: ManageProductsPageProps) => {
   // Products with an active-switch request in flight. One mutation per product at a time,
   // so a save never lands an activation value older than the switch.
   const [toggling, setToggling] = useState<Set<number>>(new Set())
-  const isPending = (id: number | null) => id !== null && (toggling.has(id) || (busy && draft?.id === id))
+  // The product whose details save is in flight, tracked apart from the open editor
+  // (the admin may cancel or open another product while it runs).
+  const [savingId, setSavingId] = useState<number | null>(null)
+  const isPending = (id: number | null) => id !== null && (toggling.has(id) || savingId === id)
 
   const set = (patch: Partial<Draft>) => setDraft((d) => (d ? { ...d, ...patch } : d))
 
@@ -79,7 +82,7 @@ const ManageProductsPage = (props: ManageProductsPageProps) => {
     setDraft((d) => (d ? { ...d, name, slug: d.id === null && (d.slug === "" || d.slug === slugify(d.name)) ? slugify(name) : d.slug } : d))
 
   const save = async () => {
-    if (!draft || (draft.id !== null && toggling.has(draft.id))) return
+    if (!draft || (draft.id !== null && isPending(draft.id))) return
     const color = draft.colorMode === "default" ? "" : draft.color
     setBusy(true)
     if (draft.id === null) {
@@ -89,10 +92,11 @@ const ManageProductsPage = (props: ManageProductsPageProps) => {
       setProducts((list) => [...list, result.data as Product].sort(bySort))
     } else {
       const id = draft.id
+      setSavingId(id)
       // The row toggle owns activation: send its current state, not the one from when the editor opened.
       const isActive = products.find((p) => p.id === id)?.isActive ?? draft.isActive
       const input = { name: draft.name, description: draft.description, color, sortOrder: draft.sortOrder, isActive }
-      const result = await actions.updateProduct(id, input)
+      const result = await actions.updateProduct(id, input).finally(() => setSavingId(null))
       setBusy(false)
       if (!result.ok) return setError(result.error)
       setProducts((list) => list.map((p) => (p.id === id ? { ...p, ...input } : p)).sort(bySort))

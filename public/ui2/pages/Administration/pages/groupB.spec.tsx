@@ -226,6 +226,28 @@ describe("ui2 tags", () => {
     expect(mock.put).toHaveBeenLastCalledWith("/_api/admin/products/3", expect.objectContaining({ name: "App", isActive: false }))
   })
 
+  test("a pending save stays tracked after the editor moves to another product", async () => {
+    let finish: (r: unknown) => void = () => undefined
+    const put = jest.fn(() => new Promise((r) => (finish = r)))
+    http.put = put as unknown as typeof http.put
+    const a = { id: 3, name: "App", slug: "app", description: "", color: "", sortOrder: 10, isActive: true }
+    const b = { id: 4, name: "Web", slug: "web", description: "", color: "", sortOrder: 20, isActive: true }
+    const { container } = withFider(<ManageProductsPage products={[a, b] as never[]} counts={{}} />)
+    const rowA = container.querySelector('[data-id="3"]') as HTMLElement
+    const rowB = container.querySelector('[data-id="4"]') as HTMLElement
+    const toggleA = () => rowA.querySelector('[role="switch"]') as HTMLButtonElement
+
+    fireEvent.click(rowA.querySelector(".u2-btn--ghost") as HTMLElement)
+    await act(async () => {
+      fireEvent.submit(container.querySelector("form") as HTMLFormElement)
+    })
+    // The admin opens product B while A's save is still running.
+    fireEvent.click(rowB.querySelector(".u2-btn--ghost") as HTMLElement)
+    expect(toggleA().disabled).toBe(true)
+    await act(async () => finish({ ok: true, data: {} }))
+    expect(toggleA().disabled).toBe(false)
+  })
+
   test("the row toggle is blocked while that product's save is pending, and the reverse", async () => {
     let finish: (r: unknown) => void = () => undefined
     const put = jest.fn(() => new Promise((r) => (finish = r)))
