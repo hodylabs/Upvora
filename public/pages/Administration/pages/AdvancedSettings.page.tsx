@@ -6,11 +6,13 @@ import { AdminBasePage } from "../components/AdminBasePage"
 
 interface AdvancedSettingsPageProps {
   customCSS: string
+  ui2CustomCSS?: string
   allowedSchemes: string
 }
 
 interface AdvancedSettingsPageState {
   customCSS: string
+  ui2CustomCSS: string
   allowedSchemes: string
   error?: Failure
 }
@@ -26,6 +28,7 @@ export default class AdvancedSettingsPage extends AdminBasePage<AdvancedSettings
 
     this.state = {
       customCSS: this.props.customCSS,
+      ui2CustomCSS: this.props.ui2CustomCSS ?? "",
       allowedSchemes: this.props.allowedSchemes,
     }
   }
@@ -34,12 +37,16 @@ export default class AdvancedSettingsPage extends AdminBasePage<AdvancedSettings
     this.setState({ customCSS })
   }
 
+  private setUI2CustomCSS = (ui2CustomCSS: string): void => {
+    this.setState({ ui2CustomCSS })
+  }
+
   private setAllowedSchemes = (allowedSchemes: string): void => {
     this.setState({ allowedSchemes })
   }
 
   private handleSave = async (): Promise<void> => {
-    const result = await actions.updateTenantAdvancedSettings(this.state.customCSS, this.state.allowedSchemes)
+    const result = await actions.updateTenantAdvancedSettings(this.state.customCSS, this.state.allowedSchemes, this.state.ui2CustomCSS)
     if (result.ok) {
       location.reload()
     } else {
@@ -75,6 +82,20 @@ export default class AdvancedSettingsPage extends AdminBasePage<AdvancedSettings
               <strong>Keep it simple</strong>: Customize only the essential.
             </li>
           </ul>
+        </TextArea>
+
+        <TextArea
+          field="ui2CustomCSS"
+          label="Custom CSS for the new look"
+          disabled={!Fider.session.user.isAdministrator}
+          minRows={6}
+          value={this.state.ui2CustomCSS}
+          onChange={this.setUI2CustomCSS}
+        >
+          <p className="text-muted">
+            Used only when the site is on the new look (Admin, General, Look); the field above applies only to this Classic look. Set it here to prepare your
+            branding before you switch.
+          </p>
         </TextArea>
 
         {Fider.settings.allowAllowedSchemes && (
