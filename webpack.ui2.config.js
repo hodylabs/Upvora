@@ -30,7 +30,9 @@ if (isProduction) {
   plugins.push(
     new PurgeCSSPlugin({
       paths: [...glob.sync(`./public/ui2/**/*.{ts,tsx}`, { nodir: true })],
-      defaultExtractor: (content) => content.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || [],
+      // Split on anything that cannot be part of a class name, so classes built in
+      // template strings (`u2-board${x ? " has-peek" : ""}`) are still seen.
+      defaultExtractor: (content) => content.match(/[A-Za-z0-9_-]+/g) || [],
       // body/html carry the tokens (body.u2, set from script) and never appear as text in the sources
       safelist: { standard: ["body", "html", /--/, /__/, /data-/, /^is-/] },
     })

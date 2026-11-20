@@ -38,7 +38,7 @@ describe("ui2 board insights mapping", () => {
   test("momentum and duplicate lookups", () => {
     expect(momentum(insights, 412)).toBe(24)
     expect(momentum(insights, 366)).toBe(0)
-    expect(momentum(insights, 1)).toBeNull()
+    expect(momentum(insights, 1)).toBe(0) // a loaded map without the post means no recent votes
     expect(momentum(null, 412)).toBeNull()
     expect(duplicateOf(insights, 433)).toBe(412)
     expect(duplicateOf(insights, 412)).toBeUndefined()

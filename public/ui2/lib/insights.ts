@@ -77,8 +77,10 @@ export const rowChips = (insights: BoardInsights | null | undefined, num: number
 
 // "This week": votes in the last 7 days, null when unknown (the cell stays empty).
 export const momentum = (insights: BoardInsights | null | undefined, num: number): number | null => {
-  const n = insights?.momentum?.[String(num)]
-  return typeof n === "number" ? n : null
+  // The server leaves out posts with no recent votes, so a loaded map means 0 ("quiet").
+  if (!insights?.momentum) return null
+  const n = insights.momentum[String(num)]
+  return typeof n === "number" ? n : 0
 }
 
 export const duplicateOf = (insights: BoardInsights | null | undefined, num: number): number | undefined => {

@@ -224,7 +224,17 @@ func similarInsightFor(trx *dbx.Trx, tenant *entity.Tenant, user *entity.User, p
 		if err != nil {
 			return result, errors.Wrap(err, "failed to find similar posts for insights")
 		}
-		result.similar = len(found)
+		// The full-text match is "any word, title or description", which flags most
+		// rows on a small board. Count only ideas whose titles share a meaningful word.
+		mine := titleWords(p.Title)
+		for _, f := range found {
+			for w := range titleWords(f.Title) {
+				if mine[w] {
+					result.similar++
+					break
+				}
+			}
+		}
 		if staff && p.isOpen() {
 			// Results are best match first; the first older open one with a
 			// near-identical title is the likely original.
