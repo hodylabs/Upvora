@@ -2,6 +2,7 @@
    control-right forms with thin rules between fields (the shared .u2-fld), compact. */
 .u2-admin {
   max-width: 1080px;
+  margin-inline: auto;
 }
 .u2-admin__eyebrow {
   display: block;

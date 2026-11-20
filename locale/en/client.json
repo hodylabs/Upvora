@@ -497,7 +497,7 @@
   "ui2.admin.general.templatehint": "If set, all new ideas submitted by users will use this text as the default description.",
   "ui2.admin.general.title": "General",
   "ui2.admin.general.welcomeheader": "Welcome Header",
-  "ui2.admin.general.welcomeheaderhint": "Large header text shown on the home page. Leave empty to hide. Wrap text with underscores (e.g., _highlighted_) to show it in blue.",
+  "ui2.admin.general.welcomeheaderhint": "Large header text shown on the home page. Leave empty to hide. Wrap text with underscores (e.g., _highlighted_) to show it in the accent color.",
   "ui2.admin.general.welcomemessage": "Welcome Message",
   "ui2.admin.general.welcomemessagehint": "The message is shown on this site's home page. Use it to help visitors understand what this space is about and the importance of their feedback.",
   "ui2.admin.invite.confirm": "Confirmation",

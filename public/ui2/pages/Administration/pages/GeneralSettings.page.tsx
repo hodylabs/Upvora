@@ -174,7 +174,7 @@ const GeneralSettingsPage = () => {
           label={<Trans id="ui2.admin.general.welcomeheader">Welcome Header</Trans>}
           hint={
             <Trans id="ui2.admin.general.welcomeheaderhint">
-              Large header text shown on the home page. Leave empty to hide. Wrap text with underscores (e.g., _highlighted_) to show it in blue.
+              Large header text shown on the home page. Leave empty to hide. Wrap text with underscores (e.g., _highlighted_) to show it in the accent color.
             </Trans>
           }
           maxLength={100}
