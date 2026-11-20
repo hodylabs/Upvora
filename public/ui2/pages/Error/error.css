@@ -1,0 +1,67 @@
+.u2-errpage {
+  width: min(560px, 100%);
+  margin: 32px auto;
+  padding: 32px 28px 28px;
+  text-align: center;
+}
+.u2-errpage__code {
+  margin: 0 0 6px;
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--u-text);
+}
+/* the signal-color underline: the one bit of personality */
+.u2-errpage__code::after {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 3px;
+  margin: 12px auto 0;
+  border-radius: 2px;
+  background: var(--u-accent);
+}
+.u2-errpage__logo {
+  border-radius: 10px;
+  margin-block-end: 10px;
+}
+.u2-errpage__title {
+  margin: 10px 0 6px;
+  font-size: 20px;
+  font-weight: 600;
+}
+.u2-errpage__text {
+  color: var(--u-text2);
+}
+.u2-errpage__text p {
+  margin: 0 0 6px;
+}
+.u2-errpage__home {
+  margin: 18px 0 0;
+  padding-block-start: 14px;
+  border-block-start: 1px solid var(--u-line);
+  color: var(--u-muted);
+  font-size: 13px;
+}
+.u2-errpage__details {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  max-height: 40vh;
+  overflow: auto;
+  text-align: start;
+  border-radius: var(--u-radius);
+  border: 1px solid var(--u-line);
+  background: var(--u-chip);
+  font: 12px/1.5 var(--u-mono);
+  white-space: pre-wrap;
+}
+@media (max-width: 700px) {
+  .u2-errpage {
+    margin-block: 8px;
+    padding: 24px 16px;
+  }
+  .u2-errpage__code {
+    font-size: 48px;
+  }
+}

@@ -1,0 +1,109 @@
+/* Rendered Markdown (descriptions, comments, legal pages, notification titles).
+   The HTML comes from the sanitized @fider/services markdown helpers, so its tags never
+   appear in the ui2 sources: keep these rules out of PurgeCSS. */
+/* purgecss start ignore */
+.u2-prose {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  color: var(--u-text);
+  line-height: 1.6;
+}
+.u2-prose > :first-child {
+  margin-block-start: 0;
+}
+.u2-prose > :last-child {
+  margin-block-end: 0;
+}
+.u2-prose p,
+.u2-prose ul,
+.u2-prose ol,
+.u2-prose pre,
+.u2-prose blockquote,
+.u2-prose table {
+  margin-block: 0 12px;
+}
+.u2-prose h1 {
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  margin-block: 0 14px;
+}
+.u2-prose h2 {
+  font-size: 19px;
+  margin-block: 22px 10px;
+}
+.u2-prose h3 {
+  font-size: 16px;
+  margin-block: 18px 8px;
+}
+.u2-prose ul,
+.u2-prose ol {
+  padding-inline-start: 22px;
+}
+.u2-prose li + li {
+  margin-block-start: 3px;
+}
+.u2-prose a {
+  color: var(--u-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.u2-prose blockquote {
+  margin-inline: 0;
+  padding: 6px 12px;
+  border-inline-start: 3px solid var(--u-edge);
+  color: var(--u-text2);
+  background: var(--u-chip);
+  border-radius: 6px;
+}
+.u2-prose code {
+  font: 0.9em var(--u-mono);
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--u-chip);
+  border: 1px solid var(--u-line);
+}
+.u2-prose pre {
+  padding: 10px 12px;
+  overflow-x: auto;
+  border-radius: var(--u-radius);
+  background: var(--u-chip);
+  border: 1px solid var(--u-line);
+}
+.u2-prose pre code {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.u2-prose img {
+  max-width: 100%;
+  border-radius: 6px;
+}
+.u2-prose hr {
+  border: 0;
+  border-block-start: 1px solid var(--u-line);
+  margin-block: 18px;
+}
+.u2-prose table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+.u2-prose th,
+.u2-prose td {
+  padding: 6px 10px;
+  border-block-end: 1px solid var(--u-line);
+  text-align: start;
+}
+.u2-prose th {
+  background: var(--u-chip);
+}
+.u2-prose .mention {
+  color: var(--u-accent);
+  font-weight: 500;
+}
+.u2-prose--inline,
+.u2-prose--inline p {
+  display: inline;
+  margin: 0;
+}
+/* purgecss end ignore */

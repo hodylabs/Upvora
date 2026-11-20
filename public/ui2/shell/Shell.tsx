@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { Trans } from "@lingui/react/macro"
-import { cache, uploadedImageURL } from "@fider/services"
+import { uploadedImageURL } from "@fider/services"
 import { useFider } from "@fider/hooks"
+import { applyTheme } from "../lib/theme"
+import { NotificationsBadge } from "../components/NotificationsBadge"
 import { URL_CHANGE_EVENT } from "../lib/nav"
 
 // The new UI's app shell: top bar (site, account, theme), optional site banner,
@@ -40,13 +42,13 @@ const currentTheme = (): Theme => (document.body.getAttribute("data-theme") === 
 
 const ThemeToggle = () => {
   const [theme, setTheme] = useState<Theme>(currentTheme)
-  const toggle = () => {
-    const next: Theme = theme === "dark" ? "light" : "dark"
-    // Same storage key as classic (base.html reads it before first paint).
-    cache.local.set("theme", next)
-    document.body.setAttribute("data-theme", next)
-    setTheme(next)
-  }
+  useEffect(() => {
+    const sync = () => setTheme(currentTheme())
+    window.addEventListener("ui2:themechange", sync)
+    return () => window.removeEventListener("ui2:themechange", sync)
+  }, [])
+  // A quick switch to the opposite of what is showing; "system" lives in My settings.
+  const toggle = () => applyTheme(theme === "dark" ? "light" : "dark")
   return (
     <button type="button" className="u2-iconbtn" onClick={toggle} aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}>
       {theme === "dark" ? (
@@ -233,6 +235,7 @@ export const Shell = (props: { children: React.ReactNode }) => {
         </a>
         <div className="u2-top__end">
           <ThemeToggle />
+          <NotificationsBadge />
           <AccountMenu />
         </div>
       </header>
