@@ -329,30 +329,21 @@
   gap: 12px;
   margin-block-start: 16px;
 }
-.u2-brief,
-.u2-cta {
+.u2-brief {
   padding: 10px;
   border: 1px solid var(--u-edge);
   border-radius: var(--u-radius);
   background: var(--u-accent-soft);
 }
-.u2-cta {
-  background: var(--u-chip);
-}
-.u2-brief__h,
-.u2-cta__h {
+.u2-brief__h {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
 }
-.u2-brief__when,
-.u2-cta__p {
+.u2-brief__when {
   margin: 2px 0 0;
   font-size: 12px;
   color: var(--u-muted);
-}
-.u2-cta__p {
-  margin-block-end: 8px;
 }
 .u2-brief__list {
   list-style: none;

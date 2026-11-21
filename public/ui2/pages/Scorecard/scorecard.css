@@ -22,13 +22,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 1px 9px;
-  border: 1px solid var(--u-b);
+  padding: 2px 9px;
+  border: 0;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--u-b) 10%, transparent);
+  background: color-mix(in srgb, var(--u-b) 12%, transparent);
   color: var(--u-b);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -125,8 +125,8 @@
   border-collapse: collapse;
 }
 .u2-sc__table th {
-  height: 34px;
-  padding-inline: 12px;
+  height: 36px;
+  padding-inline: 14px;
   font-size: 12px;
   font-weight: 500;
   color: var(--u-muted);
@@ -135,7 +135,7 @@
 }
 .u2-sc__table td {
   height: var(--u-row);
-  padding: 6px 12px;
+  padding: 10px 14px;
   border-block-start: 1px solid var(--u-line);
   vertical-align: middle;
 }

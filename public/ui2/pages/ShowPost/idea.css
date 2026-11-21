@@ -14,7 +14,7 @@
 }
 .u2-idea__main {
   grid-area: main;
-  padding: 20px;
+  padding: 24px 28px;
   min-width: 0;
 }
 .u2-idea__vote {
@@ -25,13 +25,14 @@
   gap: 10px;
 }
 .u2-idea__vote .u2-vote--large {
+  /* the rail is a flex column: flex: 1 from .u2-vote--large would squash the height */
+  flex: none;
   width: 100%;
   height: 44px;
   font-size: 14px;
   gap: 8px;
 }
 .u2-idea__vote .u2-vote:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
 }
 .u2-idea__rail {
@@ -65,9 +66,11 @@
   color: var(--u-text);
 }
 .u2-idea__title {
-  font-size: 22px;
-  line-height: 1.25;
-  margin-block: 6px 10px;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-block: 8px 12px;
   overflow-wrap: anywhere;
 }
 .u2-idea__meta {
@@ -85,15 +88,15 @@
 }
 .u2-idea__follow {
   padding: 2px 10px;
-  border: 1px solid var(--u-edge);
+  border: 0;
   border-radius: 999px;
-  background: var(--u-chip);
+  background: color-mix(in srgb, var(--u-text) 6%, transparent);
   color: var(--u-text2);
   font: inherit;
   cursor: pointer;
 }
 .u2-idea__follow[aria-pressed="true"] {
-  border-color: var(--u-accent);
+  background: var(--u-accent-soft);
   color: var(--u-accent);
 }
 .u2-idea__banner {
@@ -122,7 +125,7 @@
   margin-block-end: 12px;
 }
 .u2-idea__tags a.u2-chip:hover {
-  border-color: var(--u-accent);
+  color: var(--u-accent);
 }
 .u2-idea__tagpick {
   flex-basis: 100%;
@@ -211,10 +214,10 @@
   box-shadow: inset 0 0 0 2px var(--u-accent);
 }
 .u2-cm--response {
-  margin-inline: -10px;
-  padding-inline: 10px;
+  margin-inline: -12px;
+  padding-inline: 12px;
   border-radius: var(--u-radius);
-  background: var(--u-chip);
+  background: color-mix(in srgb, var(--u-text) 3%, transparent);
 }
 .u2-cm__who {
   display: flex;
@@ -311,13 +314,12 @@ button.u2-react__b {
   background: var(--u-chip);
 }
 .u2-compose {
-  margin-block-start: 12px;
-  padding: 12px;
-  border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
+  margin-block-start: 16px;
 }
 .u2-compose.is-internal {
-  border-color: color-mix(in srgb, var(--u-warn) 45%, transparent);
+  margin-inline: -12px;
+  padding: 12px;
+  border-radius: var(--u-radius);
   background: color-mix(in srgb, var(--u-warn) 8%, transparent);
 }
 .u2-compose--out {

@@ -42,9 +42,9 @@
   border-color: var(--u-accent);
 }
 .u2-vote.is-on {
-  background: var(--u-accent);
-  border-color: transparent;
-  color: var(--u-on-accent);
+  background: var(--u-accent-soft);
+  border-color: color-mix(in srgb, var(--u-accent) 35%, transparent);
+  color: var(--u-accent);
 }
 .u2-vote--large {
   width: auto;
@@ -70,8 +70,9 @@
   align-items: center;
   gap: 6px;
   padding: 2px 9px;
-  border: 1px solid currentColor;
+  border: 0;
   border-radius: 999px;
+  background: color-mix(in srgb, currentColor 11%, transparent);
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
@@ -103,9 +104,9 @@
   align-items: center;
   gap: 5px;
   padding: 1px 7px;
-  border: 1px solid var(--u-edge);
+  border: 1px solid transparent;
   border-radius: 6px;
-  background: var(--u-chip);
+  background: color-mix(in srgb, var(--u-text) 6%, transparent);
   color: var(--u-text2);
   font-size: 12px;
   line-height: 18px;

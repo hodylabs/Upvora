@@ -1,9 +1,9 @@
 /* The team-only internal note (idea page and scorecard). */
 .u2-note-int {
-  padding: 10px;
-  border: 1px solid color-mix(in srgb, var(--u-warn) 40%, transparent);
+  padding: 12px;
+  border: 0;
   border-radius: var(--u-radius);
-  background: color-mix(in srgb, var(--u-warn) 8%, transparent);
+  background: color-mix(in srgb, var(--u-warn) 7%, transparent);
 }
 .u2-note-int__head {
   display: flex;

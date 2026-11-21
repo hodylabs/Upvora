@@ -160,7 +160,7 @@ body.u2 .u2-ovl__panel:focus-visible {
 .u2-body {
   flex: 1;
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: 184px minmax(0, 1fr);
   gap: 16px;
   width: 100%;
   max-width: 1360px;
@@ -175,9 +175,9 @@ body.u2 .u2-ovl__panel:focus-visible {
 }
 
 .u2-side__h {
-  margin: 14px 0 6px;
+  margin: 12px 0 2px;
   padding-inline: 8px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--u-muted);
 }
@@ -191,8 +191,9 @@ body.u2 .u2-ovl__panel:focus-visible {
 }
 .u2-side__list a {
   display: block;
-  padding: 6px 8px;
-  border-radius: 7px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 13.5px;
   color: var(--u-text2);
   text-decoration: none;
 }

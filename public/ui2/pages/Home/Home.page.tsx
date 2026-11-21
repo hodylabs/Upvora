@@ -213,17 +213,6 @@ What can we do better? This is the place for you to vote, discuss and share idea
   return (
     <div className="u2-home">
       <SidebarSlot>
-        {(tenant.railCtaHeading || tenant.railCtaText) && (
-          <section className="u2-cta">
-            {tenant.railCtaHeading && <h2 className="u2-cta__h">{tenant.railCtaHeading}</h2>}
-            {tenant.railCtaText && <p className="u2-cta__p">{tenant.railCtaText}</p>}
-            {canShare && (
-              <button type="button" className="u2-btn u2-btn--primary" onClick={() => share("")}>
-                {shareLabel}
-              </button>
-            )}
-          </section>
-        )}
         <Briefing />
       </SidebarSlot>
 
