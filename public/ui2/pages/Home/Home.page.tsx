@@ -35,7 +35,6 @@ const IdeaOverlay = lazy(() => import(/* webpackChunkName: "idea" */ "../ShowPos
 
 export const NUDGE_KEY = "ui2.nudge.dismissed"
 const SEARCH_DELAY = 300
-const HOVER_DELAY = 200
 
 // The welcome header marks emphasis with _underscores_, as in classic.
 const welcomeHeader = (text: string): React.ReactNode[] =>
@@ -69,12 +68,10 @@ const HomePage = (props: HomePageProps) => {
   const [insights, setInsights] = useState<BoardInsights | null>(null)
   const [voters, setVoters] = useState<{ [num: number]: Voter[] }>({})
   const [focused, setFocused] = useState(-1)
-  const [hovered, setHovered] = useState<number | null>(null)
   const [peekClosed, setPeekClosed] = useState(false)
   const [nudgeDismissed, setNudgeDismissed] = useState(() => cache.local.has(NUDGE_KEY))
   const seq = useRef(0)
   const searchTimer = useRef<number>()
-  const hoverTimer = useRef<number>()
 
   // Opening an idea shows it over the board and pushes its URL, as classic's overlay does;
   // Esc, the close button or Back return to the board URL.
@@ -184,20 +181,11 @@ const HomePage = (props: HomePageProps) => {
     onEscape: () => setPeekClosed(true),
   })
 
-  const onHover = (num: number | null) => {
-    window.clearTimeout(hoverTimer.current)
-    hoverTimer.current = window.setTimeout(() => {
-      setHovered(num)
-      if (num !== null) setPeekClosed(false)
-    }, HOVER_DELAY)
-  }
-  useEffect(() => () => window.clearTimeout(hoverTimer.current), [])
-
   const peekPost = useMemo(() => {
     if (peekClosed) return undefined
-    if (focused >= 0 && focused < posts.length) return posts[focused]
-    return posts.find((p) => p.number === hovered)
-  }, [peekClosed, focused, hovered, posts])
+    // The peek follows the selected row only (click or J/K), never the mouse.
+    return focused >= 0 && focused < posts.length ? posts[focused] : undefined
+  }, [peekClosed, focused, posts])
 
   const lonely = isLonely(props.countPerStatus)
   const neverVoted = !(props.posts || []).some((p) => p.hasVoted)
@@ -316,7 +304,6 @@ What can we do better? This is the place for you to vote, discuss and share idea
                   staff={staff}
                   focused={focused}
                   onFocus={focusRow}
-                  onHover={onHover}
                   statusOf={statusOf}
                   statusLabel={statusLabel}
                   onVoteChange={onVoteChange}

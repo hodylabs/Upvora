@@ -19,7 +19,6 @@ export interface IdeaTableProps {
   staff: boolean
   focused: number
   onFocus: (index: number) => void
-  onHover?: (num: number | null) => void
   statusOf: (post: Post) => StatusInfo
   statusLabel: (slug: string) => string
   onVoteChange: (number: number, voted: boolean, count: number) => void
@@ -103,8 +102,6 @@ export const IdeaTable = (props: IdeaTableProps) => {
               data-index={index}
               data-number={post.number}
               aria-current={index === props.focused ? "true" : undefined}
-              onMouseEnter={() => props.onHover?.(post.number)}
-              onMouseLeave={() => props.onHover?.(null)}
               onClick={() => props.onFocus(index)}
             >
               <span role="cell" className="u2-tr__vote">
