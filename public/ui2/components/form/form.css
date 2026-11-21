@@ -146,11 +146,11 @@
 /* Text controls */
 .u2-ctl {
   width: 100%;
-  min-height: 36px;
+  min-height: 38px;
   padding: 7px 10px;
   border: 1px solid var(--u-edge);
   border-radius: 8px;
-  background: var(--u-chip);
+  background: var(--u-glass);
   color: var(--u-text);
   font: inherit;
 }
@@ -320,7 +320,7 @@ select.u2-ctl:dir(rtl) {
 .u2-md {
   border: 1px solid var(--u-edge);
   border-radius: var(--u-radius);
-  background: var(--u-chip);
+  background: var(--u-glass);
 }
 .u2-md[aria-invalid="true"] {
   border-color: var(--u-danger);

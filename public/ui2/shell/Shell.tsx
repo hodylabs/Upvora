@@ -6,7 +6,7 @@ import { useFider } from "@fider/hooks"
 import { applyTheme, followSystemTheme } from "../lib/theme"
 import { NotificationsBadge } from "../components/NotificationsBadge"
 import { ModerationBadge } from "../components/ModerationBadge"
-import { URL_CHANGE_EVENT } from "../lib/nav"
+import { URL_CHANGE_EVENT, signInHref } from "../lib/nav"
 import { Menu, MenuItem } from "../components/Menu"
 
 // The new UI's app shell: top bar (site, account, theme), optional site banner,
@@ -74,7 +74,7 @@ const AccountMenu = () => {
 
   if (!fider.session.isAuthenticated) {
     return (
-      <a className="u2-btn u2-btn--primary" href="/signin">
+      <a className="u2-btn u2-btn--primary" href={signInHref()}>
         <Trans id="ui2.shell.signin">Sign in</Trans>
       </a>
     )
@@ -140,12 +140,18 @@ const Sidebar = (props: { id: string; open: boolean; slotRef: (el: HTMLElement |
   // Same rule as classic's header: staff only, when the scorecard is on.
   const showScorecard =
     fider.session.tenant.isScorecardEnabled && fider.session.isAuthenticated && (fider.session.user.isCollaborator || fider.session.user.isAdministrator)
-  const link = (href: string, label: React.ReactNode, current = path === href) => (
-    <li>
+  const link = (href: string, label: React.ReactNode, current = path === href, icon?: React.ReactNode) => (
+    <li key={href}>
       <a href={href} aria-current={current ? "page" : undefined}>
+        {icon}
         {label}
       </a>
     </li>
+  )
+  const ico = (d: string) => (
+    <svg className="u2-side__ico" viewBox="0 0 24 24" aria-hidden="true">
+      <path d={d} />
+    </svg>
   )
   // Board views share "/" and differ by query; "All ideas" is current with neither on.
   const myVotes = path === "/" && params.get("myvotes") === "true"
@@ -156,18 +162,28 @@ const Sidebar = (props: { id: string; open: boolean; slotRef: (el: HTMLElement |
         <Trans id="ui2.shell.views">Views</Trans>
       </h2>
       <ul className="u2-side__list">
-        {link("/", <Trans id="ui2.shell.allideas">All ideas</Trans>, path === "/" && !myVotes && !myPosts)}
-        {signedIn && link("/?myvotes=true", <Trans id="ui2.shell.myvotes">My votes</Trans>, myVotes)}
-        {signedIn && link("/?myposts=true", <Trans id="ui2.shell.myposts">My ideas</Trans>, myPosts)}
-        {link("/roadmap", <Trans id="ui2.shell.roadmap">Roadmap</Trans>)}
-        {showScorecard && link("/scorecard", <Trans id="header.nav.scorecard">Scorecard</Trans>)}
+        {link("/", <Trans id="ui2.shell.allideas">All ideas</Trans>, path === "/" && !myVotes && !myPosts, ico("M4 6h16M4 12h16M4 18h10"))}
+        {signedIn && link("/?myvotes=true", <Trans id="ui2.shell.myvotes">My votes</Trans>, myVotes, ico("M12 19V5M6 11l6-6 6 6"))}
+        {signedIn &&
+          link("/?myposts=true", <Trans id="ui2.shell.myposts">My ideas</Trans>, myPosts, ico("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"))}
+        {link("/roadmap", <Trans id="ui2.shell.roadmap">Roadmap</Trans>, undefined, ico("M4 4v16M10 4v10M16 4v13M22 4v7"))}
+        {showScorecard && link("/scorecard", <Trans id="header.nav.scorecard">Scorecard</Trans>, undefined, ico("M3 12a9 9 0 1 1 18 0M12 12l4-4M7 17h10"))}
       </ul>
       {products.length > 0 && (
         <>
           <h2 className="u2-side__h">
             <Trans id="ui2.shell.products">Products</Trans>
           </h2>
-          <ul className="u2-side__list">{products.map((p) => link(`/p/${p.slug}`, p.name))}</ul>
+          <ul className="u2-side__list">
+            {products.map((p) =>
+              link(
+                `/p/${p.slug}`,
+                p.name,
+                undefined,
+                <span className="u2-side__dot" style={{ "--u-dot": p.color || undefined } as React.CSSProperties} aria-hidden="true" />
+              )
+            )}
+          </ul>
         </>
       )}
       <div ref={props.slotRef} className="u2-side__extra" />
@@ -219,14 +235,14 @@ export const Shell = (props: { children: React.ReactNode }) => {
         <Sidebar id="u2-side" open={menuOpen} slotRef={setSlotEl} />
         <main id="u2-main" className="u2-main" tabIndex={-1}>
           <SidebarSlotContext.Provider value={slotEl}>{props.children}</SidebarSlotContext.Provider>
+          <footer className="u2-foot">
+            <a href="https://upvora.dev" rel="noopener" target="_blank">
+              <Trans id="ui2.shell.powered">Powered by Upvora</Trans>
+            </a>
+            <span className="u2-mono">{fider.settings.version}</span>
+          </footer>
         </main>
       </div>
-      <footer className="u2-foot">
-        <a href="https://upvora.dev" rel="noopener" target="_blank">
-          <Trans id="ui2.shell.powered">Powered by Upvora</Trans>
-        </a>
-        <span className="u2-mono">{fider.settings.version}</span>
-      </footer>
     </div>
   )
 }

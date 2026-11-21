@@ -125,8 +125,9 @@
   border-collapse: collapse;
 }
 .u2-sc__table th {
-  height: 36px;
+  height: 40px;
   padding-inline: 14px;
+  background: var(--u-surface2);
   font-size: 12px;
   font-weight: 500;
   color: var(--u-muted);

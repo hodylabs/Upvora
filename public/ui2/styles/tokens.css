@@ -3,20 +3,21 @@
    before first paint. The signal color follows the site's own primary color when the
    admin set one (--colors-primary-base from Admin, Theme), else safety orange. */
 body.u2 {
-  --u-bg: #eef1f4;
-  --u-glass: rgba(255, 255, 255, 0.72);
-  --u-edge: rgba(30, 45, 70, 0.14);
-  --u-line: rgba(30, 45, 70, 0.07);
+  --u-bg: #f7f8fa;
+  --u-glass: #ffffff;
+  --u-surface2: #f1f3f6;
+  --u-edge: #dfe3e8;
+  --u-line: #e9ecf0;
   --u-text: #141a23;
   --u-text2: #3a4452;
   --u-muted: #5d6878;
   --u-accent: var(--colors-primary-base, #b84505);
   --u-accent-soft: color-mix(in srgb, var(--u-accent) 10%, transparent);
   --u-on-accent: #ffffff;
-  --u-grid: rgba(30, 45, 70, 0.03);
-  --u-chip: rgba(255, 255, 255, 0.85);
-  --u-pop: rgba(255, 255, 255, 0.97);
-  --u-shadow: 0 12px 30px -20px rgba(30, 45, 70, 0.4);
+  --u-chip: #f1f3f6;
+  --u-pop: #ffffff;
+  --u-shadow: none;
+  --u-shadow-pop: 0 12px 32px -12px rgba(20, 26, 35, 0.28);
   --u-danger: #c43a3a;
   --u-warn: #8a5a00;
   --u-s-review: #4d5869;
@@ -32,27 +33,29 @@ body.u2 {
 
   --u-font: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   --u-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --u-radius: 10px;
-  --u-radius-lg: 14px;
-  --u-row: 42px;
+  --u-radius: 8px;
+  --u-radius-lg: 10px;
+  --u-row: 52px;
+  --u-side: 232px;
 }
 
 body.u2[data-theme="dark"] {
   color-scheme: dark;
-  --u-bg: #15171b;
-  --u-glass: rgba(255, 255, 255, 0.045);
-  --u-edge: rgba(255, 255, 255, 0.1);
-  --u-line: rgba(255, 255, 255, 0.06);
+  --u-bg: #1a1b1f;
+  --u-glass: #1f2125;
+  --u-surface2: #26282d;
+  --u-edge: #34373d;
+  --u-line: #2b2e33;
   --u-text: #e9eaee;
   --u-text2: #c2c6cf;
   --u-muted: #969aa3;
   --u-accent: var(--colors-primary-base, #ff6b2c);
   --u-accent-soft: color-mix(in srgb, var(--u-accent) 12%, transparent);
   --u-on-accent: #140700;
-  --u-grid: rgba(255, 255, 255, 0.02);
-  --u-chip: rgba(255, 255, 255, 0.05);
-  --u-pop: rgba(24, 26, 31, 0.96);
-  --u-shadow: 0 12px 32px -18px rgba(0, 0, 0, 0.7);
+  --u-chip: #2a2c31;
+  --u-pop: #232529;
+  --u-shadow: none;
+  --u-shadow-pop: 0 16px 40px -12px rgba(0, 0, 0, 0.6);
   --u-danger: #ff6b6b;
   --u-warn: #ffc46b;
   --u-s-review: #c2c6cf;
