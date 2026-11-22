@@ -3,18 +3,18 @@
    before first paint. The signal color follows the site's own primary color when the
    admin set one (--colors-primary-base from Admin, Theme), else safety orange. */
 body.u2 {
-  --u-bg: #f7f8fa;
+  --u-bg: #fafafa;
   --u-glass: #ffffff;
-  --u-surface2: #f1f3f6;
-  --u-edge: #dfe3e8;
-  --u-line: #e9ecf0;
-  --u-text: #141a23;
-  --u-text2: #3a4452;
-  --u-muted: #5d6878;
+  --u-surface2: #f3f4f6;
+  --u-edge: #dfe1e6;
+  --u-line: #ebecef;
+  --u-text: #111316;
+  --u-text2: #383c44;
+  --u-muted: #646a73;
   --u-accent: var(--colors-primary-base, #b84505);
   --u-accent-soft: color-mix(in srgb, var(--u-accent) 10%, transparent);
   --u-on-accent: #ffffff;
-  --u-chip: #f1f3f6;
+  --u-chip: #f3f4f6;
   --u-pop: #ffffff;
   --u-shadow: none;
   --u-shadow-pop: 0 12px 32px -12px rgba(20, 26, 35, 0.28);
@@ -31,37 +31,37 @@ body.u2 {
   --u-band-low: #a3420a;
   --u-band-reject: #b3302f;
 
-  --u-font: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --u-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --u-radius: 8px;
-  --u-radius-lg: 10px;
+  --u-font: Geist, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --u-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --u-radius: 4px;
+  --u-radius-lg: 6px;
   --u-row: 52px;
   --u-side: 232px;
 }
 
 body.u2[data-theme="dark"] {
   color-scheme: dark;
-  --u-bg: #1a1b1f;
-  --u-glass: #1f2125;
-  --u-surface2: #26282d;
-  --u-edge: #34373d;
-  --u-line: #2b2e33;
-  --u-text: #e9eaee;
-  --u-text2: #c2c6cf;
-  --u-muted: #969aa3;
-  --u-accent: var(--colors-primary-base, #ff6b2c);
+  --u-bg: #111214;
+  --u-glass: #17181b;
+  --u-surface2: #1e2024;
+  --u-edge: #2e3136;
+  --u-line: #25282d;
+  --u-text: #e8e9ec;
+  --u-text2: #c3c6cc;
+  --u-muted: #8b9099;
+  --u-accent: var(--colors-primary-base, #ff8a3d);
   --u-accent-soft: color-mix(in srgb, var(--u-accent) 12%, transparent);
   --u-on-accent: #140700;
-  --u-chip: #2a2c31;
-  --u-pop: #232529;
+  --u-chip: #1e2024;
+  --u-pop: #1b1c20;
   --u-shadow: none;
   --u-shadow-pop: 0 16px 40px -12px rgba(0, 0, 0, 0.6);
   --u-danger: #ff6b6b;
   --u-warn: #ffc46b;
-  --u-s-review: #c2c6cf;
-  --u-s-planned: #9fb4cc;
-  --u-s-progress: #ff9a3c;
-  --u-s-shipped: #6fd39a;
+  --u-s-review: #9aa3ae;
+  --u-s-planned: #7aa7ff;
+  --u-s-progress: #ffb347;
+  --u-s-shipped: #5fd39a;
   --u-band-strong: #6fd39a;
   --u-band-good: #8fb0e6;
   --u-band-refine: #ffc46b;

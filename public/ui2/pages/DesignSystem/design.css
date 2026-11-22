@@ -22,7 +22,7 @@
   flex: none;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   border: 1px solid var(--u-edge);
 }
 .u2-ds__type {

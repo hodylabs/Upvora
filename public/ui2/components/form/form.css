@@ -149,7 +149,7 @@
   min-height: 38px;
   padding: 7px 10px;
   border: 1px solid var(--u-edge);
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   background: var(--u-glass);
   color: var(--u-text);
   font: inherit;
@@ -199,8 +199,8 @@ select.u2-ctl:dir(rtl) {
   padding-inline: 10px;
   border: 1px solid var(--u-edge);
   border-inline-start: 0;
-  border-start-end-radius: 8px;
-  border-end-end-radius: 8px;
+  border-start-end-radius: var(--u-radius);
+  border-end-end-radius: var(--u-radius);
   color: var(--u-muted);
   background: var(--u-glass);
   white-space: nowrap;
@@ -228,7 +228,7 @@ select.u2-ctl:dir(rtl) {
   flex: none;
   width: 34px;
   height: 20px;
-  border-radius: 999px;
+  border-radius: var(--u-radius);
   border: 1px solid var(--u-edge);
   background: var(--u-chip);
   transition: background-color 0.15s ease;
@@ -343,7 +343,7 @@ select.u2-ctl:dir(rtl) {
   height: 30px;
   padding: 0 6px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--u-radius);
   background: none;
   color: var(--u-text2);
   font: 600 12px/1 var(--u-font);
@@ -397,7 +397,7 @@ select.u2-ctl:dir(rtl) {
 .u2-md__content .ProseMirror img {
   max-width: 100%;
   max-height: 240px;
-  border-radius: 6px;
+  border-radius: var(--u-radius);
 }
 .u2-md__content .ProseMirror .mention {
   color: var(--u-accent);
@@ -443,7 +443,7 @@ select.u2-ctl:dir(rtl) {
   width: 100%;
   padding: 6px 8px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--u-radius);
   background: none;
   color: var(--u-text);
   font: inherit;

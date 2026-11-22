@@ -33,7 +33,7 @@
 .u2-admin__nav a {
   display: block;
   padding: 6px 8px;
-  border-radius: 7px;
+  border-radius: var(--u-radius);
   color: var(--u-text2);
   text-decoration: none;
   font-size: 13px;
@@ -118,7 +118,7 @@
 .u2-admin pre {
   margin: 6px 0;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   background: var(--u-chip);
   border: 1px solid var(--u-line);
   overflow-x: auto;
@@ -175,7 +175,7 @@
   flex: none;
   width: 56px;
   height: 38px;
-  border-radius: 6px;
+  border-radius: var(--u-radius);
   border: 1px solid var(--u-edge);
 }
 .u2-look__sw--new {

@@ -24,7 +24,7 @@
 .u2-auth__logo {
   display: block;
   margin: 0 auto 14px;
-  border-radius: 12px;
+  border-radius: var(--u-radius);
 }
 .u2-auth__title {
   margin: 0 0 6px;
@@ -243,7 +243,7 @@
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  border-radius: 999px;
+  border-radius: var(--u-radius);
   background: var(--u-accent);
   color: var(--u-on-accent);
   font: 600 10px/16px var(--u-mono);

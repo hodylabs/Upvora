@@ -23,7 +23,7 @@
   background: var(--u-accent);
 }
 .u2-errpage__logo {
-  border-radius: 10px;
+  border-radius: var(--u-radius);
   margin-block-end: 10px;
 }
 .u2-errpage__title {

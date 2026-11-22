@@ -41,7 +41,7 @@
   font-size: 13px;
 }
 .u2-bannerprev {
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   white-space: pre-wrap;
   font-weight: 600;
 }

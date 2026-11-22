@@ -35,7 +35,7 @@
 .u2-plan__now {
   margin: 0;
   padding: 6px 10px;
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   background: var(--u-glass);
   color: var(--u-muted);
   text-align: center;

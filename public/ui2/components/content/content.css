@@ -53,12 +53,12 @@
   border-inline-start: 3px solid var(--u-edge);
   color: var(--u-text2);
   background: var(--u-chip);
-  border-radius: 6px;
+  border-radius: var(--u-radius);
 }
 .u2-prose code {
   font: 0.9em var(--u-mono);
   padding: 1px 5px;
-  border-radius: 5px;
+  border-radius: var(--u-radius);
   background: var(--u-chip);
   border: 1px solid var(--u-line);
 }
@@ -76,7 +76,7 @@
 }
 .u2-prose img {
   max-width: 100%;
-  border-radius: 6px;
+  border-radius: var(--u-radius);
 }
 .u2-prose hr {
   border: 0;
@@ -156,7 +156,7 @@ button.u2-files__chip:hover {
   width: 100%;
   height: auto;
   border: 1px solid var(--u-edge);
-  border-radius: 6px;
+  border-radius: var(--u-radius);
 }
 .u2-files__text {
   white-space: pre-wrap;

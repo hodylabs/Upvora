@@ -94,7 +94,7 @@
 .u2-idea__follow {
   padding: 2px 10px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--u-radius);
   background: color-mix(in srgb, var(--u-text) 6%, transparent);
   color: var(--u-text2);
   font: inherit;
@@ -214,14 +214,12 @@
   border-block-start: 1px solid var(--u-line);
 }
 .u2-cm.is-internal {
-  margin-inline: -10px;
-  padding-inline: 10px;
+  padding-inline: 14px;
   border-radius: var(--u-radius);
   background: color-mix(in srgb, var(--u-warn) 8%, transparent);
 }
 .u2-cm.is-highlighted {
-  margin-inline: -10px;
-  padding-inline: 10px;
+  padding-inline: 14px;
   border-radius: var(--u-radius);
   box-shadow: inset 0 0 0 2px var(--u-accent);
 }
@@ -241,15 +239,20 @@
 .u2-cm__team {
   font-size: 11px;
   padding: 0 6px;
-  border-radius: 5px;
+  border-radius: var(--u-radius);
   border: 1px solid var(--u-edge);
   background: var(--u-chip);
   color: var(--u-muted);
 }
 .u2-cm__acts {
   display: inline-flex;
-  gap: 10px;
+  gap: 6px;
   margin-inline-start: auto;
+}
+.u2-cm__acts .u2-idea__lnk {
+  min-height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
 }
 .u2-cm__body .u2-form .u2-row {
   margin-block-start: 8px;
@@ -281,7 +284,7 @@
   min-height: 26px;
   padding: 0 8px;
   border: 1px solid var(--u-edge);
-  border-radius: 999px;
+  border-radius: var(--u-radius);
   background: var(--u-chip);
   color: var(--u-text2);
   font: inherit;
@@ -316,7 +319,7 @@ button.u2-react__b {
   min-width: 36px;
   min-height: 36px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   background: none;
   font-size: 18px;
   cursor: pointer;

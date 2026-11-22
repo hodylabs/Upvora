@@ -46,9 +46,6 @@ export const IdeaTable = (props: IdeaTableProps) => {
   return (
     <div className={`u2-table${staff ? " u2-table--staff" : ""}`} role="table" aria-label={i18n._({ id: "ui2.table.label", message: "Ideas" })}>
       <div className="u2-table__head" role="row">
-        <span role="columnheader">
-          <Trans id="ui2.table.votes">Votes</Trans>
-        </span>
         {staff && (
           <span role="columnheader" className="u2-table__num">
             <span className="u2-sr">
@@ -79,6 +76,9 @@ export const IdeaTable = (props: IdeaTableProps) => {
             </span>
           </span>
         )}
+        <span role="columnheader" className="u2-table__votes">
+          <Trans id="ui2.table.votes">Votes</Trans>
+        </span>
       </div>
       <div ref={bodyRef} role="rowgroup">
         {props.posts.map((post, index) => {
@@ -104,9 +104,6 @@ export const IdeaTable = (props: IdeaTableProps) => {
               aria-current={index === props.focused ? "true" : undefined}
               onClick={() => props.onFocus(index)}
             >
-              <span role="cell" className="u2-tr__vote">
-                <VoteButton post={post} onChange={props.onVoteChange} />
-              </span>
               {staff && (
                 <span role="cell" className="u2-tr__num u2-mono">
                   #{post.number}
@@ -161,6 +158,9 @@ export const IdeaTable = (props: IdeaTableProps) => {
                   {post.commentsCount}
                 </span>
               )}
+              <span role="cell" className="u2-tr__vote">
+                <VoteButton post={post} onChange={props.onVoteChange} />
+              </span>
             </div>
           )
         })}

@@ -50,7 +50,7 @@ body.u2 .u2-ovl__panel:focus-visible {
   padding: 6px 10px;
   background: var(--u-accent);
   color: var(--u-on-accent) !important;
-  border-radius: 6px;
+  border-radius: var(--u-radius);
   z-index: 10;
 }
 .u2-skip:focus {
@@ -111,7 +111,7 @@ body.u2 .u2-ovl__panel:focus-visible {
   width: 36px;
   height: 36px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--u-radius);
   background: none;
   color: var(--u-text2);
   cursor: pointer;
@@ -159,7 +159,7 @@ body.u2 .u2-ovl__panel:focus-visible {
   font-size: 15px;
 }
 .u2-brand img {
-  border-radius: 6px;
+  border-radius: var(--u-radius);
 }
 .u2-top__end {
   margin-inline-start: auto;
@@ -204,10 +204,10 @@ body.u2 .u2-ovl__panel:focus-visible {
 }
 
 .u2-side__h {
-  margin: 18px 0 6px;
+  margin: 20px 0 6px;
   padding-inline: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  font: 500 11px var(--u-mono);
+  text-transform: lowercase;
   color: var(--u-muted);
 }
 .u2-side__h:first-child {
@@ -255,11 +255,10 @@ body.u2 .u2-ovl__panel:focus-visible {
   opacity: 0.8;
 }
 .u2-side__dot {
-  width: 10px;
-  height: 10px;
-  margin-inline: 3.5px;
+  width: 9px;
+  height: 9px;
+  margin-inline: 4px;
   flex: none;
-  border-radius: 3px;
   background: var(--u-dot, var(--u-accent));
 }
 
@@ -273,7 +272,7 @@ body.u2 .u2-ovl__panel:focus-visible {
   gap: 8px;
   padding: 3px 10px 3px 3px;
   border: 1px solid var(--u-edge);
-  border-radius: 999px;
+  border-radius: var(--u-radius);
   background: var(--u-surface2);
   color: var(--u-text);
   font: inherit;
@@ -302,7 +301,7 @@ body.u2 .u2-ovl__panel:focus-visible {
   text-align: start;
   cursor: pointer;
   padding: 7px 10px;
-  border-radius: 7px;
+  border-radius: var(--u-radius);
   color: var(--u-text) !important;
   text-decoration: none;
 }
