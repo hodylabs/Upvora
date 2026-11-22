@@ -323,12 +323,14 @@ a.u2-chip--product:hover {
   }
   .u2-table,
   .u2-table--staff {
-    --u-cols: 52px minmax(0, 1fr);
+    --u-cols: minmax(0, 1fr) auto;
   }
+  /* Ledger on a phone: title, then product and status on one line, the vote at the end. */
   .u2-tr {
-    grid-template-areas: "vote idea" "vote status";
-    row-gap: 4px;
-    padding-block: 10px;
+    grid-template-areas: "idea vote" "status vote";
+    row-gap: 6px;
+    padding-block: 14px;
+    cursor: pointer;
   }
   .u2-tr__vote {
     grid-area: vote;
@@ -336,6 +338,7 @@ a.u2-chip--product:hover {
   .u2-tr__idea {
     grid-area: idea;
     flex-wrap: wrap;
+    padding-block: 0;
   }
   .u2-tr__title {
     white-space: normal;
@@ -350,10 +353,8 @@ a.u2-chip--product:hover {
     display: none;
   }
   .u2-vote {
-    width: 48px;
+    width: 64px;
     height: 44px;
-    flex-direction: column;
-    gap: 0;
   }
   .u2-peek {
     display: none;

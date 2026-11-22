@@ -395,8 +395,12 @@ body.u2 .u2-ovl__panel:focus-visible {
     width: 44px;
     height: 44px;
   }
+  /* Name hidden on phones: a square button with the avatar centered. */
   .u2-avatarbtn {
+    justify-content: center;
+    min-width: 44px;
     min-height: 44px;
+    padding: 0;
   }
   .u2-side__list a,
   .u2-menu__list a,

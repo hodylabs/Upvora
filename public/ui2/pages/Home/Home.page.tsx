@@ -163,6 +163,11 @@ const HomePage = (props: HomePageProps) => {
     setFocused(i)
     setPeekClosed(false)
   }
+  // Phones have no quick peek (it is hidden at 840 px and below), so a tap opens the idea.
+  const tapRow = (i: number) => {
+    if (window.matchMedia?.("(max-width: 840px)").matches) openIdea(postHref(posts[i]))
+    else focusRow(i)
+  }
 
   useRowKeys({
     // The overlay owns the keyboard while it is open.
@@ -292,7 +297,7 @@ What can we do better? This is the place for you to vote, discuss and share idea
                   posts={posts}
                   staff={staff}
                   focused={focused}
-                  onFocus={focusRow}
+                  onFocus={tapRow}
                   statusOf={statusOf}
                   statusLabel={statusLabel}
                   onVoteChange={onVoteChange}

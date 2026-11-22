@@ -102,7 +102,8 @@ export const IdeaTable = (props: IdeaTableProps) => {
               data-index={index}
               data-number={post.number}
               aria-current={index === props.focused ? "true" : undefined}
-              onClick={() => props.onFocus(index)}
+              // Links and buttons in the row (title, vote, notes) do their own thing.
+              onClick={(e) => !(e.target as HTMLElement).closest("a, button") && props.onFocus(index)}
             >
               {staff && (
                 <span role="cell" className="u2-tr__num u2-mono">
