@@ -8,6 +8,7 @@ import locales from "@locale/locales"
 import { Button, Field, Form, ImageUploader, RadioGroup, Select, TextArea, TextInput } from "../../../components/form"
 import { AdminLayout, AdminSection } from "../AdminLayout"
 import { SubmissionToggle } from "../SubmissionToggle"
+import { ConfirmDialog } from "../../../components/feedback/ConfirmDialog"
 
 // General: every field classic has (title, welcome header and message, default for
 // new ideas, share instructions, sidebar call to action, invitation, logo, custom
@@ -28,9 +29,17 @@ export const LookPicker = (props: LookPickerProps) => {
   const [value, setValue] = useState<Look>(props.stored)
   const [saving, setSaving] = useState(false)
   const [failed, setFailed] = useState(false)
+  // Classic's way back is a dropdown deep in its General page, so leaving for it asks first.
+  const [confirmClassic, setConfirmClassic] = useState(false)
 
-  const choose = async (ui: Look) => {
+  const choose = (ui: Look) => {
     if (saving || ui === value) return
+    if (ui === "classic") setConfirmClassic(true)
+    else save(ui)
+  }
+
+  const save = async (ui: Look) => {
+    setConfirmClassic(false)
     setSaving(true)
     setFailed(false)
     setValue(ui)
@@ -100,6 +109,19 @@ export const LookPicker = (props: LookPickerProps) => {
           ]}
         />
       </div>
+      <ConfirmDialog
+        open={confirmClassic}
+        title={<Trans id="ui2.admin.general.lookconfirm.title">Switch the whole site to Classic?</Trans>}
+        confirmLabel={<Trans id="ui2.admin.general.lookconfirm.ok">Switch to Classic</Trans>}
+        onConfirm={() => save("classic")}
+        onCancel={() => setConfirmClassic(false)}
+      >
+        <p>
+          <Trans id="ui2.admin.general.lookconfirm.body">
+            Everyone on this site will see the Classic look right away. To come back, open Site settings, General, and set Look to Upvora.
+          </Trans>
+        </p>
+      </ConfirmDialog>
     </Field>
   )
 }

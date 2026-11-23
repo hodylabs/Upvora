@@ -124,6 +124,8 @@ describe("ui2 Look cards", () => {
   })
   beforeEach(() => reload.mockClear())
 
+  // The confirm dialog's footer buttons: Cancel first, the confirm last.
+  const footButtons = () => Array.from(document.querySelectorAll<HTMLButtonElement>(".u2-dlg__foot button"))
   const radios = (c: HTMLElement) => Array.from(c.querySelectorAll<HTMLInputElement>('input[type="radio"][name="ui"]'))
 
   test("two cards, the stored look checked", () => {
@@ -170,10 +172,25 @@ describe("ui2 Look cards", () => {
   })
 
   test("a thrown request also resets", async () => {
+    setupModalRoot()
     http.post = jest.fn(() => Promise.reject(new Error("net"))) as unknown as typeof http.post
     const { container } = withFider(staff(), <LookPicker stored="new" />)
     const [newLook, classic] = radios(container)
-    await act(async () => fireEvent.click(classic))
+    fireEvent.click(classic)
+    await act(async () => fireEvent.click(footButtons().pop() as HTMLElement))
+    expect(newLook.checked).toBe(true)
+  })
+
+  test("switching to Classic asks first; Cancel keeps the Upvora look", () => {
+    setupModalRoot()
+    const post = jest.fn(() => Promise.resolve({ ok: true }))
+    http.post = post as unknown as typeof http.post
+    const { container } = withFider(staff(), <LookPicker stored="new" />)
+    const [newLook, classic] = radios(container)
+    fireEvent.click(classic)
+    expect(post).not.toHaveBeenCalled()
+    fireEvent.click(footButtons()[0])
+    expect(post).not.toHaveBeenCalled()
     expect(newLook.checked).toBe(true)
   })
 
