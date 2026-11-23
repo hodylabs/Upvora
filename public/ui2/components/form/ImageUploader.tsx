@@ -35,13 +35,14 @@ export const ImageUploader = (props: ImageUploaderProps) => {
   // Bumped on every pick and removal, so a file read that finishes late is ignored.
   const op = useRef(0)
 
-  const picked = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const [over, setOver] = useState(false)
+
+  const use = async (file: File | undefined) => {
     if (!file) return
     const mine = ++op.current
     if (file.size > hardFileSizeLimit) {
       setTooBig(true)
-      e.target.value = ""
+      if (fileRef.current) fileRef.current.value = ""
       return
     }
     setTooBig(false)
@@ -60,8 +61,24 @@ export const ImageUploader = (props: ImageUploaderProps) => {
     props.onChange({ bkey: props.bkey, remove: true })
   }
 
+  // Dropping a file is a shortcut for the button; only images go through, like the picker's accept.
+  const drop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setOver(false)
+    if (props.disabled) return
+    use(Array.from(e.dataTransfer.files).find((f) => f.type.startsWith("image/")))
+  }
+
   return (
-    <div className="u2-upload">
+    <div
+      className={over ? "u2-upload u2-upload--over" : "u2-upload"}
+      onDragOver={(e) => {
+        e.preventDefault()
+        if (!props.disabled) setOver(true)
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={drop}
+    >
       {preview && <img className="u2-upload__preview" src={preview} alt="" />}
       <input
         ref={fileRef}
@@ -70,7 +87,7 @@ export const ImageUploader = (props: ImageUploaderProps) => {
         accept="image/*"
         tabIndex={-1}
         aria-hidden="true"
-        onChange={picked}
+        onChange={(e) => use(e.target.files?.[0])}
         data-testid="u2-image-file"
       />
       <Button small disabled={props.disabled} onClick={() => fileRef.current?.click()} aria-describedby={props.describedBy}>
@@ -81,6 +98,9 @@ export const ImageUploader = (props: ImageUploaderProps) => {
           <Trans id="ui2.upload.remove">Remove</Trans>
         </Button>
       )}
+      <span className="u2-upload__drop" aria-hidden="true">
+        <Trans id="ui2.upload.drop">or drop an image here</Trans>
+      </span>
       {tooBig && (
         <span className="u2-fld__error" role="alert">
           {i18n._({ id: "ui2.upload.toobig", message: "The image size must be smaller than 5MB." })}

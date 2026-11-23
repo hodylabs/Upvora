@@ -15,7 +15,7 @@
 
 /* Buttons: .u2-btn and .u2-btn--primary live in shell.css */
 .u2-btn--secondary {
-  background: var(--u-glass);
+  background: var(--u-surface2);
 }
 .u2-btn--danger {
   background: transparent;
@@ -143,25 +143,48 @@
   border-block-start: 1px solid var(--u-line);
 }
 
-/* Text controls */
+/* Text controls: a recessed field on the panel, accent ring with a soft glow on focus. */
 .u2-ctl {
   width: 100%;
   min-height: 38px;
-  padding: 7px 10px;
+  padding: 7px 12px;
   border: 1px solid var(--u-edge);
   border-radius: var(--u-radius);
-  background: var(--u-glass);
+  background: color-mix(in srgb, var(--u-surface2) 70%, transparent);
   color: var(--u-text);
   font: inherit;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background-color 0.15s;
+}
+.u2-ctl:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--u-text) 22%, var(--u-edge));
+}
+/* The ring replaces the shell's outline here: it hugs the field's radius. */
+body.u2 .u2-ctl:focus,
+body.u2 .u2-ctl:focus-visible {
+  /* Transparent, not none: forced-colors mode paints it, keeping focus visible there. */
+  outline: 2px solid transparent;
+  outline-offset: 0;
+  border-color: color-mix(in srgb, var(--u-accent) 65%, transparent);
+  background-color: var(--u-glass);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--u-accent) 16%, transparent),
+    0 6px 22px -10px color-mix(in srgb, var(--u-accent) 55%, transparent);
 }
 .u2-ctl::placeholder {
   color: var(--u-muted);
 }
 .u2-ctl:disabled {
-  opacity: 0.7;
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 .u2-ctl[aria-invalid="true"] {
   border-color: var(--u-danger);
+}
+body.u2 .u2-ctl[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--u-danger) 18%, transparent);
 }
 textarea.u2-ctl {
   resize: vertical;
@@ -170,20 +193,30 @@ textarea.u2-ctl {
   overflow-y: auto;
   line-height: 1.45;
 }
-select.u2-ctl {
+/* Every single-line select in the new UI (fields, sort, product, admin roles): no native
+   look, a drawn chevron on the inline-end side. */
+body.u2 select:not([multiple]):not([size]) {
   appearance: none;
-  padding-inline-end: 30px;
+  padding-inline-end: 32px;
   background-image: linear-gradient(45deg, transparent 50%, var(--u-muted) 50%), linear-gradient(135deg, var(--u-muted) 50%, transparent 50%);
   background-position:
-    calc(100% - 15px) 55%,
-    calc(100% - 10px) 55%;
+    calc(100% - 16px) 52%,
+    calc(100% - 11px) 52%;
   background-size: 5px 5px;
   background-repeat: no-repeat;
+  cursor: pointer;
 }
-select.u2-ctl:dir(rtl) {
+body.u2 select:not([multiple]):not([size]):dir(rtl) {
   background-position:
-    15px 55%,
-    10px 55%;
+    16px 52%,
+    11px 52%;
+}
+body.u2 select:disabled {
+  cursor: not-allowed;
+}
+body.u2 option {
+  background: var(--u-pop);
+  color: var(--u-text);
 }
 .u2-affix {
   display: flex;
@@ -196,21 +229,22 @@ select.u2-ctl:dir(rtl) {
 .u2-affix__end {
   display: inline-flex;
   align-items: center;
-  padding-inline: 10px;
+  padding-inline: 12px;
   border: 1px solid var(--u-edge);
   border-inline-start: 0;
   border-start-end-radius: var(--u-radius);
   border-end-end-radius: var(--u-radius);
   color: var(--u-muted);
-  background: var(--u-glass);
+  background: var(--u-surface3);
+  font: 12.5px var(--u-mono);
   white-space: nowrap;
 }
 
-/* Toggle (role="switch") */
+/* Toggle (role="switch"): pill track, white knob, the brand gradient when on. */
 .u2-switch {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-height: 32px;
   padding: 0;
   border: 0;
@@ -220,21 +254,21 @@ select.u2-ctl:dir(rtl) {
   cursor: pointer;
 }
 .u2-switch:disabled {
-  opacity: 0.6;
-  cursor: default;
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 .u2-switch__track {
   position: relative;
   flex: none;
   width: 36px;
   height: 20px;
-  /* Switches stay pill-shaped in the square Ledger look: a square track reads as broken. */
+  /* Never square: a square track reads as broken. */
   border-radius: 999px;
-  background: color-mix(in srgb, var(--u-text) 18%, transparent);
-  transition: background-color 0.15s ease;
+  background: color-mix(in srgb, var(--u-text) 16%, transparent);
+  transition: background-color 0.18s ease;
 }
-.u2-switch:hover .u2-switch__track {
-  background: color-mix(in srgb, var(--u-text) 26%, transparent);
+.u2-switch:hover:not(:disabled) .u2-switch__track {
+  background: color-mix(in srgb, var(--u-text) 24%, transparent);
 }
 .u2-switch__track::after {
   content: "";
@@ -245,14 +279,24 @@ select.u2-ctl:dir(rtl) {
   height: 16px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
-  transition: inset-inline-start 0.15s ease;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  transition: inset-inline-start 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.u2-switch[aria-checked="true"] .u2-switch__track {
-  background: var(--u-accent);
+.u2-switch[aria-checked="true"] .u2-switch__track,
+.u2-switch[aria-checked="true"]:hover .u2-switch__track {
+  background: var(--u-grad);
+  box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--u-accent) 80%, transparent);
 }
 .u2-switch[aria-checked="true"] .u2-switch__track::after {
   inset-inline-start: 18px;
+}
+/* The ring goes on the track, the part that reads as the control. */
+body.u2 .u2-switch:focus-visible {
+  outline: none;
+}
+.u2-switch:focus-visible .u2-switch__track {
+  outline: 2px solid var(--u-accent);
+  outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
   .u2-switch__track,
@@ -261,11 +305,12 @@ select.u2-ctl:dir(rtl) {
   }
 }
 
-/* Checkbox and radio */
+/* Checkbox and radio: native controls in the accent color (keyboard and forced colors
+   keep working), sized to the text. */
 .u2-choice {
   display: inline-flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 9px;
   min-height: 28px;
   cursor: pointer;
 }
@@ -275,6 +320,11 @@ select.u2-ctl:dir(rtl) {
   height: 16px;
   margin: 2px 0 0;
   accent-color: var(--u-accent);
+  cursor: pointer;
+}
+.u2-choice:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 .u2-choice__hint {
   display: block;
@@ -293,33 +343,55 @@ select.u2-ctl:dir(rtl) {
   gap: 8px;
 }
 .u2-radios--cards .u2-choice {
-  padding: 9px 10px;
+  padding: 11px 12px;
   border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
-  background: var(--u-chip);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--u-surface2) 70%, transparent);
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+.u2-radios--cards .u2-choice:hover {
+  border-color: color-mix(in srgb, var(--u-text) 22%, var(--u-edge));
 }
 .u2-radios--cards .u2-choice:has(input:checked) {
-  border-color: var(--u-accent);
-  box-shadow: 0 0 0 1px var(--u-accent);
+  border-color: color-mix(in srgb, var(--u-accent) 70%, transparent);
+  background: var(--u-accent-soft);
+  box-shadow: 0 8px 24px -14px color-mix(in srgb, var(--u-accent) 80%, transparent);
 }
 
-/* Image uploader */
+/* Image uploader: a dashed drop zone around the preview and the buttons. */
 .u2-upload {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
+  padding: 12px;
+  border: 1px dashed var(--u-edge);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--u-surface2) 50%, transparent);
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+.u2-upload--over {
+  border-color: var(--u-accent);
+  background: var(--u-accent-soft);
 }
 .u2-upload__preview {
   width: 64px;
   height: 64px;
   object-fit: cover;
-  border-radius: var(--u-radius);
+  border-radius: 12px;
   border: 1px solid var(--u-edge);
-  background: var(--u-chip);
+  background: var(--u-surface3);
 }
 .u2-upload__file {
   display: none;
+}
+.u2-upload__drop {
+  font-size: 12.5px;
+  color: var(--u-muted);
 }
 
 /* Markdown editor */
@@ -496,7 +568,9 @@ select.u2-ctl:dir(rtl) {
 /* Range slider */
 .u2-range input {
   width: 100%;
+  min-height: 28px;
   accent-color: var(--u-accent);
+  cursor: pointer;
 }
 .u2-range__ticks {
   display: flex;

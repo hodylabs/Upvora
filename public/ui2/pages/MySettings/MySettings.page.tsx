@@ -92,7 +92,7 @@ const ProfileSection = (props: MySettingsPageProps) => {
   const email = i18n._({ id: "mysettings.notification.channelemail", message: "Email" })
 
   return (
-    <section className="u2-panel u2-section" aria-labelledby="u2-set-profile">
+    <section className="u2-section" aria-labelledby="u2-set-profile">
       <h2 id="u2-set-profile" className="u2-section__title">
         <Trans id="ui2.settings.profile">Profile</Trans>
       </h2>
@@ -248,7 +248,7 @@ const ThemeSection = () => {
     applyTheme(t)
   }
   return (
-    <section className="u2-panel u2-section" aria-labelledby="u2-set-theme">
+    <section className="u2-section" aria-labelledby="u2-set-theme">
       <h2 id="u2-set-theme" className="u2-section__title">
         <Trans id="ui2.settings.theme">Theme</Trans>
       </h2>
@@ -287,7 +287,7 @@ const APIKeySection = () => {
     if (result.ok) setApiKey(result.data.apiKey)
   }
   return (
-    <section className="u2-panel u2-section" aria-labelledby="u2-set-api">
+    <section className="u2-section" aria-labelledby="u2-set-api">
       <h2 id="u2-set-api" className="u2-section__title">
         <Trans id="mysettings.apikey.title">API Key</Trans>
       </h2>
@@ -344,7 +344,7 @@ const DeleteSection = () => {
     }
   }
   return (
-    <section className="u2-panel u2-section u2-section--danger" aria-labelledby="u2-set-delete">
+    <section className="u2-section u2-section--danger" aria-labelledby="u2-set-delete">
       <h2 id="u2-set-delete" className="u2-section__title">
         <Trans id="mysettings.dangerzone.title">Delete account</Trans>
       </h2>
@@ -388,10 +388,12 @@ const MySettingsPage = (props: MySettingsPageProps) => {
           <Trans id="mysettings.page.subtitle">Manage your profile settings</Trans>
         </p>
       </header>
-      <ProfileSection userSettings={props.userSettings} />
-      <ThemeSection />
-      {fider.session.user.isCollaborator && <APIKeySection />}
-      <DeleteSection />
+      <div className="u2-panel u2-settings">
+        <ProfileSection userSettings={props.userSettings} />
+        <ThemeSection />
+        {fider.session.user.isCollaborator && <APIKeySection />}
+        <DeleteSection />
+      </div>
     </div>
   )
 }

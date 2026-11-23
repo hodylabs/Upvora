@@ -9,7 +9,7 @@
 
 .u2-share {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   color: var(--u-text);
 }
 .u2-share--vora {
@@ -20,45 +20,53 @@
 }
 
 .u2-share__instructions {
-  padding: 10px 14px;
+  padding: 12px 16px;
+  border-color: color-mix(in srgb, var(--u-accent) 22%, var(--u-line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--u-accent) 7%, transparent), color-mix(in srgb, var(--u-accent) 2%, transparent));
+  color: var(--u-text2);
   font-size: 14px;
 }
 .u2-share__lead {
   margin: 0;
-  font-size: 14px;
+  font-size: 13.5px;
 }
 .u2-share__product .u2-fld {
   margin: 0;
 }
 
+/* How to share: a segmented switch, like the board's view switch. */
 .u2-share__modes {
   display: inline-flex;
-  gap: 4px;
+  gap: 2px;
   padding: 3px;
   justify-self: start;
-  border: 1px solid var(--u-edge);
+  align-self: flex-start;
+  border: 1px solid var(--u-line);
   border-radius: var(--u-radius);
-  background: var(--u-chip);
+  background: var(--u-surface2);
 }
 .u2-share__mode {
-  min-height: 32px;
+  min-height: 30px;
   padding-inline: 12px;
   border: 0;
-  border-radius: calc(var(--u-radius) - 2px);
+  border-radius: 7px;
   background: transparent;
-  color: var(--u-text2);
+  color: var(--u-muted);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.u2-share__mode:hover {
+  color: var(--u-text);
 }
 .u2-share__mode[aria-pressed="true"] {
-  background: var(--u-accent-soft);
+  background: var(--u-surface3);
   color: var(--u-text);
-  font-weight: 600;
-}
-.u2-share__mode:focus-visible {
-  outline: 2px solid var(--u-accent);
-  outline-offset: 1px;
+  font-weight: 500;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset;
 }
 
 /* Chat: the log scrolls, the composer stays at the bottom. */
@@ -75,26 +83,33 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--u-radius-lg);
+  background: color-mix(in srgb, var(--u-surface2) 45%, transparent);
 }
 .u2-share__msg {
   max-width: 78%;
-  padding: 9px 12px;
-  border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius-lg);
+  padding: 10px 14px;
+  border: 1px solid var(--u-line);
+  border-radius: 14px;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
   overflow-wrap: anywhere;
 }
+/* Vora speaks in the brand's tint (as the Vora note on an idea); you speak in neutral. */
 .u2-share__msg--vora {
   align-self: flex-start;
-  background: var(--u-glass);
+  border-color: color-mix(in srgb, var(--u-accent) 22%, var(--u-line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--u-accent) 8%, var(--u-glass)), color-mix(in srgb, var(--u-accent) 2%, var(--u-glass)));
+  color: var(--u-text2);
   border-end-start-radius: 4px;
 }
 .u2-share__msg--you {
   align-self: flex-end;
-  background: var(--u-accent-soft);
+  background: var(--u-surface3);
+  border-color: var(--u-edge);
+  color: var(--u-text);
   border-end-end-radius: 4px;
   white-space: pre-wrap;
 }
@@ -109,7 +124,7 @@
   align-items: center;
   gap: 8px;
   color: var(--u-muted);
-  font-size: 13px;
+  font: 12px var(--u-mono);
 }
 .u2-share__dots {
   display: inline-flex;
@@ -119,7 +134,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: currentColor;
+  background: var(--u-accent);
   opacity: 0.35;
   animation: u2-share-dot 1.4s ease-in-out infinite;
 }
@@ -131,7 +146,7 @@
 }
 @keyframes u2-share-dot {
   50% {
-    opacity: 0.9;
+    opacity: 1;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -146,16 +161,32 @@
   color: var(--u-danger);
   font-size: 14px;
 }
+/* The composer is one bordered box: the field on top, the actions in its footer row. */
 .u2-share__composer {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 8px;
   align-items: end;
+  padding: 6px;
+  border: 1px solid var(--u-edge);
+  border-radius: var(--u-radius-lg);
+  background: color-mix(in srgb, var(--u-surface2) 70%, transparent);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
-.u2-share__composer textarea {
+.u2-share__composer:focus-within {
+  border-color: color-mix(in srgb, var(--u-accent) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--u-accent) 14%, transparent);
+}
+body.u2 .u2-share__composer textarea,
+body.u2 .u2-share__composer textarea:focus {
   resize: none;
   min-height: 44px;
   max-height: 160px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .u2-share__composer-actions {
   display: flex;
@@ -168,28 +199,32 @@
   gap: 4px;
 }
 .u2-share__brief {
-  padding: 10px 14px;
+  padding: 12px 16px;
   font-size: 14px;
 }
 .u2-share__brief summary {
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
 }
 .u2-share__brief[open] summary {
   margin-block-end: 8px;
 }
+/* Similar ideas: a small list panel under the title, each row with its vote. */
 .u2-share__similar {
-  padding: 8px 12px;
-  border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
+  border: 1px solid color-mix(in srgb, var(--u-accent) 22%, var(--u-line));
+  border-radius: 12px;
+  background: var(--u-glass);
+  overflow: hidden;
   font-size: 14px;
 }
 .u2-share__similar p {
-  margin: 0 0 6px;
+  margin: 0;
+  padding: 9px 14px;
+  border-block-end: 1px solid var(--u-line);
+  background: var(--u-accent-soft);
+  font-size: 12.5px;
 }
 .u2-share__similar ul {
-  display: grid;
-  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -198,9 +233,18 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 4px 14px 4px 6px;
+  border-block-end: 1px solid var(--u-line);
+}
+.u2-share__similar li:last-child {
+  border-block-end: 0;
 }
 .u2-share__similar a {
   color: var(--u-text);
+  text-decoration: none;
+}
+.u2-share__similar a:hover {
+  color: var(--u-accent);
 }
 .u2-share__tags {
   display: flex;
@@ -218,6 +262,9 @@
   .u2-share__composer textarea,
   .u2-share__product select {
     font-size: 16px;
+  }
+  .u2-share__composer-actions {
+    justify-content: flex-end;
   }
   .u2-share__composer-actions .u2-btn,
   .u2-share__mode {

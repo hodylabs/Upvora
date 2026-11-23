@@ -1,9 +1,10 @@
 import "../../components/account/account.css"
 import React, { useRef, useState } from "react"
 import { Trans } from "@lingui/react/macro"
-import { actions, uploadedImageURL } from "@fider/services"
+import { actions } from "@fider/services"
 import { useFider } from "@fider/hooks"
 import { Button } from "../../components/form"
+import { AuthBrand } from "../../components/account/AuthBrand"
 
 // MCP sign-in consent. Same server flow as classic's OAuthConsent.page: the decision is
 // one POST to /_api/oauth2/authorize (the session and the MCP consent cookie travel with
@@ -43,7 +44,6 @@ const OAuthConsentPage = (props: OAuthConsentPageProps) => {
   const inFlight = useRef(false)
   const siteName = fider.session.tenant?.name
   const userName = fider.session.isAuthenticated ? fider.session.user.name : ""
-  const logo = uploadedImageURL(fider.session.tenant?.logoBlobKey, 100)
 
   const decide = async (approve: boolean) => {
     if (inFlight.current) return
@@ -70,7 +70,7 @@ const OAuthConsentPage = (props: OAuthConsentPageProps) => {
 
   return (
     <section className="u2-panel u2-auth" aria-labelledby={props.error ? undefined : "u2-consent-title"} aria-label={props.error ? siteName : undefined}>
-      {logo && <img className="u2-auth__logo" src={logo} alt="" width={56} height={56} />}
+      <AuthBrand />
       {props.error ? (
         <p className="u2-form__error" role="alert">
           {props.error}
@@ -93,7 +93,7 @@ const OAuthConsentPage = (props: OAuthConsentPageProps) => {
           </p>
           {props.scope && (
             <p className="u2-center">
-              <span className="u2-mono u2-muted">{props.scope}</span>
+              <span className="u2-auth__chip">{props.scope}</span>
             </p>
           )}
           {userName && (

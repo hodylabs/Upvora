@@ -2,16 +2,14 @@ import "../../components/account/account.css"
 import React, { useState } from "react"
 import { i18n } from "@lingui/core"
 import { Trans } from "@lingui/react/macro"
-import { actions, Failure, uploadedImageURL } from "@fider/services"
-import { useFider } from "@fider/hooks"
+import { actions, Failure } from "@fider/services"
 import { Button } from "../../components/form"
+import { AuthBrand } from "../../components/account/AuthBrand"
 
 const PendingActivationPage = () => {
-  const fider = useFider()
   const [busy, setBusy] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<Failure | undefined>()
-  const logo = uploadedImageURL(fider.session.tenant.logoBlobKey, 100) || "/static/assets/logo.png"
 
   const resend = async () => {
     setBusy(true)
@@ -25,7 +23,12 @@ const PendingActivationPage = () => {
 
   return (
     <section className="u2-panel u2-auth u2-center" aria-labelledby="u2-pending-title">
-      <img className="u2-auth__logo" src={logo} alt="" width={56} height={56} />
+      <AuthBrand />
+      <span className="u2-auth__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 6h18v12H3zM3 7l9 6 9-6" />
+        </svg>
+      </span>
       <h1 id="u2-pending-title" className="u2-auth__title">
         <Trans id="page.pendingactivation.title">Your account is pending activation</Trans>
       </h1>

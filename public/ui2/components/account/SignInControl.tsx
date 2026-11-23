@@ -236,12 +236,12 @@ export const SignInControl = (props: SignInControlProps) => {
                   </p>
                 )}
                 {lockedOut ? (
-                  <p className="u2-muted">
+                  <p className="u2-signin__note u2-signin__note--warn">
                     <Trans id="signin.code.locked">Your code has expired due to too many incorrect attempts. Please request a new one.</Trans>
                   </p>
                 ) : (
                   <>
-                    <p className="u2-muted">
+                    <p className="u2-signin__note">
                       <Trans id="signin.code.instruction">
                         Please type in the code we just sent to <strong>{email}</strong>
                       </Trans>{" "}

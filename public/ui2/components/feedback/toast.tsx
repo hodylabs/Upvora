@@ -42,6 +42,13 @@ const ToastHost = () => {
     <>
       {list.map((t) => (
         <li key={t.id} className={t.kind === "error" ? "u2-toast u2-toast--error" : "u2-toast"}>
+          <svg className="u2-toast__icon" viewBox="0 0 24 24" aria-hidden="true">
+            {t.kind === "error" ? (
+              <path d="M12 8v5M12 16.5v.5M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z" />
+            ) : (
+              <path d="M8 12.5l2.5 2.5L16 9.5M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z" />
+            )}
+          </svg>
           <span className="u2-toast__msg">{t.message}</span>
           <button type="button" className="u2-iconbtn" aria-label={closeLabel} onClick={() => dismissToast(t.id)}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
