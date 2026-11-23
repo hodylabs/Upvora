@@ -16,18 +16,20 @@ export interface ShowPostPageProps {
 // A direct visit to /posts/:number/:slug renders the full page; the board opens the
 // same IdeaView in an overlay (IdeaOverlay).
 const ShowPostPage = (props: ShowPostPageProps) => (
-  <IdeaView
-    key={props.post.number}
-    data={{
-      post: props.post,
-      subscribed: props.subscribed,
-      comments: props.comments || [],
-      tags: props.tags || [],
-      votes: props.votes || [],
-      attachments: props.attachments,
-      internalNote: props.internalNote,
-    }}
-  />
+  <div className="u2-sheet u2-sheet--page">
+    <IdeaView
+      key={props.post.number}
+      data={{
+        post: props.post,
+        subscribed: props.subscribed,
+        comments: props.comments || [],
+        tags: props.tags || [],
+        votes: props.votes || [],
+        attachments: props.attachments,
+        internalNote: props.internalNote,
+      }}
+    />
+  </div>
 )
 
 export default ShowPostPage

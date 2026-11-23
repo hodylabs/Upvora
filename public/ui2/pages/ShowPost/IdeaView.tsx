@@ -1,6 +1,6 @@
 import "./idea.css"
 
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Trans, Plural } from "@lingui/react/macro"
 import { i18n } from "@lingui/core"
 import { Comment, InternalNote as Note, Post, PostStatus, Tag, Vote } from "@fider/models"
@@ -16,7 +16,8 @@ import { Button, Checkbox, Form, TextInput } from "../../components/form"
 import { MarkdownEditor } from "../../components/form/MarkdownEditor"
 import { Markdown } from "../../components/content/Markdown"
 import { IdeaFilesEditor, IdeaFilesList, fileKind, isFileKey } from "../../components/content/IdeaFiles"
-import { statusInfo } from "../../lib/status"
+import { Menu, MenuItem } from "../../components/Menu"
+import { StatusInfo, statusInfo } from "../../lib/status"
 import { postHref } from "../../lib/nav"
 import { CommentComposer, CommentItem } from "./Comments"
 import { DeleteDialog, FeedDialog, ResponseDialog, TranscriptDialog, VotersDialog } from "./Dialogs"
@@ -67,6 +68,8 @@ interface IdeaViewProps {
   // Board overlay: rows behind it refresh on close when something changed.
   onDataChanged?: () => void
   titleId?: string
+  // The board's overlay: a close button in the sheet's top bar.
+  onClose?: () => void
 }
 
 export const IdeaView = (props: IdeaViewProps) => {
@@ -95,7 +98,6 @@ export const IdeaView = (props: IdeaViewProps) => {
   const [tagsOpen, setTagsOpen] = useState(false)
   const [brief, setBrief] = useState("")
   const [highlighted, setHighlighted] = useState<number | undefined>(undefined)
-  const tagsRef = useRef<HTMLDivElement>(null)
 
   const changed = () => props.onDataChanged?.()
   const status = statusInfo(tenant, post.status, post.statusKind)
@@ -267,32 +269,112 @@ export const IdeaView = (props: IdeaViewProps) => {
   const products = tenant.products ?? []
   const author = post.user.name
   const faces = votes.slice(0, MAX_FACES)
-  const moreVoters = Math.max(0, post.votesCount - faces.length)
   const feedURL = `${fider.settings.baseURL}/feed/posts/${post.number}.atom`
   const isAdmin = signedIn && fider.session.user.isAdministrator
-  const voted = post.hasVoted
+  const readOnly = fider.isReadOnly
+  const events = ideaEvents(post, comments)
 
-  // Status history: the current status (since its last change, or the response date),
-  // the one before it when the server recorded it, and when the idea was posted.
-  const since = post.statusChangedAt || (post.status !== PostStatus.Open.value ? post.response?.respondedAt : undefined)
-  const prev = post.prevStatus && post.prevStatus !== post.status ? post.prevStatus : undefined
+  // The rail's former tools, in the top bar's menu (only the ones this viewer may use).
+  const tools = [
+    canEditIdea(fider, post) && { key: "edit", label: i18n._({ id: "action.edit", message: "Edit" }), onSelect: startEdit },
+    staff && !readOnly && { key: "respond", label: i18n._({ id: "action.respond", message: "Update Status" }), onSelect: () => setRespond({ open: true }) },
+    staff &&
+      !readOnly && {
+        key: "merge",
+        label: i18n._({ id: "ui2.idea.merge", message: "Merge" }),
+        onSelect: () => setRespond({ open: true, status: PostStatus.Duplicate.value }),
+      },
+    staff &&
+      !editing &&
+      tagList.length > 0 && { key: "tags", label: i18n._({ id: "ui2.idea.tags.edit", message: "Edit tags" }), onSelect: () => setTagsOpen(true) },
+    staff && tenant.isScorecardEnabled && { key: "scorecard", label: i18n._({ id: "action.scorecard", message: "Score this idea" }), onSelect: openScorecard },
+    canTogglePrivacy(fider, post) && {
+      key: "privacy",
+      label: post.isPrivate ? i18n._({ id: "action.makepublic", message: "Make public" }) : i18n._({ id: "action.makeprivate", message: "Make private" }),
+      onSelect: togglePrivacy,
+    },
+    tenant.isFeedEnabled && { key: "feed", label: i18n._({ id: "action.commentsfeed", message: "Comment Feed" }), onSelect: () => setDialog("feed") },
+    canDeleteIdea(fider, post) && {
+      key: "delete",
+      label: <span className="u2-danger">{i18n._({ id: "action.delete", message: "Delete" })}</span>,
+      onSelect: () => setDialog("delete"),
+    },
+  ].filter(Boolean) as MenuItem[]
 
   return (
     <div className="u2-idea">
-      <article className="u2-idea__main u2-panel">
-        <nav className="u2-idea__crumbs" aria-label={i18n._({ id: "ui2.idea.crumbs", message: "Breadcrumbs" })}>
-          <a href="/">
-            <Trans id="ui2.idea.allideas">All ideas</Trans>
+      <div className="u2-idea__top">
+        {!props.onClose && (
+          <a className="u2-iconbtn" href="/" aria-label={i18n._({ id: "ui2.idea.allideas", message: "All ideas" })}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M19 12H5M11 18l-6-6 6-6" />
+            </svg>
           </a>
-          {post.product && (
-            <>
-              <span aria-hidden="true">/</span>
-              <a href={`/p/${post.product.slug}`}>{post.product.name}</a>
-            </>
-          )}
-          <span aria-hidden="true">/</span>
-          <span className="u2-mono">#{post.number}</span>
-        </nav>
+        )}
+        <span className="u2-mono">#{post.number}</span>
+        <span className="u2-idea__sp" />
+        <button
+          type="button"
+          className="u2-iconbtn"
+          onClick={copyLink}
+          aria-label={i18n._({ id: "action.copylink", message: "Copy link" })}
+          title={i18n._({ id: "action.copylink", message: "Copy link" })}
+          data-act="copy"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+          </svg>
+        </button>
+        {signedIn && (
+          <button
+            type="button"
+            className="u2-iconbtn u2-idea__follow"
+            aria-pressed={subscribed}
+            disabled={readOnly}
+            onClick={follow}
+            aria-label={i18n._({ id: "label.follow", message: "Follow" })}
+            title={subscribed ? i18n._({ id: "label.following", message: "Following" }) : i18n._({ id: "label.follow", message: "Follow" })}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 21h4" />
+            </svg>
+          </button>
+        )}
+        <Menu
+          items={tools}
+          className="u2-menu u2-idea__tools"
+          triggerClassName="u2-iconbtn"
+          triggerLabel={i18n._({ id: "ui2.idea.tools", message: "More actions" })}
+          trigger={
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h.01M12 12h.01M19 12h.01" strokeWidth="3" />
+            </svg>
+          }
+        />
+        {props.onClose && <CloseButton onClose={props.onClose} />}
+      </div>
+
+      <div className="u2-idea__body">
+        {post.isPrivate && (
+          <p className="u2-idea__banner">
+            <Trans id="ui2.idea.private">Private idea: only its author, collaborators and admins can see it.</Trans>
+          </p>
+        )}
+        {!post.isApproved && signedIn && (
+          <div className="u2-idea__banner">
+            <Trans id="showpost.moderation.awaiting">Awaiting moderation.</Trans>
+            {fider.session.showModerationControls && staff && (
+              <span className="u2-row">
+                <Button small variant="primary" onClick={() => moderate(true)}>
+                  <Trans id="action.publish">Publish</Trans>
+                </Button>
+                <Button small variant="danger" onClick={() => moderate(false)}>
+                  <Trans id="action.delete">Delete</Trans>
+                </Button>
+              </span>
+            )}
+          </div>
+        )}
 
         {editing ? (
           <Form error={editError} onSubmit={save} className="u2-idea__edit">
@@ -320,7 +402,7 @@ export const IdeaView = (props: IdeaViewProps) => {
               />
             )}
             <div className="u2-row">
-              <Button variant="primary" onClick={save} loading={saving} disabled={fider.isReadOnly}>
+              <Button variant="primary" onClick={save} loading={saving} disabled={readOnly}>
                 <Trans id="action.save">Save</Trans>
               </Button>
               <Button variant="ghost" onClick={() => setEditing(false)} disabled={saving}>
@@ -333,53 +415,96 @@ export const IdeaView = (props: IdeaViewProps) => {
             <h1 id={props.titleId} className="u2-idea__title">
               {post.title}
             </h1>
-            <div className="u2-idea__meta">
-              <StatusPill status={status} />
-              <span className="u2-idea__by">
-                <Avatar name={author} src={post.user.avatarURL} size={20} />
-                <Trans id="ui2.idea.postedby">Posted by {author}</Trans>
+            <div className="u2-idea__props">
+              <VoteButton
+                post={post}
+                size="large"
+                disabled={!canVote(fider, post)}
+                onChange={(_n, v, count) => {
+                  setPost((p) => ({ ...p, hasVoted: v, votesCount: count }))
+                  changed()
+                }}
+              />
+              {staff && !readOnly ? (
+                <button type="button" className="u2-prop" aria-haspopup="dialog" onClick={() => setRespond({ open: true })} data-prop="status">
+                  <span className="u2-sr">
+                    <Trans id="action.respond">Update Status</Trans>:{" "}
+                  </span>
+                  <StatusPill status={status} />
+                </button>
+              ) : (
+                <span className="u2-prop" data-prop="status">
+                  <StatusPill status={status} />
+                </span>
+              )}
+              {staff && products.length > 0 ? (
+                <label className="u2-prop u2-prop--select" data-prop="product">
+                  <span className="u2-sr">
+                    <Trans id="ui2.idea.product">Product</Trans>
+                  </span>
+                  <span
+                    className="u2-prop__dot"
+                    style={post.product?.color ? ({ "--u-chip-dot": post.product.color } as React.CSSProperties) : undefined}
+                    aria-hidden="true"
+                  />
+                  <select value={post.product?.id ?? 0} disabled={readOnly} onChange={(e) => setProduct(parseInt(e.target.value, 10) || 0)}>
+                    <option value={0}>{i18n._({ id: "ui2.idea.product.general", message: "General" })}</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                post.product && (
+                  <span className="u2-prop" data-prop="product">
+                    <ProductChip product={post.product} />
+                  </span>
+                )
+              )}
+              {assignedTags.map((t) => (
+                <a
+                  key={t.id}
+                  className="u2-prop u2-prop--tag"
+                  href={`/?tags=${t.slug}`}
+                  style={{ "--u-chip-dot": `#${t.color}` } as React.CSSProperties}
+                  data-prop="tag"
+                >
+                  {t.name}
+                </a>
+              ))}
+              {staff && tagList.length > 0 && (
+                <button type="button" className="u2-prop u2-prop--add" aria-expanded={tagsOpen} onClick={() => setTagsOpen(!tagsOpen)} data-prop="tags">
+                  <span aria-hidden="true">+</span> <Trans id="ui2.idea.tags">Tags</Trans>
+                </button>
+              )}
+              {post.votesCount > 0 && <Voters faces={faces} count={post.votesCount} onOpen={canSeeVoters(fider) ? () => setDialog("voters") : undefined} />}
+              <span className="u2-prop u2-prop--by" data-prop="author">
+                <Avatar name={author} src={post.user.avatarURL} size={18} />
+                <span>{author}</span>
+                <time dateTime={post.createdAt}>{dateOf(locale, post.createdAt)}</time>
               </span>
-              <time dateTime={post.createdAt}>{dateOf(locale, post.createdAt)}</time>
-              <span>
-                <Plural id="ui2.idea.comments" value={comments.length} one="# comment" other="# comments" />
-              </span>
-              {post.product && <ProductChip product={post.product} />}
               {post.isPrivate && (
-                <span className="u2-chip u2-chip--warn">
+                <span className="u2-prop u2-prop--warn">
                   <Trans id="post.private">Private</Trans>
                 </span>
               )}
               {!post.isApproved && (
-                <span className="u2-chip u2-chip--warn">
+                <span className="u2-prop u2-prop--warn">
                   <Trans id="post.pending">pending</Trans>
                 </span>
               )}
-              {signedIn && (
-                <button type="button" className="u2-idea__follow" aria-pressed={subscribed} disabled={fider.isReadOnly} onClick={follow}>
-                  {subscribed ? <Trans id="label.following">Following</Trans> : <Trans id="label.follow">Follow</Trans>}
-                </button>
-              )}
             </div>
-
-            {post.isPrivate && (
-              <p className="u2-idea__banner">
-                <Trans id="ui2.idea.private">Private idea: only its author, collaborators and admins can see it.</Trans>
-              </p>
-            )}
-            {!post.isApproved && signedIn && (
-              <div className="u2-idea__banner">
-                <Trans id="showpost.moderation.awaiting">Awaiting moderation.</Trans>
-                {fider.session.showModerationControls && staff && (
-                  <span className="u2-row">
-                    <Button small variant="primary" onClick={() => moderate(true)}>
-                      <Trans id="action.publish">Publish</Trans>
-                    </Button>
-                    <Button small variant="danger" onClick={() => moderate(false)}>
-                      <Trans id="action.delete">Delete</Trans>
-                    </Button>
-                  </span>
-                )}
-              </div>
+            {tagsOpen && (
+              <fieldset className="u2-idea__tagpick">
+                <legend className="u2-sr">
+                  <Trans id="ui2.idea.tags.legend">Tags on this idea</Trans>
+                </legend>
+                {tagList.map((t) => (
+                  <Checkbox key={t.id} checked={assigned.includes(t.slug)} label={t.name} disabled={readOnly} onChange={(on) => toggleTag(t, on)} />
+                ))}
+              </fieldset>
             )}
 
             <div className="u2-idea__desc">
@@ -394,72 +519,24 @@ export const IdeaView = (props: IdeaViewProps) => {
               )}
               <IdeaFilesList bkeys={attachmentKeys} />
             </div>
-
-            {(assignedTags.length > 0 || (staff && tagList.length > 0)) && (
-              <div className="u2-idea__tags" ref={tagsRef}>
-                {assignedTags.map((t) => (
-                  <a key={t.id} className="u2-chip u2-chip--tag" href={`/?tags=${t.slug}`} style={{ "--u-chip-dot": `#${t.color}` } as React.CSSProperties}>
-                    {t.name}
-                  </a>
-                ))}
-                {staff && tagList.length > 0 && (
-                  <button type="button" className="u2-idea__lnk" aria-expanded={tagsOpen} onClick={() => setTagsOpen(!tagsOpen)}>
-                    <Trans id="ui2.idea.tags.edit">Edit tags</Trans>
-                  </button>
-                )}
-                {tagsOpen && (
-                  <fieldset className="u2-idea__tagpick">
-                    <legend className="u2-sr">
-                      <Trans id="ui2.idea.tags.legend">Tags on this idea</Trans>
-                    </legend>
-                    {tagList.map((t) => (
-                      <Checkbox key={t.id} checked={assigned.includes(t.slug)} label={t.name} onChange={(on) => toggleTag(t, on)} />
-                    ))}
-                  </fieldset>
-                )}
-              </div>
-            )}
-
-            <div className="u2-idea__acts">
-              <button type="button" className="u2-idea__lnk" onClick={copyLink}>
-                <Trans id="action.copylink">Copy link</Trans>
-              </button>
-              {canEditIdea(fider, post) && (
-                <button type="button" className="u2-idea__lnk" onClick={startEdit}>
-                  <Trans id="action.edit">Edit</Trans>
-                </button>
-              )}
-              {canTogglePrivacy(fider, post) && (
-                <button type="button" className="u2-idea__lnk" onClick={togglePrivacy}>
-                  {post.isPrivate ? <Trans id="action.makepublic">Make public</Trans> : <Trans id="action.makeprivate">Make private</Trans>}
-                </button>
-              )}
-              {tenant.isFeedEnabled && (
-                <button type="button" className="u2-idea__lnk" onClick={() => setDialog("feed")}>
-                  <Trans id="action.commentsfeed">Comment Feed</Trans>
-                </button>
-              )}
-              {canDeleteIdea(fider, post) && (
-                <button type="button" className="u2-idea__lnk u2-danger" onClick={() => setDialog("delete")}>
-                  <Trans id="action.delete">Delete</Trans>
-                </button>
-              )}
-            </div>
           </>
         )}
 
         {brief && (
-          <section className="u2-idea__brief" aria-labelledby="u2-brief-h">
-            <h2 id="u2-brief-h" className="u2-idea__lbl u2-idea__lbl--vora">
-              <Trans id="ui2.idea.brief">Vora&apos;s brief</Trans>
-            </h2>
-            <Markdown text={brief} />
+          <section className="u2-idea__vora" aria-labelledby="u2-brief-h">
+            <span className="u2-idea__mark" aria-hidden="true" />
+            <div className="u2-idea__vora-body">
+              <h2 id="u2-brief-h">
+                <Trans id="ui2.idea.brief">Vora&apos;s brief</Trans>
+              </h2>
+              <Markdown text={brief} />
+            </div>
             {isAdmin && (
-              <div className="u2-row">
-                <button type="button" className="u2-idea__lnk" onClick={() => setDialog("transcript")}>
+              <div className="u2-idea__vora-acts">
+                <button type="button" className="u2-idea__act" onClick={() => setDialog("transcript")}>
                   <Trans id="ui2.idea.brief.viewchat">View the conversation</Trans>
                 </button>
-                <a className="u2-idea__lnk" href={`/_api/posts/${post.number}/brief/download`} download>
+                <a className="u2-idea__act" href={`/_api/posts/${post.number}/brief/download`} download>
                   <Trans id="ui2.idea.brief.download">Download .md</Trans>
                 </a>
               </div>
@@ -467,35 +544,33 @@ export const IdeaView = (props: IdeaViewProps) => {
           </section>
         )}
 
+        {staff && <InternalNote postNumber={post.number} initial={props.data.internalNote} />}
+
         <section className="u2-idea__thread" aria-labelledby="u2-thread-h">
           <h2 id="u2-thread-h" className="u2-idea__lbl">
-            <Trans id="label.discussion">Discussion</Trans> <span className="u2-mono">{comments.length}</span>
+            <Trans id="ui2.idea.activity">Activity</Trans>
           </h2>
-          {post.response && (
-            <div className="u2-cm u2-cm--response">
-              <Avatar name={post.response.user.name} src={post.response.user.avatarURL} size={32} />
-              <div className="u2-cm__body">
-                <div className="u2-cm__who">
-                  <b>{post.response.user.name}</b>
-                  <StatusPill status={status} />
-                  <span className="u2-muted">{dateOf(locale, post.response.respondedAt)}</span>
-                </div>
-                {post.status === PostStatus.Duplicate.value && post.response.original ? (
-                  <p>
-                    <Trans id="ui2.idea.mergedinto">Merged into</Trans>{" "}
-                    <a href={postHref(post.response.original)}>
-                      <span className="u2-mono">#{post.response.original.number}</span> {post.response.original.title}
-                    </a>
+          <ol className="u2-tl">
+            {events.map((ev) =>
+              ev.kind === "comment" ? (
+                <CommentItem key={`c${ev.comment.id}`} post={post} comment={ev.comment} highlighted={highlighted === ev.comment.id} onChanged={refresh} />
+              ) : ev.kind === "shared" ? (
+                <li key="shared" className="u2-ev" data-event="shared">
+                  <span className="u2-ev__mk" aria-hidden="true">
+                    <i />
+                  </span>
+                  <p className="u2-ev__line">
+                    <Trans id="ui2.idea.ev.shared">
+                      <b>{author}</b> shared this idea
+                    </Trans>
+                    <time dateTime={post.createdAt}>{dateOf(locale, post.createdAt)}</time>
                   </p>
-                ) : (
-                  <Markdown text={post.response.text} />
-                )}
-              </div>
-            </div>
-          )}
-          {comments.map((c) => (
-            <CommentItem key={c.id} post={post} comment={c} highlighted={highlighted === c.id} onChanged={refresh} />
-          ))}
+                </li>
+              ) : (
+                <StatusEvent key="status" post={post} at={ev.at} status={status} prev={ev.prev ? statusOf(ev.prev) : undefined} locale={locale} />
+              )
+            )}
+          </ol>
           <CommentComposer
             post={post}
             onPosted={() => {
@@ -504,108 +579,7 @@ export const IdeaView = (props: IdeaViewProps) => {
             }}
           />
         </section>
-      </article>
-
-      <div className="u2-idea__vote u2-panel">
-        <VoteButton
-          post={post}
-          size="large"
-          disabled={!canVote(fider, post)}
-          onChange={(_n, v, count) => {
-            setPost((p) => ({ ...p, hasVoted: v, votesCount: count }))
-            changed()
-          }}
-        >
-          {voted ? <Trans id="ui2.idea.voted">Voted</Trans> : <Trans id="ui2.idea.vote">Vote</Trans>}
-        </VoteButton>
-        {faces.length > 0 && (
-          <div className="u2-idea__faces">
-            <span className="u2-faces" role="img" aria-label={faces.map((v) => v.user.name).join(", ")}>
-              {faces.map((v) => (
-                <img key={v.user.id} src={v.user.avatarURL} alt="" width={22} height={22} loading="lazy" />
-              ))}
-            </span>
-            {moreVoters > 0 && <span className="u2-muted u2-mono">+{moreVoters}</span>}
-            {canSeeVoters(fider) && (
-              <button type="button" className="u2-idea__lnk" onClick={() => setDialog("voters")}>
-                <Trans id="ui2.idea.voters.all">See all voters</Trans>
-              </button>
-            )}
-          </div>
-        )}
       </div>
-
-      <aside className="u2-idea__rail u2-panel" aria-label={i18n._({ id: "ui2.idea.rail", message: "About this idea" })}>
-        <section>
-          <h2 className="u2-idea__lbl">
-            <Trans id="ui2.idea.history">Status history</Trans>
-          </h2>
-          <ol className="u2-idea__timeline">
-            <li>
-              <span className="u2-mono">{since ? dateOf(locale, since) : dateOf(locale, post.createdAt)}</span>
-              <StatusPill status={status} />
-            </li>
-            {prev && (
-              <li>
-                <span className="u2-mono">
-                  <Trans id="ui2.idea.history.before">before</Trans>
-                </span>
-                <StatusPill status={statusOf(prev)} />
-              </li>
-            )}
-            {since && (
-              <li>
-                <span className="u2-mono">{dateOf(locale, post.createdAt)}</span>
-                <span className="u2-muted">
-                  <Trans id="ui2.idea.history.posted">Posted</Trans>
-                </span>
-              </li>
-            )}
-          </ol>
-        </section>
-
-        {staff && (
-          <section className="u2-idea__staff">
-            <h2 className="u2-idea__lbl">
-              <Trans id="ui2.idea.staff">Staff</Trans>
-            </h2>
-            <div className="u2-idea__tools">
-              <Button small onClick={() => setRespond({ open: true })} disabled={fider.isReadOnly}>
-                <Trans id="action.respond">Update Status</Trans>
-              </Button>
-              <Button small onClick={() => setRespond({ open: true, status: PostStatus.Duplicate.value })} disabled={fider.isReadOnly}>
-                <Trans id="ui2.idea.merge">Merge</Trans>
-              </Button>
-              {tagList.length > 0 && (
-                <Button small onClick={() => setTagsOpen(true)} aria-expanded={tagsOpen}>
-                  <Trans id="ui2.idea.tags">Tags</Trans>
-                </Button>
-              )}
-              {tenant.isScorecardEnabled && (
-                <Button small onClick={openScorecard}>
-                  <Trans id="action.scorecard">Score this idea</Trans>
-                </Button>
-              )}
-            </div>
-            {products.length > 0 && (
-              <label className="u2-idea__product">
-                <span className="u2-idea__lbl">
-                  <Trans id="ui2.idea.product">Product</Trans>
-                </span>
-                <select className="u2-ctl" value={post.product?.id ?? 0} onChange={(e) => setProduct(parseInt(e.target.value, 10) || 0)}>
-                  <option value={0}>{i18n._({ id: "ui2.idea.product.general", message: "General" })}</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-            <InternalNote postNumber={post.number} initial={props.data.internalNote} />
-          </section>
-        )}
-      </aside>
 
       {staff && (
         <ResponseDialog
@@ -622,5 +596,98 @@ export const IdeaView = (props: IdeaViewProps) => {
       {tenant.isFeedEnabled && <FeedDialog url={feedURL} open={dialog === "feed"} onClose={() => setDialog("")} />}
       {isAdmin && <TranscriptDialog postNumber={post.number} open={dialog === "transcript"} onClose={() => setDialog("")} />}
     </div>
+  )
+}
+
+export const CloseButton = (props: { onClose: () => void }) => (
+  <button type="button" className="u2-iconbtn" onClick={props.onClose} aria-label={i18n._({ id: "ui2.ideabrief.close", message: "Close" })}>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  </button>
+)
+
+// Voter faces and the count; a button to the full list when the viewer may see it.
+const Voters = (props: { faces: Vote[]; count: number; onOpen?: () => void }) => {
+  const inner = (
+    <>
+      {props.faces.length > 0 && (
+        <span className="u2-faces" aria-hidden="true">
+          {props.faces.slice(0, 4).map((v) => (
+            <img key={v.user.id} src={v.user.avatarURL} alt="" width={20} height={20} loading="lazy" />
+          ))}
+        </span>
+      )}
+      <Plural id="ui2.idea.voters.count" value={props.count} one="# voter" other="# voters" />
+    </>
+  )
+  return props.onOpen ? (
+    <button type="button" className="u2-prop" aria-haspopup="dialog" onClick={props.onOpen} data-prop="voters">
+      {inner}
+    </button>
+  ) : (
+    <span className="u2-prop" data-prop="voters">
+      {inner}
+    </span>
+  )
+}
+
+export type IdeaEvent = { kind: "shared"; at: string } | { kind: "status"; at: string; prev?: string } | { kind: "comment"; at: string; comment: Comment }
+
+// The activity timeline from what the post already carries (no event history exists on
+// the server): when it was shared, its latest status change or response, and the comments.
+export const ideaEvents = (post: Post, comments: Comment[]): IdeaEvent[] => {
+  const list: IdeaEvent[] = [{ kind: "shared", at: post.createdAt }]
+  const at = post.statusChangedAt || (post.response ? String(post.response.respondedAt) : undefined)
+  if (at && (post.status !== PostStatus.Open.value || post.response)) {
+    list.push({ kind: "status", at, prev: post.prevStatus && post.prevStatus !== post.status ? post.prevStatus : undefined })
+  }
+  for (const c of comments) list.push({ kind: "comment", at: c.createdAt, comment: c })
+  const time = (e: IdeaEvent) => new Date(e.at).getTime() || 0
+  // Array sort is stable, so "shared" stays first on equal times.
+  return list.sort((a, b) => time(a) - time(b))
+}
+
+const StatusEvent = (props: { post: Post; at: string; status: StatusInfo; prev?: StatusInfo; locale: string }) => {
+  const { post } = props
+  const who = post.response?.user?.name || i18n._({ id: "ui2.idea.ev.team", message: "The team" })
+  const to = props.status.label
+  const from = props.prev?.label || ""
+  const original = post.status === PostStatus.Duplicate.value ? post.response?.original : undefined
+  const text = original ? "" : post.response?.text
+  return (
+    <li className="u2-ev" data-event="status" style={{ "--u-ev": `var(--u-s-${props.status.tone})` } as React.CSSProperties}>
+      <span className="u2-ev__mk" aria-hidden="true">
+        <i />
+      </span>
+      <div className="u2-ev__main">
+        <p className="u2-ev__line">
+          {original ? (
+            <>
+              <Trans id="ui2.idea.ev.merged">
+                <b>{who}</b> merged it into
+              </Trans>{" "}
+              <a href={postHref(original)}>
+                <span className="u2-mono">#{original.number}</span> {original.title}
+              </a>
+            </>
+          ) : from ? (
+            <Trans id="ui2.idea.ev.moved">
+              <b>{who}</b> moved it from {from} to <b>{to}</b>
+            </Trans>
+          ) : (
+            <Trans id="ui2.idea.ev.status">
+              <b>{who}</b> set the status to <b>{to}</b>
+            </Trans>
+          )}
+          <time dateTime={props.at}>{dateOf(props.locale, props.at)}</time>
+        </p>
+        {text && (
+          <div className="u2-ev__bubble">
+            <Markdown text={text} />
+          </div>
+        )}
+      </div>
+    </li>
   )
 }

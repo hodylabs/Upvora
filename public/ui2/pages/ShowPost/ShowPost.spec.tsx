@@ -114,7 +114,7 @@ describe("idea permission rules (same as classic)", () => {
 describe("ui2 idea page", () => {
   test("the status response sends status, text and no merge target", async () => {
     renderIdea("collaborator")
-    fireEvent.click(document.querySelector(".u2-idea__tools .u2-btn") as HTMLElement)
+    fireEvent.click(document.querySelector('[data-prop="status"]') as HTMLElement)
     const dlg = dialog()
     fireEvent.change(dlg.querySelector("select[name=status]") as HTMLSelectElement, { target: { value: "planned" } })
     fireEvent.change(dlg.querySelector("textarea[name=text]") as HTMLTextAreaElement, { target: { value: "Coming in May" } })
@@ -179,17 +179,117 @@ describe("ui2 idea page", () => {
     await waitFor(() => expect(http.post).toHaveBeenCalledWith("/api/v1/posts/5/comments", { content: "Me too", attachments: [], isInternal: false }))
   })
 
-  test("staff tools and edit/delete/privacy controls follow the role", async () => {
+  const openTools = () => {
+    const trigger = document.querySelector<HTMLElement>(".u2-idea__tools > button")
+    if (!trigger) return []
+    fireEvent.click(trigger)
+    return Array.from(document.querySelectorAll<HTMLElement>(".u2-idea__tools [role=menuitem]")).map((el) => el.dataset.key)
+  }
+
+  test("no right rail: the former rail tools live in the top bar menu and follow the role", async () => {
     const { unmount } = renderIdea("member")
     await act(() => Promise.resolve())
-    expect(document.querySelector(".u2-idea__staff")).toBeNull()
-    expect(document.querySelectorAll(".u2-idea__acts button")).toHaveLength(1) // copy link only
+    expect(document.querySelector("aside")).toBeNull()
+    expect(document.querySelector(".u2-note-int")).toBeNull()
+    expect(document.querySelector('button[data-prop="status"]')).toBeNull() // read-only status pill
+    expect(openTools()).toEqual([])
     unmount()
     renderIdea("admin")
     await act(() => Promise.resolve())
-    expect(document.querySelector(".u2-idea__staff")).not.toBeNull()
-    // copy link, edit, privacy, delete
-    expect(document.querySelectorAll(".u2-idea__acts button")).toHaveLength(4)
+    expect(document.querySelector(".u2-note-int")).not.toBeNull()
+    expect(openTools()).toEqual(["edit", "respond", "merge", "privacy", "delete"])
+  })
+
+  test("the top bar has the number, copy link and a follow toggle", async () => {
+    http.post = jest.fn(() => ok({})) as unknown as typeof http.post
+    renderIdea("member")
+    const top = document.querySelector(".u2-idea__top") as HTMLElement
+    expect(top.textContent).toContain("#5")
+    expect(top.querySelector('[data-act="copy"]')).not.toBeNull()
+    const follow = top.querySelector(".u2-idea__follow") as HTMLButtonElement
+    expect(follow.getAttribute("aria-pressed")).toBe("false")
+    fireEvent.click(follow)
+    await waitFor(() => expect(follow.getAttribute("aria-pressed")).toBe("true"))
+  })
+
+  test("property pills: vote, status, tags, voters and author", async () => {
+    render(
+      <FiderContext.Provider value={fiderAs("collaborator")}>
+        <ShowPostPage
+          post={post(5, { status: "planned", tags: ["ux"], votesCount: 2 })}
+          subscribed={false}
+          comments={[]}
+          tags={[{ id: 1, slug: "ux", name: "UX", color: "ff0000", isPublic: true }]}
+          votes={[{ createdAt: new Date(), user: { id: 3, name: "Lin", email: "", avatarURL: "/a.png" } }]}
+          attachments={[]}
+        />
+      </FiderContext.Provider>
+    )
+    const props = document.querySelector(".u2-idea__props") as HTMLElement
+    expect(props.querySelector(".u2-vote--large")).not.toBeNull()
+    expect(props.querySelector('[data-prop="status"] [data-status="planned"]')).not.toBeNull()
+    expect(props.querySelector('[data-prop="tag"]')?.textContent).toBe("UX")
+    expect(props.querySelector('[data-prop="author"]')?.textContent).toContain("Grace")
+    const voters = props.querySelector('button[data-prop="voters"]') as HTMLElement
+    expect(voters.querySelectorAll(".u2-faces img")).toHaveLength(1)
+    fireEvent.click(voters)
+    expect(dialog()).not.toBeNull()
+    // Staff edit tags from the pills.
+    fireEvent.click(props.querySelector('[data-prop="tags"]') as HTMLElement)
+    expect(document.querySelector(".u2-idea__tagpick")).not.toBeNull()
+  })
+
+  test("the activity timeline orders the shared event, the status change and comments by time", async () => {
+    const t = (min: number) => new Date(Date.UTC(2026, 0, 1, 0, min)).toISOString()
+    const p = post(5, {
+      createdAt: t(0),
+      status: "planned",
+      prevStatus: "open",
+      statusChangedAt: t(20),
+      response: { user: { id: 1, name: "Team Lead" }, text: "Spring release", respondedAt: t(20) as unknown as Date },
+    } as Partial<Post>)
+    const comments = [
+      { id: 1, content: "Me too", createdAt: t(10), user: { id: 4, name: "Maya", role: "visitor" }, isApproved: true, isInternal: false },
+      { id: 2, content: "Ship it", createdAt: t(30), user: { id: 5, name: "Kai", role: "collaborator" }, isApproved: true, isInternal: true },
+    ]
+    render(
+      <FiderContext.Provider value={fiderAs("collaborator")}>
+        <ShowPostPage post={p} subscribed={false} comments={comments as never} tags={[]} votes={[]} attachments={[]} />
+      </FiderContext.Provider>
+    )
+    const items = Array.from(document.querySelectorAll<HTMLElement>(".u2-tl > li"))
+    expect(items.map((li) => li.dataset.event || li.id)).toEqual(["shared", "comment-1", "status", "comment-2"])
+    // (Lingui is mocked in tests, so event sentences render empty; the response text is Markdown.)
+    expect(items[2].querySelector(".u2-ev__bubble")?.textContent).toContain("Spring release")
+    expect(items[1].querySelector(".u2-cm__body")?.textContent).toContain("Me too")
+    expect(items[3].classList.contains("is-internal")).toBe(true)
+    expect(items[3].classList.contains("is-team")).toBe(true)
+  })
+
+  test("a merged idea shows a merge event linking the original", async () => {
+    const p = post(5, {
+      status: "duplicate",
+      response: {
+        user: { id: 1, name: "Team Lead" },
+        text: "",
+        respondedAt: new Date(),
+        original: { number: 7, title: "Idea 7", slug: "idea-7", status: "open" },
+      },
+    } as Partial<Post>)
+    render(
+      <FiderContext.Provider value={fiderAs("member")}>
+        <ShowPostPage post={p} subscribed={false} comments={[]} tags={[]} votes={[]} attachments={[]} />
+      </FiderContext.Provider>
+    )
+    const ev = document.querySelector('[data-event="status"]') as HTMLElement
+    expect(ev.querySelector(".u2-ev__bubble")).toBeNull()
+    expect(ev.querySelector("a")?.getAttribute("href")).toBe("/posts/7/idea-7")
+  })
+
+  test("an open idea with no response has only the shared event", async () => {
+    renderIdea("visitor")
+    await act(() => Promise.resolve())
+    expect(Array.from(document.querySelectorAll<HTMLElement>(".u2-tl > li")).map((li) => li.dataset.event)).toEqual(["shared"])
   })
 })
 
@@ -207,6 +307,7 @@ describe("ui2 board overlay", () => {
     fireEvent.click(screen.getByText("Idea 2"))
     expect(location.pathname).toBe("/posts/2/idea-2")
     await waitFor(() => expect(document.querySelector(".u2-ovl [role=dialog] h1")?.textContent).toBe("Idea 2"))
+    expect(document.querySelector(".u2-ovl .u2-sheet")).not.toBeNull()
 
     fireEvent.keyDown(document, { key: "Escape" })
     await waitFor(() => expect(document.querySelector(".u2-ovl")).toBeNull())
