@@ -159,6 +159,15 @@ describe("ui2 Roadmap page", () => {
     expect(screen.getByRole("button", { name: "App" })).toHaveAttribute("aria-pressed", "true")
   })
 
+  test("a filter with no matches says so, and Clear filters brings every idea back", () => {
+    const { container } = renderRoadmap("visitor")
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "nothing like this" } })
+    expect(container.querySelector(".u2-roadmap__nomatch")).not.toBeNull()
+    fireEvent.click(container.querySelector(".u2-roadmap__nomatch button") as HTMLElement)
+    expect(container.querySelector(".u2-roadmap__nomatch")).toBeNull()
+    expect(numbersIn(lane(container, "planned"))).toEqual([1, 2])
+  })
+
   test("the lane header collapses its lane", () => {
     const { container } = renderRoadmap("visitor")
     const toggle = lane(container, "planned").querySelector(".u2-lane__toggle") as HTMLElement

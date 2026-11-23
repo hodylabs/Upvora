@@ -331,20 +331,27 @@ a.u2-chip--product:hover {
   flex-wrap: wrap;
   gap: 6px;
 }
+/* Dashed when off, solid when on (the board's add-filter chips). */
 .u2-pfilter__chip {
-  min-height: 28px;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px dashed var(--u-edge);
+  border-radius: 999px;
+  color: var(--u-muted);
   font: inherit;
-  font-size: 12px;
+  font-size: 12.5px;
   cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
 }
 .u2-pfilter__chip:hover {
-  border-color: var(--u-accent);
+  border-color: var(--u-muted);
+  color: var(--u-text);
 }
 .u2-pfilter__chip[aria-pressed="true"] {
-  border-color: var(--u-accent);
-  background: var(--u-accent-soft);
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--u-text) 22%, transparent);
+  background: var(--u-surface2);
   color: var(--u-text);
-  font-weight: 600;
 }
 
 /* Pending moderation count (header) */

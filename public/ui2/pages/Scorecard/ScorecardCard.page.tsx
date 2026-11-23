@@ -292,6 +292,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
   const submittedOn = date(post?.createdAt)
   const votes = post?.votesCount ?? 0
   const comments = post?.commentsCount ?? 0
+  const number = post?.number
 
   return (
     <div className="u2-sc u2-sc--card">
@@ -303,41 +304,61 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
           {saveText[saveState]}
         </span>
         {post && (
-          <a className="u2-btn u2-btn--primary" href={postHref(post)} target="_blank" rel="noopener">
+          <a className="u2-btn" href={postHref(post)} target="_blank" rel="noopener">
             <Trans id="ui2.scorecard.openidea">Open idea</Trans>
             <span aria-hidden="true">↗</span>
           </a>
         )}
       </div>
 
-      <section className="u2-panel u2-sc__headcard">
-        <div className="u2-sc__titlerow">
+      {/* One document: title, property pills, then hairline-separated blocks (no boxes inside). */}
+      <article className="u2-panel u2-sc__doc">
+        <header className="u2-sc__block u2-sc__dochead">
           <input
             className="u2-ctl u2-sc__titleinput"
             value={title}
             onChange={(e) => changeTitle(e.target.value)}
             aria-label={i18n._({ id: "ui2.scorecard.titlelabel", message: "Scorecard title" })}
           />
-          {headerFields.map((f) => (
-            <label key={f.key} className="u2-sc__status">
-              <span className="u2-muted">{f.label}</span>
-              {/* Classic keeps the header status editable even when retired. */}
-              {choiceSelect(f, `sc-${f.key}`, false)}
-            </label>
-          ))}
-        </div>
+          <div className="u2-sc__props">
+            {headerFields.map((f) => (
+              <label key={f.key} className="u2-sc__prop u2-sc__status">
+                <span className="u2-muted">{f.label}</span>
+                {/* Classic keeps the header status editable even when retired. */}
+                {choiceSelect(f, `sc-${f.key}`, false)}
+              </label>
+            ))}
+            <span className={`u2-sc__prop u2-sc__prop--band u2-band--${score === 0 ? "none" : band.key}`}>
+              {score === 0 ? <Trans id="ui2.scorecard.notscored">Not scored</Trans> : band.label}
+            </span>
+            {post && (
+              <span className="u2-sc__prop u2-mono">
+                <Trans id="ui2.scorecard.counts">
+                  <strong>{votes}</strong> votes, <strong>{comments}</strong> comments
+                </Trans>
+              </span>
+            )}
+            {post &&
+              Array.isArray(post.tags) &&
+              post.tags.map((t) => (
+                <span key={String(t)} className="u2-sc__prop">
+                  {String(t)}
+                </span>
+              ))}
+          </div>
+        </header>
 
-        <ScoreRing score={score} band={band} tenant={tenant} />
+        <section className="u2-sc__block">
+          <ScoreRing score={score} band={band} tenant={tenant} />
+        </section>
 
         {post ? (
           // Rendered live from the linked idea; edits there show here on the next load.
-          <div className="u2-sc__idea">
-            <div className="u2-sc__idea-title">
-              <span className="u2-muted">
-                <Trans id="ui2.table.idea">Idea</Trans>
-              </span>
-              <strong>{post.title}</strong>
-            </div>
+          <section className="u2-sc__block u2-sc__idea">
+            <span className="u2-sc__eyebrow u2-mono">
+              <Trans id="ui2.scorecard.ideanumber">Idea #{number}</Trans>
+            </span>
+            <strong className="u2-sc__idea-title">{post.title}</strong>
             {post.description && <p className="u2-sc__idea-desc">{post.description}</p>}
             <div className="u2-sc__meta">
               <span>
@@ -345,49 +366,39 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
                   Submitted by <strong>{author}</strong> on {submittedOn}
                 </Trans>
               </span>
-              <BriefButton postNumber={post.number} />
               <span>
                 <Trans id="ui2.scorecard.added">To scorecard {addedOn}</Trans>
               </span>
-              <span className="u2-mono">
-                <Trans id="ui2.scorecard.counts">
-                  <strong>{votes}</strong> votes, <strong>{comments}</strong> comments
-                </Trans>
-              </span>
-              {Array.isArray(post.tags) && post.tags.length > 0 && (
-                <span className="u2-sc__tags">
-                  {post.tags.map((t) => (
-                    <span key={String(t)} className="u2-chip u2-chip--tag">
-                      {String(t)}
-                    </span>
-                  ))}
-                </span>
-              )}
+              <BriefButton postNumber={post.number} />
             </div>
-          </div>
+          </section>
         ) : (
-          <p className="u2-sc__meta u2-muted">
+          <p className="u2-sc__block u2-sc__meta u2-muted">
             <Trans id="ui2.scorecard.standalone">Standalone scorecard (not linked to an idea), created {addedOn}</Trans>
           </p>
         )}
-      </section>
 
-      {post && isStaff && <TeamNote postNumber={post.number} initial={props.internalNote} />}
+        {post && isStaff && (
+          <div className="u2-sc__block">
+            <TeamNote postNumber={post.number} initial={props.internalNote} />
+          </div>
+        )}
 
-      {GROUP_ORDER.map((g) => {
-        const rows = grouped[g]
-        if (!rows || rows.length === 0) return null
-        const sorted = [...rows].sort((a, b) => a.sortOrder - b.sortOrder)
-        return (
-          <section key={g} className="u2-panel u2-sc__group" data-group={g}>
-            <header className="u2-sc__group-head">
-              <h2>{groupLabel(g)}</h2>
-              <span className="u2-muted">{groupHint(g)}</span>
-            </header>
-            <div className={g === "scoring" ? "u2-sc__scores" : "u2-sc__grid"}>{sorted.map(renderField)}</div>
-          </section>
-        )
-      })}
+        {GROUP_ORDER.map((g) => {
+          const rows = grouped[g]
+          if (!rows || rows.length === 0) return null
+          const sorted = [...rows].sort((a, b) => a.sortOrder - b.sortOrder)
+          return (
+            <section key={g} className="u2-sc__block u2-sc__group" data-group={g} aria-labelledby={`u2-sc-g-${g}`}>
+              <header className="u2-sc__group-head">
+                <h2 id={`u2-sc-g-${g}`}>{groupLabel(g)}</h2>
+                <span className="u2-muted">{groupHint(g)}</span>
+              </header>
+              <div className={g === "scoring" ? "u2-sc__scores" : "u2-sc__grid"}>{sorted.map(renderField)}</div>
+            </section>
+          )
+        })}
+      </article>
 
       {isStaff && (
         <div className="u2-sc__danger">

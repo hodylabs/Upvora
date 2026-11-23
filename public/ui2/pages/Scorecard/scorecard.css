@@ -18,18 +18,30 @@
 .u2-band--none {
   --u-b: var(--u-muted);
 }
+/* Band: a pill with a dot in the band color (chips in the list, the card's property). */
 .u2-band {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border: 1px solid color-mix(in srgb, var(--u-b) 45%, transparent);
-  border-radius: var(--u-radius);
-  background: none;
-  color: var(--u-b);
+  gap: 7px;
+  min-height: 24px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--u-b) 35%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--u-b) 8%, transparent);
+  color: var(--u-text);
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
+}
+.u2-band::before,
+.u2-sc__bandchip::before,
+.u2-sc__prop--band::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--u-b);
 }
 
 .u2-sc {
@@ -79,32 +91,42 @@
   gap: 8px;
   margin-inline-start: auto;
 }
+/* Views: a segmented control (the board's List / By stage switch). */
 .u2-sc__tabs {
-  display: flex;
-  gap: 4px;
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--u-line);
+  border-radius: var(--u-radius);
+  background: var(--u-glass);
 }
 .u2-sc__tab {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 30px;
+  height: 28px;
   padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: var(--u-radius);
+  border: 0;
+  border-radius: 7px;
   background: none;
-  color: var(--u-text2);
+  color: var(--u-muted);
   font: inherit;
-  font-size: 13px;
+  font-size: 12.5px;
   cursor: pointer;
+  transition: background 0.12s, color 0.12s;
 }
 .u2-sc__tab:hover {
-  background: var(--u-chip);
+  color: var(--u-text);
 }
 .u2-sc__tab[aria-pressed="true"] {
-  border-color: var(--u-edge);
-  background: var(--u-glass);
+  background: var(--u-surface3);
   color: var(--u-text);
-  font-weight: 600;
+}
+.u2-sc__tab .u2-mono {
+  font-size: 11px;
+}
+.u2-sc__bands {
+  flex-basis: 100%;
+  order: 3;
 }
 /* Inputs, selects and textareas are the shared .u2-ctl; the filter only sizes itself. */
 .u2-sc__input {
@@ -119,6 +141,7 @@
 /* List table: dense 42 px rows */
 .u2-sc__wrap {
   overflow-x: auto;
+  border-color: var(--u-edge);
 }
 .u2-sc__table {
   width: 100%;
@@ -126,29 +149,35 @@
 }
 .u2-sc__table th {
   height: 40px;
-  padding-inline: 14px;
+  padding-inline: 16px;
+  border-block-end: 1px solid var(--u-line);
   background: var(--u-surface2);
-  font-size: 12px;
-  font-weight: 500;
+  font: 500 11px var(--u-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--u-muted);
   text-align: start;
   white-space: nowrap;
 }
 .u2-sc__table td {
   height: var(--u-row);
-  padding: 10px 14px;
+  padding: 10px 16px;
   border-block-start: 1px solid var(--u-line);
   vertical-align: middle;
 }
 .u2-sc__table .is-end {
   text-align: end;
 }
+.u2-sc__table tbody tr:first-child td {
+  border-block-start: 0;
+}
 .u2-sc__table tbody tr[data-card] {
   cursor: pointer;
+  transition: background 0.12s;
 }
 .u2-sc__table tbody tr[data-card]:hover,
 .u2-sc__table tbody tr[data-card]:focus-within {
-  background: color-mix(in srgb, var(--u-text) 4%, transparent);
+  background: var(--u-surface2);
 }
 .u2-sc__title {
   display: flex;
@@ -178,28 +207,46 @@
 }
 .u2-sc__strip {
   display: block;
-  width: 64px;
+  width: 72px;
   height: 4px;
-  border-radius: 2px;
-  background: var(--u-line);
+  border-radius: 4px;
+  background: var(--u-surface3);
   overflow: hidden;
 }
 .u2-sc__strip i {
   display: block;
   height: 100%;
+  border-radius: 4px;
   background: var(--u-b);
 }
+/* The top two bands get a gradient in their own color, like the card's ring. */
+.u2-sc__strip.u2-band--strong i,
+.u2-sc__strip.u2-band--good i {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--u-b) 55%, var(--u-text)), var(--u-b));
+}
 .u2-sc__empty td {
-  padding: 28px 16px;
+  height: auto;
+  padding: 48px 16px;
   text-align: center;
   color: var(--u-muted);
 }
+.u2-sc__empty .u2-btn {
+  margin-inline-start: 8px;
+}
 
-/* Card page */
+/* Card page: one document panel, blocks split by hairlines */
 .u2-sc__top {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+.u2-sc__crumb {
+  font: 500 12px var(--u-mono);
+  color: var(--u-muted) !important;
+  text-decoration: none;
+}
+.u2-sc__crumb:hover {
+  color: var(--u-text) !important;
 }
 .u2-sc__crumb::before {
   content: "\2190  ";
@@ -209,44 +256,80 @@
 }
 .u2-sc__save {
   margin-inline-start: auto;
-  font-size: 12px;
+  font: 12px var(--u-mono);
 }
-.u2-sc__headcard,
-.u2-sc__group {
+.u2-sc__doc {
+  border-color: var(--u-edge);
+}
+.u2-sc__block {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 16px;
+  margin: 0;
+  padding: 22px 28px;
+  border-block-start: 1px solid var(--u-line);
 }
-.u2-sc__titlerow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
+.u2-sc__block:first-child {
+  border-block-start: 0;
+}
+.u2-sc__dochead {
+  padding-block-start: 26px;
 }
 .u2-sc__titleinput {
-  flex: 1 1 280px;
-  min-height: 38px;
-  padding: 4px 8px;
+  width: 100%;
+  min-height: 44px;
+  margin-inline-start: -8px;
+  padding: 2px 8px;
   border: 1px solid transparent;
   border-radius: var(--u-radius);
   background: none;
   color: var(--u-text);
-  font: inherit;
-  font-size: 19px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font: 600 27px/1.2 var(--u-display);
+  letter-spacing: -0.02em;
 }
 .u2-sc__titleinput:hover,
 .u2-sc__titleinput:focus {
   border-color: var(--u-edge);
-  background: var(--u-chip);
+  background: var(--u-surface2);
 }
-.u2-sc__status {
+.u2-sc__props {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+/* Property pills, as in the idea view. */
+.u2-sc__prop {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--u-line);
+  border-radius: 999px;
+  background: var(--u-surface2);
+  color: var(--u-text2);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.u2-sc__prop.u2-mono {
   font-size: 12px;
+}
+.u2-sc__prop strong {
+  color: var(--u-text);
+}
+.u2-sc__status {
+  padding-inline-end: 4px;
+}
+.u2-sc__status select.u2-ctl {
+  width: auto;
+  min-height: 24px;
+  padding-block: 0;
+  border: 0;
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--u-text);
+  font-size: 12.5px;
 }
 
 /* The ring */
@@ -268,7 +351,7 @@
 }
 .u2-ring__track {
   fill: none;
-  stroke: var(--u-edge);
+  stroke: var(--u-surface3);
   stroke-width: 10;
 }
 .u2-ring__arc {
@@ -278,10 +361,16 @@
   stroke-linecap: round;
   transition: stroke-dasharray 0.3s ease;
 }
+.u2-ring__stop-hi {
+  stop-color: color-mix(in srgb, var(--u-b) 50%, var(--u-text));
+}
+.u2-ring__stop {
+  stop-color: var(--u-b);
+}
 .u2-ring__dot {
   fill: var(--u-b);
-  stroke: var(--u-bg);
-  stroke-width: 1.5;
+  stroke: var(--u-glass);
+  stroke-width: 2;
 }
 .u2-ring__center {
   position: absolute;
@@ -292,7 +381,7 @@
   justify-content: center;
 }
 .u2-ring__num {
-  font-size: 34px;
+  font-size: 36px;
   font-weight: 600;
   line-height: 1;
   color: var(--u-b);
@@ -309,8 +398,9 @@
   min-width: 220px;
 }
 .u2-ring__lbl {
-  font-size: 12px;
-  font-weight: 600;
+  font: 500 11px var(--u-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--u-muted);
 }
 .u2-ring__bands {
@@ -322,9 +412,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 3px 8px;
-  border: 1px solid transparent;
-  border-radius: var(--u-radius);
+  padding: 4px 10px;
+  border-radius: 8px;
   font-size: 13px;
   color: var(--u-text2);
 }
@@ -336,8 +425,7 @@
   font-size: 11px;
 }
 .u2-ring__bands li.is-current {
-  border-color: var(--u-b);
-  background: color-mix(in srgb, var(--u-b) 10%, transparent);
+  background: color-mix(in srgb, var(--u-b) 12%, transparent);
   color: var(--u-text);
 }
 .u2-ring__bands li.is-current b {
@@ -357,20 +445,22 @@
 
 /* Linked idea */
 .u2-sc__idea {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-block-start: 12px;
-  border-block-start: 1px solid var(--u-line);
+  gap: 8px;
+}
+.u2-sc__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--u-muted);
 }
 .u2-sc__idea-title {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
+  font: 600 17px/1.3 var(--u-display);
 }
 .u2-sc__idea-desc {
   margin: 0;
+  max-width: 72ch;
   color: var(--u-text2);
+  line-height: 1.65;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -383,15 +473,10 @@
   font-size: 12px;
   color: var(--u-text2);
 }
-.u2-sc__tags {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
 .u2-sc__brief {
-  min-height: 28px;
+  min-height: 32px;
   padding-block: 2px;
-  font-size: 12px;
+  font-size: 12.5px;
 }
 
 /* Field groups */
@@ -403,7 +488,7 @@
 }
 .u2-sc__group-head h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
 }
 .u2-sc__group-head span {
@@ -477,6 +562,7 @@
 }
 .u2-sc__danger {
   display: flex;
+  justify-content: flex-end;
 }
 .u2-sc__delete {
   color: var(--u-danger);
@@ -515,14 +601,34 @@
     margin-inline-start: 0;
     width: 100%;
   }
+  .u2-sc__block {
+    padding: 18px 16px;
+  }
   .u2-sc__titleinput {
-    min-height: 44px;
+    font-size: 21px;
+  }
+  .u2-sc__tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .u2-sc__status select.u2-ctl {
+    min-height: 40px;
     font-size: 16px;
+  }
+  .u2-sc__prop,
+  .u2-sc__crumb {
+    min-height: 44px;
+  }
+  .u2-sc__crumb {
+    display: inline-flex;
+    align-items: center;
   }
   .u2-sc__input {
     width: 100%;
   }
-  .u2-sc__tab,
+  .u2-sc__tab {
+    height: 44px;
+  }
   .u2-sc__brief {
     min-height: 44px;
   }

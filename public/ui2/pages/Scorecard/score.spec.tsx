@@ -1,5 +1,5 @@
 import React from "react"
-import { render, fireEvent, act } from "@testing-library/react"
+import { render, fireEvent, act, screen } from "@testing-library/react"
 import { Fider, FiderContext, http } from "@fider/services"
 import { ScorecardField, Tenant } from "@fider/models"
 import { bandForScore, computeWeightedScore, isAnswered, isScored, parseChoices, thresholdDots } from "./score"
@@ -144,6 +144,23 @@ describe("ui2 Scorecard list", () => {
     )
     fireEvent.change(container.querySelector(".u2-sc__input") as HTMLInputElement, { target: { value: "grace" } })
     expect(Array.from(container.querySelectorAll("[data-card]")).map((r) => r.getAttribute("data-card"))).toEqual(["2"])
+  })
+
+  test("band chips filter the list, with Not scored for cards without a score", () => {
+    const { container } = render(
+      <FiderContext.Provider value={fiderWith()}>
+        <ScorecardPage scorecards={cards} />
+      </FiderContext.Provider>
+    )
+    const rows = () => Array.from(container.querySelectorAll("[data-card]")).map((r) => r.getAttribute("data-card"))
+    const notScored = screen.getByRole("button", { name: "Not scored", pressed: false })
+    fireEvent.click(notScored)
+    expect(notScored).toHaveAttribute("aria-pressed", "true")
+    expect(rows()).toEqual(["2"])
+    fireEvent.click(container.querySelector(".u2-sc__bandchip.u2-band--strong") as HTMLElement)
+    expect(rows()).toEqual(["1", "2"])
+    fireEvent.click(notScored)
+    expect(rows()).toEqual(["1"])
   })
 })
 
