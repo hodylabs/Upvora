@@ -19,7 +19,7 @@ export const isTypingTarget = (target: EventTarget | null): boolean => {
 }
 
 // Board keys: J/K move the focused row, V votes on it, Enter opens it, M opens merge
-// (staff), Esc closes the peek or menus. Keys never fire while typing in a field.
+// (staff), Esc clears the selection or closes menus. Keys never fire while typing in a field.
 export const useRowKeys = (h: RowKeyHandlers) => {
   const ref = useRef(h)
   ref.current = h

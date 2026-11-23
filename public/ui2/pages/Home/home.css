@@ -1,4 +1,4 @@
-/* The board: welcome, Vora bar, status tabs and filters, idea table, quick peek,
+/* The board: welcome, Vora bar, status tabs and filters, idea table,
    and the sidebar extras (Vora briefing, the site's call to action). */
 .u2-home {
   display: flex;
@@ -265,15 +265,12 @@
   accent-color: var(--u-accent);
 }
 
-/* Board: the list and the quick peek side by side on wide screens */
+/* Board: the idea list */
 .u2-board {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   align-items: start;
-}
-.u2-board.has-peek {
-  grid-template-columns: minmax(0, 1fr) 320px;
 }
 .u2-board__list {
   min-width: 0;
@@ -356,16 +353,6 @@
 }
 .u2-brief__list a {
   color: var(--u-text);
-}
-
-/* Medium screens: no room for the peek */
-@media (max-width: 1100px) {
-  .u2-board.has-peek {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .u2-board .u2-peek {
-    display: none;
-  }
 }
 
 /* Phone: one column, the Vora bar fixed at the bottom with 44 px targets */

@@ -1,5 +1,5 @@
 /* Shared board components: vote button, status pill, chips, avatar stack, idea table,
-   quick peek. Logical properties only, so right-to-left locales mirror. */
+   Logical properties only, so right-to-left locales mirror. */
 
 .u2-sr {
   position: absolute;
@@ -255,67 +255,6 @@ a.u2-chip--product:hover {
   text-decoration: underline;
 }
 
-/* Quick peek */
-.u2-peek {
-  position: sticky;
-  inset-block-start: 72px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 16px;
-  animation: u2-slidein 0.3s ease;
-}
-.u2-peek__top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--u-muted);
-}
-.u2-peek__close {
-  margin-inline-start: auto;
-  width: 28px;
-  height: 28px;
-}
-.u2-peek__title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-.u2-peek__meta {
-  font-size: 12px;
-}
-.u2-peek__lbl {
-  margin: 4px 0 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--u-muted);
-}
-.u2-peek__lbl--vora {
-  color: var(--u-accent);
-}
-.u2-peek__vora {
-  padding: 10px 12px;
-  border-radius: var(--u-radius);
-  background: var(--u-accent-soft);
-}
-.u2-peek p {
-  margin: 0;
-  color: var(--u-text2);
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-.u2-peek__acts {
-  display: flex;
-  gap: 8px;
-  margin-block-start: 6px;
-}
-.u2-peek__acts .u2-btn {
-  flex: 1;
-  justify-content: center;
-}
-
 /* Phone: one column; compact rows with 44 px vote targets. */
 @media (max-width: 840px) {
   .u2-table__head {
@@ -356,14 +295,6 @@ a.u2-chip--product:hover {
     width: 64px;
     height: 44px;
   }
-  .u2-peek {
-    display: none;
-  }
-}
-
-/* With the quick peek open the table is narrower: drop the tag chips. */
-.u2-board.has-peek .u2-chip--tag {
-  display: none;
 }
 
 /* Product filter chips (roadmap, scorecard) */

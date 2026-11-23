@@ -1,6 +1,6 @@
 import "./home.css"
 
-import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react"
+import React, { Suspense, lazy, useEffect, useRef, useState } from "react"
 import { Trans } from "@lingui/react/macro"
 import { i18n } from "@lingui/core"
 import { Post, Tag, Product, PostStatus } from "@fider/models"
@@ -8,10 +8,9 @@ import { actions, cache, markdown } from "@fider/services"
 import { useFider, usePostOverlay } from "@fider/hooks"
 import { SidebarSlot } from "../../shell/Shell"
 import { IdeaTable } from "../../components/IdeaTable"
-import { PeekPanel, PeekDetails } from "../../components/PeekPanel"
 import { useRowKeys } from "../../components/useRowKeys"
 import { statusInfo } from "../../lib/status"
-import { BoardInsights, Voter, duplicateOf, fetchInsights } from "../../lib/insights"
+import { BoardInsights, duplicateOf, fetchInsights } from "../../lib/insights"
 import { postHref, replaceQuery } from "../../lib/nav"
 import { requestShare } from "../../lib/share"
 import { toast } from "../../components/feedback/toast"
@@ -66,9 +65,7 @@ const HomePage = (props: HomePageProps) => {
   const [searchFailed, setSearchFailed] = useState(false)
   const [newNumbers, setNewNumbers] = useState<Set<number>>(new Set())
   const [insights, setInsights] = useState<BoardInsights | null>(null)
-  const [voters, setVoters] = useState<{ [num: number]: Voter[] }>({})
   const [focused, setFocused] = useState(-1)
-  const [peekClosed, setPeekClosed] = useState(false)
   const [nudgeDismissed, setNudgeDismissed] = useState(() => cache.local.has(NUDGE_KEY))
   const seq = useRef(0)
   const searchTimer = useRef<number>()
@@ -87,7 +84,7 @@ const HomePage = (props: HomePageProps) => {
     if (m[3]) history.replaceState(history.state, "", `/posts/${m[1]}/${m[2]}${m[3]}`)
     return true
   }
-  // Idea links on the board (titles, Vora notes, the peek's "Open idea") open the overlay;
+  // Idea links on the board (titles, Vora notes) open the overlay;
   // modified clicks (new tab, new window) keep the browser's default.
   const onBoardClick = (e: React.MouseEvent) => {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
@@ -149,8 +146,6 @@ const HomePage = (props: HomePageProps) => {
   const onVoteChange = (num: number, voted: boolean, count: number) =>
     setPosts((list) => list.map((p) => (p.number === num ? { ...p, hasVoted: voted, votesCount: count } : p)))
 
-  const onDetails = (num: number, d: PeekDetails) => d.voters.length > 0 && setVoters((v) => ({ ...v, [num]: d.voters }))
-
   // ShareIdea (components/share) claims the event and sends signed-out people to sign in.
   // Nobody claims it only when the share host failed to load (read-only hides the buttons).
   const share = (title: string) => {
@@ -159,21 +154,17 @@ const HomePage = (props: HomePageProps) => {
     }
   }
 
-  const focusRow = (i: number) => {
+  // A click or tap anywhere on a row opens the idea (Hody 2026-11-23: no side preview).
+  const openRow = (i: number) => {
     setFocused(i)
-    setPeekClosed(false)
-  }
-  // Phones have no quick peek (it is hidden at 840 px and below), so a tap opens the idea.
-  const tapRow = (i: number) => {
-    if (window.matchMedia?.("(max-width: 840px)").matches) openIdea(postHref(posts[i]))
-    else focusRow(i)
+    openIdea(postHref(posts[i]))
   }
 
   useRowKeys({
     // The overlay owns the keyboard while it is open.
     count: selectedPostId === null ? posts.length : 0,
     focused,
-    setFocused: focusRow,
+    setFocused,
     onVote: (i) => document.querySelector<HTMLButtonElement>(`.u2-tr[data-index="${i}"] .u2-vote`)?.click(),
     onOpen: (i) => openIdea(postHref(posts[i])),
     // Merge into Vora's likely original when it has one, else the merge dialog opens empty.
@@ -183,14 +174,8 @@ const HomePage = (props: HomePageProps) => {
           openIdea(postHref(posts[i], of ? `#merge=${of}` : "#merge"))
         }
       : undefined,
-    onEscape: () => setPeekClosed(true),
+    onEscape: () => setFocused(-1),
   })
-
-  const peekPost = useMemo(() => {
-    if (peekClosed) return undefined
-    // The peek follows the selected row only (click or J/K), never the mouse.
-    return focused >= 0 && focused < posts.length ? posts[focused] : undefined
-  }, [peekClosed, focused, posts])
 
   const lonely = isLonely(props.countPerStatus)
   const neverVoted = !(props.posts || []).some((p) => p.hasVoted)
@@ -270,7 +255,7 @@ What can we do better? This is the place for you to vote, discuss and share idea
             tags={props.tags || []}
             scoped={!!props.product}
           />
-          <div className={`u2-board${peekPost ? " has-peek" : ""}`} onClick={onBoardClick}>
+          <div className="u2-board" onClick={onBoardClick}>
             <div className="u2-board__list u2-panel" aria-busy={loading}>
               {showNudge && (
                 <div className="u2-nudge">
@@ -297,12 +282,11 @@ What can we do better? This is the place for you to vote, discuss and share idea
                   posts={posts}
                   staff={staff}
                   focused={focused}
-                  onFocus={tapRow}
+                  onFocus={openRow}
                   statusOf={statusOf}
                   statusLabel={statusLabel}
                   onVoteChange={onVoteChange}
                   insights={insights}
-                  voters={voters}
                   tags={props.tags}
                   showProduct={!props.product}
                   showPending={tenant.isModerationEnabled}
@@ -363,18 +347,6 @@ What can we do better? This is the place for you to vote, discuss and share idea
                 </span>
               </div>
             </div>
-            {peekPost && (
-              <PeekPanel
-                post={peekPost}
-                status={statusOf(peekPost)}
-                staff={staff}
-                signedIn={signedIn}
-                locale={fider.currentLocale}
-                onVoteChange={onVoteChange}
-                onDetails={onDetails}
-                onClose={() => setPeekClosed(true)}
-              />
-            )}
           </div>
         </>
       )}
