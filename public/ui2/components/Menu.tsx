@@ -1,3 +1,5 @@
+// The shell loads Menu on every page, so form.css (and its site-wide select look) is always there.
+import "./form/form.css"
 import React, { useEffect, useRef, useState } from "react"
 
 export interface MenuItem {

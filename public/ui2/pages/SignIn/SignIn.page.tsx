@@ -3,9 +3,9 @@ import React from "react"
 import { Trans } from "@lingui/react/macro"
 import { useFider } from "@fider/hooks"
 import { TenantStatus } from "@fider/models"
-import { uploadedImageURL } from "@fider/services"
 import { SignInControl } from "../../components/account/SignInControl"
 import { LegalNotice } from "../../components/account/Legal"
+import { AuthBrand } from "../../components/account/AuthBrand"
 
 // Which message goes above the options (same rule as classic's SignIn.page): a public,
 // active site only reaches this page with ?redirect= (e.g. connecting an MCP client).
@@ -24,7 +24,6 @@ const SignInPage = () => {
   const fider = useFider()
   const tenant = fider.session.tenant
   const target = redirectTarget(fider.settings.baseURL, window.location.search)
-  const logo = uploadedImageURL(tenant.logoBlobKey, 100)
 
   const intro = {
     locked: (
@@ -62,7 +61,7 @@ const SignInPage = () => {
 
   return (
     <section className="u2-panel u2-auth" aria-label={tenant.name}>
-      {logo && <img className="u2-auth__logo" src={logo} alt="" width={56} height={56} />}
+      <AuthBrand link />
       {intro}
       <SignInControl useEmail={true} redirectTo={target} onCodeVerified={() => (location.href = target)} />
       <LegalNotice />

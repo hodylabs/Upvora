@@ -2,11 +2,11 @@ import "../../components/account/account.css"
 import React, { useState } from "react"
 import { i18n } from "@lingui/core"
 import { Trans } from "@lingui/react/macro"
-import { actions, Failure, uploadedImageURL } from "@fider/services"
+import { actions, Failure } from "@fider/services"
 import { sameOriginPath } from "@fider/services/url"
-import { useFider } from "@fider/hooks"
 import { EmailVerificationKind } from "@fider/models"
 import { Button, Form, TextInput } from "../../components/form"
+import { AuthBrand } from "../../components/account/AuthBrand"
 
 interface CompleteSignInProfilePageProps {
   kind: EmailVerificationKind
@@ -15,11 +15,9 @@ interface CompleteSignInProfilePageProps {
 }
 
 const CompleteSignInProfilePage = (props: CompleteSignInProfilePageProps) => {
-  const fider = useFider()
   const [name, setName] = useState("")
   const [error, setError] = useState<Failure | undefined>()
   const [busy, setBusy] = useState(false)
-  const logo = uploadedImageURL(fider.session.tenant.logoBlobKey, 100)
 
   const submit = async () => {
     setBusy(true)
@@ -35,11 +33,7 @@ const CompleteSignInProfilePage = (props: CompleteSignInProfilePageProps) => {
 
   return (
     <section className="u2-panel u2-auth" aria-labelledby="u2-cp-title">
-      {logo && (
-        <a href="/">
-          <img className="u2-auth__logo" src={logo} alt={fider.session.tenant.name} width={56} height={56} />
-        </a>
-      )}
+      <AuthBrand link />
       <h1 id="u2-cp-title" className="u2-auth__title">
         <Trans id="modal.completeprofile.header">Complete your profile</Trans>
       </h1>

@@ -31,4 +31,17 @@ describe("ui2 <ImageUploader />", () => {
     expect(onChange).toHaveBeenCalledTimes(1)
     expect(onChange.mock.calls[0][0].upload.fileName).toBe("second.png")
   })
+
+  test("a dropped image is used; a dropped non-image is ignored", async () => {
+    const onChange = jest.fn()
+    const { container } = render(<ImageUploader onChange={onChange} />)
+    const zone = container.querySelector(".u2-upload") as HTMLElement
+    fireEvent.drop(zone, { dataTransfer: { files: [new File(["x"], "notes.txt", { type: "text/plain" })] } })
+    await settle()
+    expect(onChange).not.toHaveBeenCalled()
+    fireEvent.drop(zone, { dataTransfer: { files: [new File(["png-bytes"], "drop.png", { type: "image/png" })] } })
+    await settle()
+    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange.mock.calls[0][0].upload.fileName).toBe("drop.png")
+  })
 })

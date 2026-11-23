@@ -1,4 +1,5 @@
-/* Dialogs, toasts and avatars. */
+/* Dialogs, toasts and avatars: the sheet language from the idea view (hairline edge,
+   deep shadow, blurred scrim). */
 
 .u2-dlg-back {
   position: fixed;
@@ -7,39 +8,54 @@
   display: grid;
   place-items: center;
   padding: 16px;
-  background: color-mix(in srgb, var(--u-bg) 55%, transparent);
-  backdrop-filter: blur(3px);
+  background: color-mix(in srgb, var(--u-bg) 62%, transparent);
+  backdrop-filter: blur(6px);
+  animation: u2-fade 0.18s ease;
+}
+body.u2[data-theme="dark"] .u2-dlg-back {
+  background: rgb(2 2 6 / 0.62);
+}
+@keyframes u2-fade {
+  from {
+    opacity: 0;
+  }
 }
 .u2-dlg {
+  display: flex;
+  flex-direction: column;
   width: min(480px, 100%);
   max-height: calc(100vh - 32px);
   overflow-y: auto;
   background: var(--u-pop);
   color: var(--u-text);
   border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius-lg);
-  box-shadow: var(--u-shadow);
-  animation: u2-dlg-in 0.14s ease-out;
+  border-radius: 16px;
+  box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.55);
+  animation: u2-dlg-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+body.u2[data-theme="dark"] .u2-dlg {
+  box-shadow:
+    0 30px 80px -20px rgb(0 0 0 / 0.85),
+    0 0 0 1px rgb(255 255 255 / 0.02);
 }
 .u2-dlg--sm {
-  width: min(360px, 100%);
+  width: min(380px, 100%);
 }
 .u2-dlg--lg {
   width: min(760px, 100%);
 }
 /* A working area (e.g. "Share an idea"): fixed height, the body scrolls. */
 .u2-dlg--full {
-  display: flex;
-  flex-direction: column;
   width: min(960px, 100%);
   height: min(780px, calc(100vh - 32px));
   overflow: hidden;
+  border-radius: 18px;
 }
 .u2-dlg--full .u2-dlg__body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-block-end: 12px;
+  padding-block-end: 14px;
 }
 .u2-dlg:focus {
   outline: none;
@@ -47,47 +63,59 @@
 @keyframes u2-dlg-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(10px) scale(0.99);
   }
 }
 .u2-dlg__head {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 16px 0;
+  padding: 16px 14px 0 22px;
 }
 .u2-dlg__title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font: 600 18px/1.3 var(--u-display);
+  letter-spacing: -0.02em;
 }
 .u2-dlg__close {
   margin-inline-start: auto;
+  color: var(--u-muted);
 }
 .u2-dlg__body {
-  padding: 10px 16px 4px;
+  padding: 10px 22px 18px;
   color: var(--u-text2);
 }
 .u2-dlg__body p {
   margin: 0 0 10px;
 }
+.u2-dlg__body > p:last-child {
+  margin-block-end: 0;
+}
+/* Sticky: the actions stay in reach while a long body scrolls. */
 .u2-dlg__foot {
+  position: sticky;
+  inset-block-end: 0;
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 10px 16px 14px;
+  margin-block-start: auto;
+  padding: 12px 18px;
+  border-block-start: 1px solid var(--u-line);
+  background: color-mix(in srgb, var(--u-pop) 92%, transparent);
+  backdrop-filter: blur(8px);
 }
 
-/* Toasts */
+/* Toasts: a dark pill with a status icon, whatever the theme. */
 .u2-toasts {
   position: fixed;
   z-index: 60;
-  inset-block-end: 16px;
-  inset-inline-end: 16px;
+  inset-block-end: 20px;
+  inset-inline-end: 20px;
   display: grid;
+  justify-items: end;
   gap: 8px;
-  width: min(360px, calc(100vw - 32px));
+  width: min(380px, calc(100vw - 32px));
   margin: 0;
   padding: 0;
   list-style: none;
@@ -95,27 +123,48 @@
 }
 .u2-toast {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
-  padding: 10px 10px 10px 12px;
-  background: var(--u-pop);
-  color: var(--u-text);
-  border: 1px solid var(--u-edge);
-  border-inline-start: 3px solid var(--u-s-shipped);
-  border-radius: var(--u-radius);
-  box-shadow: var(--u-shadow);
-  animation: u2-dlg-in 0.16s ease-out;
+  max-width: 100%;
+  padding: 6px 6px 6px 14px;
+  background: #101017;
+  color: #eef0f6;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 999px;
+  box-shadow: 0 18px 40px -14px rgb(0 0 0 / 0.6);
+  animation: u2-dlg-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.u2-toast__icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: #4fd69c;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .u2-toast--error {
-  border-inline-start-color: var(--u-danger);
+  border-color: rgb(255 107 107 / 0.3);
+}
+.u2-toast--error .u2-toast__icon {
+  stroke: #ff6b6b;
 }
 .u2-toast__msg {
   flex: 1;
-  padding-block-start: 5px;
+  min-width: 0;
+  padding-block: 4px;
 }
 .u2-toast .u2-iconbtn {
+  flex: none;
   width: 30px;
   height: 30px;
+  border-radius: 999px;
+  color: #9a9ab2;
+}
+.u2-toast .u2-iconbtn:hover {
+  background: rgb(255 255 255 / 0.08);
+  color: #eef0f6;
 }
 
 /* Avatar */
@@ -125,10 +174,12 @@
   flex: none;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--u-accent-soft);
-  color: var(--u-accent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--u-accent) 24%, var(--u-surface3)), var(--u-surface2));
+  color: var(--u-text);
+  font-family: var(--u-display);
   font-weight: 600;
   object-fit: cover;
+  box-shadow: inset 0 0 0 1px var(--u-edge);
 }
 
 @media (max-width: 700px) {
@@ -136,6 +187,10 @@
     inset-inline: 16px;
     inset-block-end: 72px;
     width: auto;
+    justify-items: stretch;
+  }
+  .u2-toast {
+    border-radius: 16px;
   }
   .u2-toast .u2-iconbtn {
     width: 44px;
@@ -145,9 +200,8 @@
   .u2-dlg-back {
     padding: 0;
   }
-  .u2-dlg {
-    display: flex;
-    flex-direction: column;
+  .u2-dlg,
+  .u2-dlg--full {
     width: 100%;
     height: 100%;
     max-height: none;
@@ -158,6 +212,12 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+  }
+  .u2-dlg__head {
+    padding-inline-start: 16px;
+  }
+  .u2-dlg__body {
+    padding-inline: 16px;
   }
   .u2-dlg__foot .u2-btn,
   .u2-dlg__close {

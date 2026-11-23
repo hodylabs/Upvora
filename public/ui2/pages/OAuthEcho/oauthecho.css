@@ -5,7 +5,7 @@
   overflow: auto;
   border-radius: var(--u-radius);
   border: 1px solid var(--u-line);
-  background: var(--u-chip);
+  background: var(--u-surface2);
   font: 12px/1.5 var(--u-mono);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -34,8 +34,8 @@
   font: 600 12px/1 var(--u-mono);
 }
 .u2-echo__mark--ok {
-  color: var(--u-s-shipped);
-  background: color-mix(in srgb, var(--u-s-shipped) 14%, transparent);
+  color: var(--u-up);
+  background: color-mix(in srgb, var(--u-up) 14%, transparent);
 }
 .u2-echo__mark--warn {
   color: var(--u-warn);
@@ -46,5 +46,5 @@
   background: color-mix(in srgb, var(--u-danger) 14%, transparent);
 }
 .u2-echo__pass {
-  color: var(--u-s-shipped);
+  color: var(--u-up);
 }

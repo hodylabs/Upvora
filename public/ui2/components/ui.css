@@ -353,20 +353,29 @@ a.u2-chip--product:hover {
   align-items: center;
   gap: 6px;
   min-height: 30px;
-  padding: 2px 10px;
-  border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
+  padding: 2px 11px 2px 4px;
+  border: 1px solid color-mix(in srgb, var(--u-accent) 35%, var(--u-edge));
+  border-radius: 999px;
   background: var(--u-accent-soft);
-  color: var(--u-text) !important;
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--u-text2) !important;
+  font: 500 11.5px var(--u-mono);
   text-decoration: none;
+  transition: border-color 0.15s;
 }
 .u2-modbadge:hover {
   border-color: var(--u-accent);
+  color: var(--u-text) !important;
 }
 .u2-modbadge__n {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--u-grad);
+  color: var(--u-on-accent);
   font-weight: 700;
+  line-height: 22px;
+  text-align: center;
 }
 @media (max-width: 840px) {
   .u2-pfilter__chip,

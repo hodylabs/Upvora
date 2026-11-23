@@ -8,7 +8,7 @@ export interface LegalPageProps {
 }
 
 const LegalPage = (props: LegalPageProps) => (
-  <article className="u2-panel u2-section u2-page">
+  <article className="u2-panel u2-legal">
     <Markdown text={props.content} />
   </article>
 )
