@@ -17,6 +17,8 @@ interface VoraBarProps {
   onVoteChange: (number: number, voted: boolean, count: number) => void
   // The board's rows: a suggestion that is also on the board shows the board's vote state.
   boardPosts?: Post[]
+  // Shown next to the Share button (the admins' "Add a message").
+  extra?: React.ReactNode
 }
 
 const SUGGEST_DELAY = 400
@@ -31,8 +33,8 @@ export const similarQuery = (text: string, noise: string[]): string =>
 
 export const modKey = () => (/Mac|iPhone|iPad/.test(window.navigator.platform) ? "⌘K" : "Ctrl K")
 
-// The Vora bar: search the board (the `query` param), live similar ideas while
-// typing, and "Share an idea". Cmd/Ctrl+K focuses it from anywhere on the page.
+// The share side of the welcome card: the input searches the board (the `query` param)
+// and shows similar ideas while typing; Share opens the share flow. Cmd/Ctrl+K focuses it.
 export const VoraBar = (props: VoraBarProps) => {
   const fider = useFider()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -89,48 +91,43 @@ export const VoraBar = (props: VoraBarProps) => {
 
   return (
     <div className="u2-vora" ref={boxRef}>
-      <div className="u2-vora__bar">
-        <svg className="u2-vora__icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 3l1.8 4.6L18 9l-4.2 1.6L12 15l-1.8-4.4L6 9l4.2-1.4z" />
-        </svg>
-        <label htmlFor="u2-vora-input" className="u2-sr">
-          <Trans id="ui2.vora.label">Search ideas, or share a new one</Trans>
-        </label>
-        <input
-          id="u2-vora-input"
-          ref={inputRef}
-          type="search"
-          autoComplete="off"
-          value={props.query}
-          placeholder={placeholder}
-          aria-controls={showList ? "u2-vora-list" : undefined}
-          aria-expanded={showList}
-          onFocus={() => setOpen(true)}
-          onChange={(e) => {
-            props.onQueryChange(e.target.value)
-            setOpen(true)
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              if (showList) setOpen(false)
-              else inputRef.current?.blur()
-            }
-          }}
-        />
-        <kbd className="u2-kbd u2-vora__kbd" aria-hidden="true">
-          {modKey()}
-        </kbd>
+      <h2 className="u2-vora__h">
+        <span className="u2-vora__logo" aria-hidden="true" />
+        {props.shareLabel}
+      </h2>
+      <label htmlFor="u2-vora-input" className="u2-sr">
+        <Trans id="ui2.vora.label">Search ideas, or share a new one</Trans>
+      </label>
+      <input
+        id="u2-vora-input"
+        ref={inputRef}
+        className="u2-vora__input"
+        type="search"
+        autoComplete="off"
+        value={props.query}
+        placeholder={placeholder}
+        aria-controls={showList ? "u2-vora-list" : undefined}
+        aria-expanded={showList}
+        onFocus={() => setOpen(true)}
+        onChange={(e) => {
+          props.onQueryChange(e.target.value)
+          setOpen(true)
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            if (showList) setOpen(false)
+            else inputRef.current?.blur()
+          }
+        }}
+      />
+      <div className="u2-vora__foot">
+        <small className="u2-vora__hint">
+          <Trans id="ui2.vora.hint">Similar ideas show up as you type</Trans>
+        </small>
+        {props.extra}
         {props.canShare && (
-          <button
-            type="button"
-            className="u2-btn u2-btn--primary u2-vora__share"
-            aria-label={props.shareLabel}
-            onClick={() => props.onShare(props.query.trim())}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            <span className="u2-vora__sharelabel">{props.shareLabel}</span>
+          <button type="button" className="u2-btn u2-btn--primary u2-vora__share" onClick={() => props.onShare(props.query.trim())}>
+            <Trans id="ui2.vora.go">Share</Trans>
           </button>
         )}
       </div>
@@ -153,7 +150,7 @@ export const VoraBar = (props: VoraBarProps) => {
               ))}
           </ul>
           {props.canShare && (
-            <div className="u2-vora__foot">
+            <div className="u2-vora__popfoot">
               <span>
                 <Trans id="ui2.vora.notquite">Not quite? Vora can turn it into a new idea in a few questions.</Trans>
               </span>

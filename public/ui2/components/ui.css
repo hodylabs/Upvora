@@ -178,39 +178,29 @@ a.u2-chip--product:hover {
   object-fit: cover;
 }
 
-/* Idea table */
+/* Idea table: title and number, then meta (gain, status, product, faces), a heat bar
+   with the comment count, and the vote on the right. No header row. */
 .u2-table {
-  --u-cols: minmax(0, 1fr) 130px 70px;
-  overflow: hidden;
-}
-.u2-table--staff {
-  --u-cols: 40px minmax(0, 1fr) 70px 120px 70px 40px 70px;
-}
-.u2-table__head,
-.u2-tr {
-  display: grid;
-  grid-template-columns: var(--u-cols);
-  gap: 10px;
-  align-items: center;
-  padding-inline: 14px;
-}
-.u2-table__head {
-  height: 40px;
-  background: var(--u-surface2);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--u-muted);
+  --u-cols: minmax(200px, 1fr) minmax(0, max-content) 130px 56px;
 }
 .u2-tr {
   position: relative;
+  display: grid;
+  grid-template-columns: var(--u-cols);
+  gap: 14px;
+  align-items: center;
   min-height: var(--u-row);
+  padding-inline: 18px 8px;
   border-block-start: 1px solid var(--u-line);
-  transition: background 0.15s;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.u2-tr:first-child {
+  border-block-start: 0;
 }
 .u2-tr:hover {
-  background: color-mix(in srgb, var(--u-text) 4%, transparent);
+  background: var(--u-surface2);
 }
-
 .u2-tr.is-focused {
   outline: 2px solid var(--u-accent);
   outline-offset: -2px;
@@ -230,21 +220,78 @@ a.u2-chip--product:hover {
     transform: translateY(-6px);
   }
 }
-.u2-tr__num,
-.u2-tr__week,
-.u2-tr__cmts {
-  font-size: 12px;
+.u2-tr__idea {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  padding-block: 10px;
+}
+.u2-tr__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--u-text) !important;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.u2-tr__title:hover {
+  text-decoration: underline;
+}
+.u2-tr__num {
+  flex: none;
+  font-size: 11.5px;
   color: var(--u-muted);
 }
-.u2-tr__week.is-up {
-  color: var(--u-s-shipped);
-  font-weight: 600;
+/* Meta gives way first: it clips at the end, the title keeps its room. */
+.u2-tr__meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--u-muted);
+  font-size: 12.5px;
+}
+.u2-tr__week {
+  flex: none;
+  font-size: 12px;
+  color: var(--u-up);
+}
+.u2-tr__meta .u2-faces img {
+  box-shadow: 0 0 0 2px var(--u-glass);
+}
+.u2-tr__heat {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  inline-size: 130px;
+}
+.u2-heat {
+  flex: 1;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--u-surface3);
+  overflow: hidden;
+}
+.u2-heat i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--u-grad);
 }
 .u2-tr__cmts {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
+  inline-size: 38px;
+  font-size: 11.5px;
+  color: var(--u-muted);
 }
 .u2-tr__cmts svg {
   width: 12px;
@@ -253,75 +300,46 @@ a.u2-chip--product:hover {
   stroke: currentColor;
   stroke-width: 2;
 }
-.u2-tr__idea {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px 12px;
-  min-width: 0;
-  padding-block: 12px;
-  overflow: hidden;
-}
-/* The title wins: it keeps its width and the chips after it give way and clip. */
-.u2-tr__idea > :not(.u2-tr__title) {
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: hidden;
-}
-.u2-tr__title {
-  flex: 0 0 100%;
-  max-width: 100%;
-  font-size: 15px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--u-text) !important;
-  font-weight: 500;
-  text-decoration: none;
-}
-.u2-tr__title:hover {
-  text-decoration: underline;
+.u2-tr__vote {
+  justify-self: end;
 }
 
-/* Phone: one column; compact rows with 44 px vote targets. */
+/* Phone: title, then meta below it, the vote on the right with a 44 px target. */
 @media (max-width: 840px) {
-  .u2-table__head {
-    display: none;
-  }
-  .u2-table,
-  .u2-table--staff {
+  .u2-table {
     --u-cols: minmax(0, 1fr) auto;
   }
-  /* Ledger on a phone: title, then product and status on one line, the vote at the end. */
   .u2-tr {
-    grid-template-areas: "idea vote" "status vote";
-    row-gap: 6px;
-    padding-block: 14px;
-    cursor: pointer;
-  }
-  .u2-tr__vote {
-    grid-area: vote;
+    grid-template-areas: "idea vote" "meta vote";
+    row-gap: 4px;
+    padding-block: 12px;
+    padding-inline: 14px 6px;
   }
   .u2-tr__idea {
     grid-area: idea;
-    flex-wrap: wrap;
     padding-block: 0;
   }
   .u2-tr__title {
     white-space: normal;
   }
-  .u2-tr__status {
-    grid-area: status;
+  .u2-tr__meta {
+    grid-area: meta;
+    flex-wrap: wrap;
+    row-gap: 4px;
   }
-  .u2-tr__num,
-  .u2-tr__week,
-  .u2-tr__faces,
-  .u2-tr__cmts {
+  .u2-tr__vote {
+    grid-area: vote;
+  }
+  .u2-tr__heat,
+  .u2-tr__meta .u2-faces {
     display: none;
   }
   .u2-vote {
-    width: 64px;
-    height: 44px;
+    min-height: 44px;
+  }
+  .u2-tr .u2-vote {
+    width: 48px;
+    height: 46px;
   }
 }
 

@@ -4,7 +4,8 @@ import { i18n } from "@lingui/core"
 import { Tag, statusListFor } from "@fider/models"
 import { useFider } from "@fider/hooks"
 import { statusInfo } from "../../lib/status"
-import { BoardFilter, activeFilterCount } from "./filter"
+import { Menu } from "../../components/Menu"
+import { BoardFilter } from "./filter"
 
 interface BoardControlsProps {
   filter: BoardFilter
@@ -15,39 +16,39 @@ interface BoardControlsProps {
   scoped: boolean // a product board: no product filter
 }
 
+// The first three show as a segmented control, the rest go in a menu.
 const SORTS = [
   { value: "trending", id: "home.postfilter.option.trending", message: "Trending" },
   { value: "most-wanted", id: "home.postfilter.option.mostwanted", message: "Most Wanted" },
-  { value: "most-discussed", id: "home.postfilter.option.mostdiscussed", message: "Most Discussed" },
   { value: "recent", id: "home.postfilter.option.recent", message: "Recent" },
+  { value: "most-discussed", id: "home.postfilter.option.mostdiscussed", message: "Most Discussed" },
 ]
+const SHOWN_SORTS = 3
 
 const toggle = <T,>(list: T[], v: T): T[] => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v])
 
-// Status tabs with counts, the sort, and the filter menu (my votes, my posts,
-// statuses incl. staff-only pending and private, products, untagged, tags).
-export const BoardControls = (props: BoardControlsProps) => {
-  const fider = useFider()
-  const { filter } = props
-  const tenant = fider.session.tenant
-  const signedIn = fider.session.isAuthenticated
-  const staff = signedIn && fider.session.user.isCollaborator
-  const statuses = statusListFor(tenant).filter((s) => s.filterable)
-  const total = Object.entries(props.countPerStatus)
-    .filter(([slug]) => slug !== "deleted")
-    .reduce((a, [, n]) => a + n, 0)
+interface ChipMenuProps {
+  label: string
+  // Names of what is picked; the chip shows one name, or the count for more.
+  picked: string[]
+  children: React.ReactNode
+}
 
+// An add-a-filter chip: dashed when empty, solid with the pick when set; opens a checklist.
+const ChipMenu = (props: ChipMenuProps) => {
   const [open, setOpen] = useState(false)
-  const [find, setFind] = useState("")
-  const menuRef = useRef<HTMLDivElement>(null)
+  const wrap = useRef<HTMLDivElement>(null)
+  const button = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false)
+      if (wrap.current && !wrap.current.contains(e.target as Node)) setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false)
+      if (e.key !== "Escape") return
+      setOpen(false)
+      button.current?.focus()
     }
     document.addEventListener("mousedown", onDoc)
     document.addEventListener("keydown", onKey)
@@ -57,140 +58,162 @@ export const BoardControls = (props: BoardControlsProps) => {
     }
   }, [open])
 
-  const labelOf = (slug: string) => statusInfo(tenant, slug).label
-  const onlyStatus = filter.statuses.length === 1 ? filter.statuses[0] : null
-  const matches = (label: string) => label.toLowerCase().includes(find.toLowerCase())
+  const n = props.picked.length
+  return (
+    <div className="u2-menu" ref={wrap}>
+      <button ref={button} type="button" className={`u2-fchip${n ? " is-set" : ""}`} aria-expanded={open} onClick={() => setOpen(!open)}>
+        {n === 0 ? `+ ${props.label}` : n === 1 ? `${props.label}: ${props.picked[0]}` : props.label}
+        {n > 1 && <span className="u2-count">{n}</span>}
+      </button>
+      {open && <div className="u2-filters u2-panel">{props.children}</div>}
+    </div>
+  )
+}
 
-  const check = (key: string, label: string, checked: boolean, onToggle: () => void, count?: number) =>
-    matches(label) && (
-      <label key={key} className="u2-check">
-        <input type="checkbox" checked={checked} onChange={onToggle} />
-        <span>{label}</span>
-        {!!count && <span className="u2-muted u2-mono">{count}</span>}
-      </label>
-    )
+// The controls row: the view's name, add-a-filter chips, List / By stage, and the sort.
+export const BoardControls = (props: BoardControlsProps) => {
+  const fider = useFider()
+  const { filter } = props
+  const tenant = fider.session.tenant
+  const signedIn = fider.session.isAuthenticated
+  const staff = signedIn && fider.session.user.isCollaborator
+  const statuses = statusListFor(tenant).filter((s) => s.filterable)
+  const stage = filter.layout === "stage"
+
+  const labelOf = (slug: string) => statusInfo(tenant, slug).label
+  const check = (key: string, label: string, checked: boolean, onToggle: () => void, count?: number) => (
+    <label key={key} className="u2-check">
+      <input type="checkbox" checked={checked} onChange={onToggle} />
+      <span>{label}</span>
+      {!!count && <span className="u2-muted u2-mono">{count}</span>}
+    </label>
+  )
 
   const products = props.scoped ? [] : tenant.products || []
-  const sortKnown = SORTS.some((s) => s.value === (filter.view || "trending"))
-  const count = activeFilterCount(filter)
+  const sort = filter.view || "trending"
+  const extra = SORTS.slice(SHOWN_SORTS)
+  const extraOn = !SORTS.slice(0, SHOWN_SORTS).some((s) => s.value === sort)
+  const sortName = (v: string) => {
+    const s = SORTS.find((x) => x.value === v)
+    return s ? i18n._({ id: s.id, message: s.message }) : v
+  }
+
+  const pseudo: { [slug: string]: string } = {
+    pending: i18n._({ id: "ui2.filter.pending", message: "Pending" }),
+    private: i18n._({ id: "post.private", message: "Private" }),
+  }
+  const statusPicked = filter.statuses.map((s) => pseudo[s] || labelOf(s))
+  const productPicked = products.filter((p) => filter.products.includes(p.id)).map((p) => p.name)
+  const tagPicked = filter.noTags
+    ? [i18n._({ id: "home.postfilter.option.notags", message: "Untagged" })]
+    : props.tags.filter((t) => filter.tags.includes(t.slug)).map((t) => t.name)
+
+  const title = filter.myVotes ? (
+    <Trans id="ui2.shell.myvotes">My votes</Trans>
+  ) : filter.myPosts ? (
+    <Trans id="ui2.shell.myposts">My ideas</Trans>
+  ) : (
+    <Trans id="ui2.board.allideas">All ideas</Trans>
+  )
 
   return (
     <div className="u2-controls">
-      <div className="u2-tabs" role="group" aria-label={i18n._({ id: "ui2.board.bystatus", message: "Status" })}>
-        <button type="button" className="u2-tab" aria-pressed={filter.statuses.length === 0} onClick={() => props.onChange({ statuses: [] })}>
-          <Trans id="ui2.board.all">All</Trans>
-          <span className="u2-mono u2-tab__n">{total}</span>
-        </button>
-        {statuses.map((s) => (
+      <h2 className="u2-controls__h">{title}</h2>
+      <div className="u2-controls__chips">
+        {!stage && (
+          <ChipMenu label={i18n._({ id: "home.postfilter.label.status", message: "Status" })} picked={statusPicked}>
+            {statuses.map((s) =>
+              check(
+                `s:${s.value}`,
+                labelOf(s.value),
+                filter.statuses.includes(s.value),
+                () => props.onChange({ statuses: toggle(filter.statuses, s.value) }),
+                props.countPerStatus[s.value]
+              )
+            )}
+            {staff &&
+              check("s:pending", pseudo.pending, filter.statuses.includes("pending"), () => props.onChange({ statuses: toggle(filter.statuses, "pending") }))}
+            {staff &&
+              check("s:private", pseudo.private, filter.statuses.includes("private"), () => props.onChange({ statuses: toggle(filter.statuses, "private") }))}
+          </ChipMenu>
+        )}
+        {products.length > 0 && (
+          <ChipMenu label={i18n._({ id: "ui2.filter.product", message: "Product" })} picked={productPicked}>
+            {products.map((p) =>
+              check(
+                `p:${p.id}`,
+                p.name,
+                filter.products.includes(p.id),
+                () => props.onChange({ products: toggle(filter.products, p.id) }),
+                props.countPerProduct?.[String(p.id)]
+              )
+            )}
+          </ChipMenu>
+        )}
+        {props.tags.length > 0 && (
+          <ChipMenu label={i18n._({ id: "ui2.filter.tag", message: "Tag" })} picked={tagPicked}>
+            {/* Untagged and concrete tags are mutually exclusive, as in classic. */}
+            {check("notags", i18n._({ id: "home.postfilter.option.notags", message: "Untagged" }), filter.noTags, () =>
+              props.onChange({ noTags: !filter.noTags, tags: filter.noTags ? filter.tags : [] })
+            )}
+            {props.tags.map((t) =>
+              check(`t:${t.slug}`, t.name, filter.tags.includes(t.slug), () => props.onChange({ tags: toggle(filter.tags, t.slug), noTags: false }))
+            )}
+          </ChipMenu>
+        )}
+        {signedIn && (
           <button
-            key={s.value}
             type="button"
-            className={props.countPerStatus[s.value] ? "u2-tab" : "u2-tab is-empty"}
-            aria-pressed={onlyStatus === s.value}
-            onClick={() => props.onChange({ statuses: onlyStatus === s.value ? [] : [s.value] })}
+            className={`u2-fchip${filter.myVotes ? " is-set" : ""}`}
+            aria-pressed={filter.myVotes}
+            onClick={() => props.onChange({ myVotes: !filter.myVotes })}
           >
-            {labelOf(s.value)}
-            <span className="u2-mono u2-tab__n">{props.countPerStatus[s.value] || 0}</span>
+            <Trans id="ui2.shell.myvotes">My votes</Trans>
           </button>
-        ))}
+        )}
+        {signedIn && (
+          <button
+            type="button"
+            className={`u2-fchip${filter.myPosts ? " is-set" : ""}`}
+            aria-pressed={filter.myPosts}
+            onClick={() => props.onChange({ myPosts: !filter.myPosts })}
+          >
+            <Trans id="ui2.shell.myposts">My ideas</Trans>
+          </button>
+        )}
       </div>
       <div className="u2-controls__end">
-        {!filter.query && (
-          <label className="u2-sort">
-            <span className="u2-muted">
-              <Trans id="ui2.board.sort">Sort</Trans>
-            </span>
-            <select value={filter.view || "trending"} onChange={(e) => props.onChange({ view: e.target.value })}>
-              {SORTS.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {i18n._({ id: s.id, message: s.message })}
-                </option>
-              ))}
-              {!sortKnown && <option value={filter.view}>{filter.view}</option>}
-            </select>
-          </label>
-        )}
-        <div className="u2-menu" ref={menuRef}>
-          <button type="button" className="u2-btn" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen(!open)}>
-            <svg className="u2-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 6h16M7 12h10M10 18h4" />
-            </svg>
-            <Trans id="home.filter.label">Filter</Trans>
-            {count > 0 && <span className="u2-count">{count}</span>}
+        <div className="u2-seg" role="group" aria-label={i18n._({ id: "ui2.board.layout", message: "Layout" })}>
+          <button type="button" aria-pressed={!stage} onClick={() => props.onChange({ layout: "" })}>
+            <Trans id="ui2.board.list">List</Trans>
           </button>
-          {open && (
-            <div className="u2-filters u2-panel">
-              <label className="u2-sr" htmlFor="u2-filter-find">
-                <Trans id="ui2.filter.find">Find a filter</Trans>
-              </label>
-              <input
-                id="u2-filter-find"
-                className="u2-input"
-                type="text"
-                value={find}
-                onChange={(e) => setFind(e.target.value)}
-                placeholder={i18n._({ id: "home.filter.search.label", message: "Search in filters..." })}
-              />
-              {signedIn && (
-                <fieldset>
-                  <legend>{i18n._({ id: "home.postfilter.label.myactivity", message: "My activity" })}</legend>
-                  {check("myvotes", i18n._({ id: "home.postfilter.option.myvotes", message: "My Votes" }), filter.myVotes, () =>
-                    props.onChange({ myVotes: !filter.myVotes })
-                  )}
-                  {check("myposts", i18n._({ id: "home.postfilter.option.myposts", message: "My Posts" }), filter.myPosts, () =>
-                    props.onChange({ myPosts: !filter.myPosts })
-                  )}
-                </fieldset>
-              )}
-              <fieldset>
-                <legend>{i18n._({ id: "home.postfilter.label.status", message: "Status" })}</legend>
-                {statuses.map((s) =>
-                  check(
-                    `s:${s.value}`,
-                    labelOf(s.value),
-                    filter.statuses.includes(s.value),
-                    () => props.onChange({ statuses: toggle(filter.statuses, s.value) }),
-                    props.countPerStatus[s.value]
-                  )
-                )}
-                {staff &&
-                  check("s:pending", i18n._({ id: "ui2.filter.pending", message: "Pending" }), filter.statuses.includes("pending"), () =>
-                    props.onChange({ statuses: toggle(filter.statuses, "pending") })
-                  )}
-                {staff &&
-                  check("s:private", i18n._({ id: "post.private", message: "Private" }), filter.statuses.includes("private"), () =>
-                    props.onChange({ statuses: toggle(filter.statuses, "private") })
-                  )}
-              </fieldset>
-              {products.length > 0 && (
-                <fieldset>
-                  <legend>{i18n._({ id: "home.postfilter.label.products", message: "Products" })}</legend>
-                  {products.map((p) =>
-                    check(
-                      `p:${p.id}`,
-                      p.name,
-                      filter.products.includes(p.id),
-                      () => props.onChange({ products: toggle(filter.products, p.id) }),
-                      props.countPerProduct?.[String(p.id)]
-                    )
-                  )}
-                </fieldset>
-              )}
-              {props.tags.length > 0 && (
-                <fieldset>
-                  <legend>{i18n._({ id: "label.tags", message: "Tags" })}</legend>
-                  {/* Untagged and concrete tags are mutually exclusive, as in classic. */}
-                  {check("notags", i18n._({ id: "home.postfilter.option.notags", message: "Untagged" }), filter.noTags, () =>
-                    props.onChange({ noTags: !filter.noTags, tags: filter.noTags ? filter.tags : [] })
-                  )}
-                  {props.tags.map((t) =>
-                    check(`t:${t.slug}`, t.name, filter.tags.includes(t.slug), () => props.onChange({ tags: toggle(filter.tags, t.slug), noTags: false }))
-                  )}
-                </fieldset>
-              )}
-            </div>
-          )}
+          {/* The groups are the status filter in this view, so status picks are cleared. */}
+          <button type="button" aria-pressed={stage} onClick={() => props.onChange({ layout: "stage", statuses: [] })}>
+            <Trans id="ui2.board.bystage">By stage</Trans>
+          </button>
         </div>
+        {!filter.query && (
+          <div className="u2-seg" role="group" aria-label={i18n._({ id: "ui2.board.sort", message: "Sort" })}>
+            {SORTS.slice(0, SHOWN_SORTS).map((s) => (
+              <button key={s.value} type="button" aria-pressed={sort === s.value} onClick={() => props.onChange({ view: s.value })}>
+                {i18n._({ id: s.id, message: s.message })}
+              </button>
+            ))}
+            <Menu
+              className="u2-menu u2-seg__more"
+              triggerClassName={extraOn ? "is-on" : undefined}
+              trigger={
+                <>
+                  {extraOn ? sortName(sort) : <Trans id="ui2.board.more">More</Trans>}
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </>
+              }
+              items={extra.map((s) => ({ key: s.value, label: sortName(s.value), onSelect: () => props.onChange({ view: s.value }) }))}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
