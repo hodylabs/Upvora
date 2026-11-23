@@ -83,7 +83,7 @@ export const SystemBox = () => {
 
   return (
     <section className="u2-sys" aria-labelledby="u2-sys-h">
-      <h2 id="u2-sys-h" className="u2-admin__eyebrow">
+      <h2 id="u2-sys-h" className="u2-sys__h">
         <Trans id="ui2.admin.system.title">System</Trans>
       </h2>
       <dl className="u2-sys__rows">

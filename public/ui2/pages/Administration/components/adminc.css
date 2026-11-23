@@ -1,8 +1,15 @@
 /* AI agent cards and the scorecard field catalogue */
 .u2-ai-agent + .u2-ai-agent {
-  margin-block-start: 18px;
-  padding-block-start: 4px;
-  border-block-start: 2px solid var(--u-edge);
+  margin: 16px -18px 0;
+  padding: 16px 18px 0;
+  border-block-start: 1px solid var(--u-edge);
+}
+/* One save per agent, at the end of its block: not a sticky page bar. */
+.u2-admin__sectbody .u2-ai-agent .u2-actions {
+  position: static;
+  padding: 12px 0 0;
+  background: none;
+  backdrop-filter: none;
 }
 .u2-sf__order {
   gap: 2px;
@@ -10,4 +17,10 @@
 }
 .u2-sf--inactive > :not(.u2-alist__acts) {
   opacity: 0.6;
+}
+@media (max-width: 700px) {
+  .u2-ai-agent + .u2-ai-agent {
+    margin-inline: -14px;
+    padding-inline: 14px;
+  }
 }

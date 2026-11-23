@@ -181,7 +181,7 @@ const ManageTagsPage = (props: ManageTagsPageProps) => {
   }
 
   return (
-    <AdminLayout name="tags" title={<Trans id="ui2.admin.tags.title">Tags</Trans>} subtitle={<Trans id="ui2.admin.tags.sub">Manage your site tags</Trans>}>
+    <AdminLayout name="tags" title={<Trans id="ui2.admin.tags.title">Tags</Trans>} subtitle={<Trans id="ui2.admin.tags.sub">Manage your site tags</Trans>} wide>
       <AdminSection
         title={<Trans id="ui2.admin.tags.list">All tags</Trans>}
         actions={

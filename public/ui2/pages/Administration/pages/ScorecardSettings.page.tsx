@@ -74,42 +74,44 @@ const ScorecardSettingsPage = (props: ScorecardSettingsPageProps) => {
       subtitle={<Trans id="ui2.admin.scorecard.sub">Feature toggle, scoring stages, and the field catalogue</Trans>}
     >
       <Form error={error} onSubmit={save}>
-        <Field
-          name="isEnabled"
-          label={<Trans id="ui2.admin.scorecard.enable">Enable scorecard</Trans>}
-          hint={
-            <Trans id="ui2.admin.scorecard.enablehint">
-              When enabled, collaborators and administrators see a Scorecard page for reviewing and scoring ideas across the weighted dimensions you define.
-              Visitors never see it.
-            </Trans>
-          }
-          group
-        >
-          <Toggle
-            checked={isEnabled}
-            label={i18n._({ id: "ui2.admin.scorecard.enable", message: "Enable scorecard" })}
-            hideLabel
+        <AdminSection>
+          <Field
+            name="isEnabled"
+            label={<Trans id="ui2.admin.scorecard.enable">Enable scorecard</Trans>}
+            hint={
+              <Trans id="ui2.admin.scorecard.enablehint">
+                When enabled, collaborators and administrators see a Scorecard page for reviewing and scoring ideas across the weighted dimensions you define.
+                Visitors never see it.
+              </Trans>
+            }
+            group
+          >
+            <Toggle
+              checked={isEnabled}
+              label={i18n._({ id: "ui2.admin.scorecard.enable", message: "Enable scorecard" })}
+              hideLabel
+              disabled={!canEdit}
+              onChange={setIsEnabled}
+            />
+          </Field>
+          <Select
+            name="triggerStatusSlug"
+            label={<Trans id="ui2.admin.scorecard.trigger">Auto-create trigger status</Trans>}
+            value={triggerStatusSlug}
             disabled={!canEdit}
-            onChange={setIsEnabled}
+            onChange={setTrigger}
+            options={[
+              { value: "", label: i18n._({ id: "ui2.admin.scorecard.notrigger", message: "No auto-trigger: cards are created manually" }) },
+              ...(tenant.statuses ?? []).filter((s) => s.isActive).map((s) => ({ value: s.slug, label: s.label })),
+            ]}
+            hint={
+              <Trans id="ui2.admin.scorecard.triggerhint">
+                When a post&apos;s status changes to this one, a scorecard is automatically created and linked to it. Change the list of statuses at{" "}
+                <a href="/admin/statuses">Site Settings, Statuses</a>. Select &quot;No auto-trigger&quot; if you&apos;d rather create every scorecard by hand.
+              </Trans>
+            }
           />
-        </Field>
-        <Select
-          name="triggerStatusSlug"
-          label={<Trans id="ui2.admin.scorecard.trigger">Auto-create trigger status</Trans>}
-          value={triggerStatusSlug}
-          disabled={!canEdit}
-          onChange={setTrigger}
-          options={[
-            { value: "", label: i18n._({ id: "ui2.admin.scorecard.notrigger", message: "No auto-trigger: cards are created manually" }) },
-            ...(tenant.statuses ?? []).filter((s) => s.isActive).map((s) => ({ value: s.slug, label: s.label })),
-          ]}
-          hint={
-            <Trans id="ui2.admin.scorecard.triggerhint">
-              When a post&apos;s status changes to this one, a scorecard is automatically created and linked to it. Change the list of statuses at{" "}
-              <a href="/admin/statuses">Site Settings, Statuses</a>. Select &quot;No auto-trigger&quot; if you&apos;d rather create every scorecard by hand.
-            </Trans>
-          }
-        />
+        </AdminSection>
 
         <AdminSection
           title={<Trans id="ui2.admin.scorecard.stages">Stages</Trans>}

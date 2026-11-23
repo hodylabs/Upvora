@@ -4,7 +4,7 @@ import { Trans } from "@lingui/react/macro"
 import { actions, Failure, Fider } from "@fider/services"
 import { Button, Field, Form, TextArea, TextInput } from "../../../components/form"
 import { toast } from "../../../components/feedback"
-import { AdminLayout } from "../AdminLayout"
+import { AdminLayout, AdminSection } from "../AdminLayout"
 
 // Invitations: recipients, subject and message (when the copy may be customized),
 // a sample to yourself, and the send. Same defaults and rules as classic.
@@ -63,70 +63,72 @@ const InvitationsPage = () => {
       subtitle={<Trans id="ui2.admin.invite.sub">Invite people to share their feedback</Trans>}
     >
       <Form error={error} onSubmit={sendInvites}>
-        <TextArea
-          name="recipients"
-          rows={1}
-          label={<Trans id="ui2.admin.invite.to">Send invitations to</Trans>}
-          placeholder="james@example.com; mary@example.com"
-          value={raw}
-          onChange={setRaw}
-          hint={
-            <Trans id="ui2.admin.invite.tohint">
-              Input the list of all email addresses you wish to invite. Separate each address with either <strong>semicolon</strong>, <strong>comma</strong>,{" "}
-              <strong>whitespace</strong> or <strong>line break</strong>. You can send this invite to a maximum of 30 recipients each time.
-            </Trans>
-          }
-        />
-        {canCustomizeCopy() && (
-          <>
-            <TextInput
-              name="subject"
-              label={<Trans id="ui2.admin.invite.subject">Subject</Trans>}
-              value={subject}
-              maxLength={70}
-              onChange={setSubject}
-              hint={<Trans id="ui2.admin.invite.subjecthint">This is the subject that will be used on the invitation email. Keep it short and sweet.</Trans>}
-            />
-            <TextArea
-              name="message"
-              rows={8}
-              label={<Trans id="ui2.admin.invite.message">Message</Trans>}
-              value={message}
-              onChange={setMessage}
-              hint={
-                <Trans id="ui2.admin.invite.messagehint">
-                  This is the content of the invite. Be polite and explain what this invite is for, otherwise there&apos;s a high change people will ignore your
-                  message. You&apos;re allowed to write whatever you want as long as you include the invitation link placeholder named <strong>%invite%</strong>
-                  .
-                </Trans>
-              }
-            />
-          </>
-        )}
-        <Field label={<Trans id="ui2.admin.invite.sample">Sample Invite</Trans>} group>
-          <div>
-            {email ? (
-              <Button onClick={sendSample}>
-                <Trans id="ui2.admin.invite.samplebtn">Send a sample email to {email}</Trans>
+        <AdminSection>
+          <TextArea
+            name="recipients"
+            rows={1}
+            label={<Trans id="ui2.admin.invite.to">Send invitations to</Trans>}
+            placeholder="james@example.com; mary@example.com"
+            value={raw}
+            onChange={setRaw}
+            hint={
+              <Trans id="ui2.admin.invite.tohint">
+                Input the list of all email addresses you wish to invite. Separate each address with either <strong>semicolon</strong>, <strong>comma</strong>,{" "}
+                <strong>whitespace</strong> or <strong>line break</strong>. You can send this invite to a maximum of 30 recipients each time.
+              </Trans>
+            }
+          />
+          {canCustomizeCopy() && (
+            <>
+              <TextInput
+                name="subject"
+                label={<Trans id="ui2.admin.invite.subject">Subject</Trans>}
+                value={subject}
+                maxLength={70}
+                onChange={setSubject}
+                hint={<Trans id="ui2.admin.invite.subjecthint">This is the subject that will be used on the invitation email. Keep it short and sweet.</Trans>}
+              />
+              <TextArea
+                name="message"
+                rows={8}
+                label={<Trans id="ui2.admin.invite.message">Message</Trans>}
+                value={message}
+                onChange={setMessage}
+                hint={
+                  <Trans id="ui2.admin.invite.messagehint">
+                    This is the content of the invite. Be polite and explain what this invite is for, otherwise there&apos;s a high change people will ignore
+                    your message. You&apos;re allowed to write whatever you want as long as you include the invitation link placeholder named{" "}
+                    <strong>%invite%</strong>.
+                  </Trans>
+                }
+              />
+            </>
+          )}
+          <Field label={<Trans id="ui2.admin.invite.sample">Sample Invite</Trans>} group>
+            <div>
+              {email ? (
+                <Button onClick={sendSample}>
+                  <Trans id="ui2.admin.invite.samplebtn">Send a sample email to {email}</Trans>
+                </Button>
+              ) : (
+                <Button disabled>
+                  <Trans id="ui2.admin.invite.noemail">Your profile doesn&apos;t have an email</Trans>
+                </Button>
+              )}
+            </div>
+          </Field>
+          <Field
+            label={<Trans id="ui2.admin.invite.confirm">Confirmation</Trans>}
+            hint={<Trans id="ui2.admin.invite.confirmhint">Whenever you&apos;re ready, click the following button to send out these invites.</Trans>}
+            group
+          >
+            <div>
+              <Button type="submit" variant="primary" disabled={n === 0} loading={sending}>
+                {n === 1 ? <Trans id="ui2.admin.invite.sendone">Send 1 invite</Trans> : <Trans id="ui2.admin.invite.sendmany">Send {n} invites</Trans>}
               </Button>
-            ) : (
-              <Button disabled>
-                <Trans id="ui2.admin.invite.noemail">Your profile doesn&apos;t have an email</Trans>
-              </Button>
-            )}
-          </div>
-        </Field>
-        <Field
-          label={<Trans id="ui2.admin.invite.confirm">Confirmation</Trans>}
-          hint={<Trans id="ui2.admin.invite.confirmhint">Whenever you&apos;re ready, click the following button to send out these invites.</Trans>}
-          group
-        >
-          <div>
-            <Button type="submit" variant="primary" disabled={n === 0} loading={sending}>
-              {n === 1 ? <Trans id="ui2.admin.invite.sendone">Send 1 invite</Trans> : <Trans id="ui2.admin.invite.sendmany">Send {n} invites</Trans>}
-            </Button>
-          </div>
-        </Field>
+            </div>
+          </Field>
+        </AdminSection>
       </Form>
     </AdminLayout>
   )

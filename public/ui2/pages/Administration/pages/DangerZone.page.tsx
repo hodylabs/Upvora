@@ -99,6 +99,7 @@ const DangerZonePage = (props: DangerZonePageProps) => {
     }
     return (
       <AdminSection
+        tone="danger"
         title={<Trans id="ui2.admin.danger.deletetitle">Delete this site</Trans>}
         lede={
           <Trans id="ui2.admin.danger.careful">

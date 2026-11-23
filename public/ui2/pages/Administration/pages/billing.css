@@ -1,24 +1,32 @@
-/* Billing plan cards */
+/* Billing plan cards: calm panels; the highlighted plan gets the brand glow. */
 .u2-plans {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-  margin-block-start: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-block-start: 16px;
 }
 .u2-plan {
+  position: relative;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   align-content: start;
-  padding: 14px;
-  border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
-  background: var(--u-chip);
+  padding: 20px;
+  border: 1px solid var(--u-line);
+  border-radius: var(--u-radius-lg);
+  background: var(--u-glass);
 }
 .u2-plan--hi {
-  border-color: var(--u-accent);
+  border-color: color-mix(in srgb, var(--u-accent) 45%, transparent);
+  background: radial-gradient(90% 120% at 100% 0%, var(--u-accent-soft), transparent 65%), var(--u-glass);
+  box-shadow: var(--u-glow);
 }
-.u2-plan--current {
-  box-shadow: 0 0 0 1px var(--u-s-shipped);
+/* A hairline of the brand gradient on the top edge, as on the welcome card. */
+.u2-plan--hi::after {
+  content: "";
+  position: absolute;
+  inset: -1px 16px auto;
+  height: 1px;
+  background: var(--u-grad);
 }
 .u2-plan__head {
   display: flex;
@@ -26,17 +34,31 @@
   align-items: center;
   gap: 8px;
 }
+.u2-plan__head .u2-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--u-up) 14%, transparent);
+  color: var(--u-up);
+  font: 500 11px var(--u-mono);
+}
 .u2-plan__price {
   margin: 0;
+  font-family: var(--u-display);
 }
 .u2-plan__price b {
-  font-size: 22px;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.u2-plan .u2-btn {
+  justify-content: center;
 }
 .u2-plan__now {
   margin: 0;
-  padding: 6px 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--u-line);
   border-radius: var(--u-radius);
-  background: var(--u-glass);
+  background: var(--u-surface2);
   color: var(--u-muted);
   text-align: center;
   font-size: 13px;
@@ -44,21 +66,22 @@
 .u2-plan__list {
   list-style: none;
   margin: 0;
-  padding: 8px 0 0;
+  padding: 12px 0 0;
   border-block-start: 1px solid var(--u-line);
   display: grid;
-  gap: 4px;
+  gap: 6px;
   font-size: 13px;
+  color: var(--u-text2);
 }
 .u2-plan__list li {
   display: flex;
   gap: 8px;
 }
 .u2-plan__list li > span:first-child {
-  color: var(--u-s-shipped);
+  color: var(--u-up);
 }
 .u2-plan__list li.is-neg > span:first-child {
-  color: var(--u-danger);
+  color: var(--u-muted);
 }
 .u2-plan__link {
   padding: 0;
@@ -67,5 +90,6 @@
   color: var(--u-text);
   font: inherit;
   text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
 }

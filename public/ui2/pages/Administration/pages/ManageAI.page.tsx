@@ -175,31 +175,33 @@ const ManageAIPage = (props: ManageAIPageProps) => {
       title={<Trans id="ui2.admin.ai.title">AI</Trans>}
       subtitle={<Trans id="ui2.admin.ai.sub">Vora, the ideation agent: one switch, one provider, per-product instructions</Trans>}
     >
-      <Field
-        label={<Trans id="ui2.admin.ai.agent">Ideation agent</Trans>}
-        hint={<Trans id="ui2.admin.ai.agenthint">Master switch: off hides Vora everywhere.</Trans>}
-        group
-      >
-        <Toggle checked={enabled} label={t("ui2.admin.ai.agent", "Ideation agent")} hideLabel onChange={setEnabled} />
-      </Field>
-      <SubmissionToggle
-        field="voraRequired"
-        label={t("ui2.admin.ai.require", "Require Vora for new ideas")}
-        onChange={setVoraRequired}
-        hint={
-          <Trans id="ui2.admin.ai.requirehint">
-            New ideas from the board&apos;s form start with Vora, admins included unless they may skip it below: people review and edit Vora&apos;s draft, then
-            submit. Applies to products where an agent is on; others keep the plain form. Assistants connected over MCP, and integrations using an API key, can
-            still submit directly.
-          </Trans>
-        }
-      />
-      {voraRequired && (
-        <>
-          <SubmissionToggle field="voraBypassAdmins" label={t("ui2.admin.ai.bypassadmins", "Admins can skip Vora")} />
-          <SubmissionToggle field="voraBypassCollaborators" label={t("ui2.admin.ai.bypasscollabs", "Collaborators can skip Vora")} />
-        </>
-      )}
+      <AdminSection>
+        <Field
+          label={<Trans id="ui2.admin.ai.agent">Ideation agent</Trans>}
+          hint={<Trans id="ui2.admin.ai.agenthint">Master switch: off hides Vora everywhere.</Trans>}
+          group
+        >
+          <Toggle checked={enabled} label={t("ui2.admin.ai.agent", "Ideation agent")} hideLabel onChange={setEnabled} />
+        </Field>
+        <SubmissionToggle
+          field="voraRequired"
+          label={t("ui2.admin.ai.require", "Require Vora for new ideas")}
+          onChange={setVoraRequired}
+          hint={
+            <Trans id="ui2.admin.ai.requirehint">
+              New ideas from the board&apos;s form start with Vora, admins included unless they may skip it below: people review and edit Vora&apos;s draft,
+              then submit. Applies to products where an agent is on; others keep the plain form. Assistants connected over MCP, and integrations using an API
+              key, can still submit directly.
+            </Trans>
+          }
+        />
+        {voraRequired && (
+          <>
+            <SubmissionToggle field="voraBypassAdmins" label={t("ui2.admin.ai.bypassadmins", "Admins can skip Vora")} />
+            <SubmissionToggle field="voraBypassCollaborators" label={t("ui2.admin.ai.bypasscollabs", "Collaborators can skip Vora")} />
+          </>
+        )}
+      </AdminSection>
 
       <AdminSection title={<Trans id="ui2.admin.ai.provider">Provider</Trans>}>
         <Field label={<Trans id="ui2.admin.ai.provider">Provider</Trans>} group>
