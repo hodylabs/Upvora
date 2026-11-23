@@ -1,7 +1,6 @@
 import "./ui.css"
 
 import React, { useEffect, useState } from "react"
-import { Trans } from "@lingui/react/macro"
 import { i18n } from "@lingui/core"
 import { http } from "@fider/services"
 import { useFider } from "@fider/hooks"
@@ -28,15 +27,14 @@ export const ModerationBadge = () => {
   }, [show])
 
   if (!show || count <= 0) return null
+  const label = i18n._({ id: "ui2.moderation.badge", message: "{count} ideas and comments waiting for moderation", values: { count } })
   return (
-    <a
-      className="u2-modbadge"
-      href="/admin/moderation"
-      aria-label={i18n._({ id: "ui2.moderation.badge", message: "{count} ideas and comments waiting for moderation", values: { count } })}
-    >
-      <span className="u2-modbadge__n u2-mono">{count}</span>
-      <span className="u2-modbadge__text">
-        <Trans id="ui2.moderation.waiting">waiting</Trans>
+    <a className="u2-iconbtn u2-modbadge" href="/admin/moderation" aria-label={label} title={label}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z" />
+      </svg>
+      <span className="u2-modbadge__n" aria-hidden="true">
+        {count > 99 ? "99+" : count}
       </span>
     </a>
   )
