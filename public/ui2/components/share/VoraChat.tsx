@@ -1,3 +1,5 @@
+import "./share.css"
+
 import React, { useEffect, useRef, useState } from "react"
 import { Trans } from "@lingui/react/macro"
 import { i18n } from "@lingui/core"
