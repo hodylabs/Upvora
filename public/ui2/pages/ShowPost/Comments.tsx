@@ -127,7 +127,7 @@ export const CommentItem = (props: CommentItemProps) => {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [busy, setBusy] = useState(false)
   const { attachments, handleImageUploaded, getImageSrc } = useAttachments({ maxAttachments: MAX_IMAGES })
-  const ref = useRef<HTMLElement>(null)
+  const ref = useRef<HTMLLIElement>(null)
   const staff = isStaff(fider)
   const mine = fider.session.isAuthenticated && fider.session.user.id === comment.user.id
   const team = isCollaborator(comment.user.role)
@@ -180,11 +180,13 @@ export const CommentItem = (props: CommentItemProps) => {
     )
   }
 
-  const cls = ["u2-cm", comment.isInternal && "is-internal", props.highlighted && "is-highlighted"].filter(Boolean).join(" ")
+  const cls = ["u2-ev u2-cm", team && "is-team", comment.isInternal && "is-internal", props.highlighted && "is-highlighted"].filter(Boolean).join(" ")
   const editedBy = comment.editedBy?.name || ""
   return (
-    <article id={`comment-${comment.id}`} ref={ref} className={cls}>
-      <Avatar name={comment.user.name} src={comment.user.avatarURL} size={32} />
+    <li id={`comment-${comment.id}`} ref={ref} className={cls}>
+      <span className="u2-ev__mk">
+        <Avatar name={comment.user.name} src={comment.user.avatarURL} size={28} />
+      </span>
       <div className="u2-cm__body">
         <div className="u2-cm__who">
           <b>{comment.user.name}</b>
@@ -209,15 +211,15 @@ export const CommentItem = (props: CommentItemProps) => {
           </span>
           {!editing && (
             <span className="u2-cm__acts">
-              <button type="button" className="u2-idea__lnk" onClick={copyLink}>
+              <button type="button" className="u2-cm__act" onClick={copyLink}>
                 <Trans id="action.copylink">Copy link</Trans>
               </button>
               {canEditComment(fider, comment.user.id) && (
                 <>
-                  <button type="button" className="u2-idea__lnk" onClick={() => setEditing(true)}>
+                  <button type="button" className="u2-cm__act" onClick={() => setEditing(true)}>
                     <Trans id="action.edit">Edit</Trans>
                   </button>
-                  <button type="button" className="u2-idea__lnk u2-danger" onClick={() => setConfirmDelete(true)}>
+                  <button type="button" className="u2-cm__act u2-danger" onClick={() => setConfirmDelete(true)}>
                     <Trans id="action.delete">Delete</Trans>
                   </button>
                 </>
@@ -294,7 +296,7 @@ export const CommentItem = (props: CommentItemProps) => {
           <Trans id="ui2.idea.comment.deletetext">This cannot be undone.</Trans>
         </p>
       </ConfirmDialog>
-    </article>
+    </li>
   )
 }
 
@@ -400,11 +402,12 @@ export const CommentComposer = (props: ComposerProps) => {
             <Toggle
               checked={internal}
               onChange={setInternal}
-              label={<Trans id="ui2.idea.comment.internal">Team only: just your team sees this comment</Trans>}
+              label={<Trans id="ui2.idea.comment.teamonly">Team only</Trans>}
+              ariaLabel={i18n._({ id: "ui2.idea.comment.internal", message: "Team only: just your team sees this comment" })}
             />
           )}
           <Button variant="primary" onClick={submit} loading={busy} disabled={fider.isReadOnly || draft.length > MAX_LENGTH}>
-            <Trans id="action.postcomment">Post</Trans>
+            <Trans id="ui2.idea.comment.post">Comment</Trans>
           </Button>
         </div>
       </Form>

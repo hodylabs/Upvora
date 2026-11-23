@@ -6,7 +6,10 @@ import { Trans } from "@lingui/react/macro"
 import { i18n } from "@lingui/core"
 import { useFider } from "@fider/hooks"
 import { isTypingTarget } from "../../components/useRowKeys"
-import { IdeaData, IdeaView, loadIdea } from "./IdeaView"
+import { CloseButton, IdeaData, IdeaView, loadIdea } from "./IdeaView"
+
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [contenteditable="true"], [tabindex]:not([tabindex="-1"])'
 
 interface IdeaOverlayProps {
   number: number
@@ -37,6 +40,11 @@ const IdeaOverlay = (props: IdeaOverlayProps) => {
     }
   }, [props.number])
 
+  // The loading state's close button unmounts when the idea arrives: keep focus in the sheet.
+  useEffect(() => {
+    if (data && !ref.current?.contains(document.activeElement)) ref.current?.focus()
+  }, [data])
+
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null
     ref.current?.focus()
@@ -46,6 +54,21 @@ const IdeaOverlay = (props: IdeaOverlayProps) => {
     app?.setAttribute("inert", "")
     // Dialogs inside handle their own Esc first (capture phase) and stop it there.
     const onKey = (e: KeyboardEvent) => {
+      // Tab wraps inside the sheet (an open dialog runs its own trap from #root-modal).
+      const sheet = ref.current
+      if (e.key === "Tab" && sheet && (sheet.contains(document.activeElement) || document.activeElement === document.body)) {
+        const items = Array.from(sheet.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.offsetParent !== null || el === document.activeElement)
+        const first = items[0]
+        const last = items[items.length - 1]
+        if (first && e.shiftKey && (document.activeElement === first || document.activeElement === sheet)) {
+          e.preventDefault()
+          last.focus()
+        } else if (last && !e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+        return
+      }
       if (e.key !== "Escape" || e.defaultPrevented || isTypingTarget(e.target)) return
       onClose.current()
     }
@@ -60,28 +83,31 @@ const IdeaOverlay = (props: IdeaOverlayProps) => {
 
   return createPortal(
     <div className="u2-ovl">
-      <div ref={ref} className="u2-ovl__panel" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
-        <div className="u2-ovl__bar">
-          <button type="button" className="u2-btn u2-btn--ghost u2-btn--small" onClick={() => props.onClose()}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M19 12H5M11 18l-6-6 6-6" />
-            </svg>
-            <Trans id="ui2.idea.back">Back to the board</Trans>
-          </button>
-        </div>
-        {data === undefined ? (
-          <p className="u2-muted" aria-busy="true" id={titleId}>
-            <Trans id="ui2.peek.loading">Loading…</Trans>
-          </p>
-        ) : data === null ? (
-          <p className="u2-muted" role="alert" id={titleId}>
-            {i18n._({ id: "ui2.idea.loadfailed", message: "This idea could not be loaded." })}{" "}
-            <a href={location.pathname}>
-              <Trans id="ui2.idea.openpage">Open its page</Trans>
-            </a>
-          </p>
+      <div ref={ref} className="u2-ovl__panel u2-sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
+        {data ? (
+          <IdeaView key={props.number} data={data} titleId={titleId} onDataChanged={props.onDataChanged} onClose={() => props.onClose()} />
         ) : (
-          <IdeaView key={props.number} data={data} titleId={titleId} onDataChanged={props.onDataChanged} />
+          <>
+            <div className="u2-idea__top">
+              <span className="u2-mono">#{props.number}</span>
+              <span className="u2-idea__sp" />
+              <CloseButton onClose={() => props.onClose()} />
+            </div>
+            <div className="u2-idea__body">
+              {data === undefined ? (
+                <p className="u2-muted" aria-busy="true" id={titleId}>
+                  <Trans id="ui2.peek.loading">Loading…</Trans>
+                </p>
+              ) : (
+                <p className="u2-muted" role="alert" id={titleId}>
+                  {i18n._({ id: "ui2.idea.loadfailed", message: "This idea could not be loaded." })}{" "}
+                  <a href={location.pathname}>
+                    <Trans id="ui2.idea.openpage">Open its page</Trans>
+                  </a>
+                </p>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>,

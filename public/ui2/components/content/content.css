@@ -118,13 +118,26 @@
   list-style: none;
 }
 .u2-files__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding-inline: 11px;
+  border: 1px solid var(--u-line);
+  border-radius: 999px;
+  background: var(--u-surface2);
+  color: var(--u-text2);
   font: inherit;
-  font-size: 13px;
-  min-height: 28px;
+  font-size: 12.5px;
   cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 button.u2-files__chip:hover {
-  border-color: var(--u-accent);
+  border-color: var(--u-edge);
+  background: var(--u-surface3);
+  color: var(--u-text);
 }
 .u2-files__chip svg {
   width: 14px;
@@ -133,9 +146,14 @@ button.u2-files__chip:hover {
   stroke: currentColor;
   stroke-width: 2;
 }
+li.u2-files__chip {
+  padding-inline-end: 3px;
+  cursor: default;
+}
 .u2-files__chip .u2-iconbtn {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
 }
 .u2-files__editor {
   display: flex;
@@ -156,9 +174,14 @@ button.u2-files__chip:hover {
   width: 100%;
   height: auto;
   border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
+  border-radius: 12px;
+  background: #fff;
 }
 .u2-files__text {
+  padding: 12px 14px;
+  border: 1px solid var(--u-line);
+  border-radius: 12px;
+  background: var(--u-surface2);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-family: var(--u-mono);

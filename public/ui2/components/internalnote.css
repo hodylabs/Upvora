@@ -1,26 +1,33 @@
-/* The team-only internal note (idea page and scorecard). */
+/* The team-only internal note (idea page and scorecard): the same warm, dashed tint as
+   team-only comments, so "only the team sees this" reads the same everywhere. */
 .u2-note-int {
-  padding: 12px;
-  border: 0;
-  border-radius: var(--u-radius);
-  background: color-mix(in srgb, var(--u-warn) 7%, transparent);
+  padding: 12px 14px;
+  border: 1px dashed color-mix(in srgb, var(--u-warn) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--u-warn) 6%, transparent);
 }
 .u2-note-int__head {
   display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
   justify-content: space-between;
   gap: 6px;
+  margin-block-end: 8px;
   font-size: 12px;
 }
+.u2-note-int__head .u2-muted {
+  font: 11.5px var(--u-mono);
+}
 .u2-note-int h2 {
-  margin: 0 0 6px;
-  font-size: 12px;
-  font-weight: 600;
+  margin: 0;
+  font: 500 11px var(--u-mono);
+  letter-spacing: 0.02em;
   color: var(--u-warn);
 }
 .u2-note-int textarea {
   width: 100%;
-  min-height: 96px;
+  min-height: 84px;
+  border-radius: var(--u-radius);
   resize: vertical;
 }
 .u2-note-int p {

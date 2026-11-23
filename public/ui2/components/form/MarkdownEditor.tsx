@@ -381,11 +381,36 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
         <div className="u2-md__bar" role="toolbar" aria-label={i18n._({ id: "ui2.editor.toolbar", message: "Formatting" })}>
           {!rawMode && (
             <>
-              {tool("h2", i18n._({ id: "ui2.editor.h2", message: "Heading 2" }), () => chain().toggleHeading({ level: 2 }).run(), "H2")}
-              {tool("h3", i18n._({ id: "ui2.editor.h3", message: "Heading 3" }), () => chain().toggleHeading({ level: 3 }).run(), "H3")}
-              {tool("bold", i18n._({ id: "ui2.editor.bold", message: "Bold" }), () => chain().toggleBold().run(), <b>B</b>)}
-              {tool("italic", i18n._({ id: "ui2.editor.italic", message: "Italic" }), () => chain().toggleItalic().run(), <i>I</i>)}
-              {tool("strike", i18n._({ id: "ui2.editor.strike", message: "Strikethrough" }), () => chain().toggleStrike().run(), <s>S</s>)}
+              {tool(
+                "h2",
+                i18n._({ id: "ui2.editor.h2", message: "Heading 2" }),
+                () => chain().toggleHeading({ level: 2 }).run(),
+                <Icon d="M4 6v12M11 6v12M4 12h7M15 10.5a2.5 2.5 0 1 1 4.6 1.3L15 18h5" />
+              )}
+              {tool(
+                "h3",
+                i18n._({ id: "ui2.editor.h3", message: "Heading 3" }),
+                () => chain().toggleHeading({ level: 3 }).run(),
+                <Icon d="M4 6v12M11 6v12M4 12h7M15 8h5l-3 4a3 3 0 1 1-2.6 4.5" />
+              )}
+              {tool(
+                "bold",
+                i18n._({ id: "ui2.editor.bold", message: "Bold" }),
+                () => chain().toggleBold().run(),
+                <Icon d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z" />
+              )}
+              {tool(
+                "italic",
+                i18n._({ id: "ui2.editor.italic", message: "Italic" }),
+                () => chain().toggleItalic().run(),
+                <Icon d="M19 4h-9M14 20H5M15 4 9 20" />
+              )}
+              {tool(
+                "strike",
+                i18n._({ id: "ui2.editor.strike", message: "Strikethrough" }),
+                () => chain().toggleStrike().run(),
+                <Icon d="M16 7c-.8-1.8-2.4-3-4.5-3C9 4 7.5 5.5 7.5 7.3c0 1.6 1 2.6 3 3.2M4 12h16M15 14.5c.8.7 1.2 1.5 1.2 2.4 0 2-2 3.1-4.7 3.1-2.2 0-4-1-4.8-2.6" />
+              )}
               {tool(
                 "bulletList",
                 i18n._({ id: "ui2.editor.bullets", message: "Bulleted list" }),
@@ -410,7 +435,11 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
                 () => chain().toggleBlockquote().run(),
                 <Icon d="M7 7h4v6H7zM13 7h4v6h-4zM7 13c0 2-1 3-2 4M13 13c0 2-1 3-2 4" />
               )}
-              {action(i18n._({ id: "ui2.editor.mention", message: "Mention someone" }), insertMention, "@")}
+              {action(
+                i18n._({ id: "ui2.editor.mention", message: "Mention someone" }),
+                insertMention,
+                <Icon d="M16 12a4 4 0 1 1-1.2-2.8M16 8v5a2.5 2.5 0 0 0 5 0v-1a9 9 0 1 0-3.5 7.1" />
+              )}
               {action(
                 i18n._({ id: "ui2.editor.image", message: "Insert image" }),
                 () => fileRef.current?.click(),
@@ -440,8 +469,21 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
               />
             </>
           )}
-          <button type="button" className="u2-md__tool u2-md__mode" aria-pressed={rawMode} disabled={disabled} onClick={toggleMode}>
-            {rawMode ? <Trans id="editor.richtextmode">Switch to rich text editor</Trans> : <Trans id="editor.markdownmode">Switch to markdown editor</Trans>}
+          <span className="u2-md__sep" aria-hidden="true" />
+          <button
+            type="button"
+            className="u2-md__tool u2-md__mode"
+            aria-pressed={rawMode}
+            aria-label={i18n._({ id: "ui2.editor.markdown", message: "Write in Markdown" })}
+            title={
+              rawMode
+                ? i18n._({ id: "editor.richtextmode", message: "Switch to rich text editor" })
+                : i18n._({ id: "editor.markdownmode", message: "Switch to markdown editor" })
+            }
+            disabled={disabled}
+            onClick={toggleMode}
+          >
+            <Icon d="M3 6h18v12H3zM6.5 15V9l2.5 3 2.5-3v6M17 9v6M14.5 12.5 17 15l2.5-2.5" />
           </button>
         </div>
         {rawMode ? (

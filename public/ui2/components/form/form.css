@@ -394,63 +394,72 @@ body.u2 .u2-switch:focus-visible {
   color: var(--u-muted);
 }
 
-/* Markdown editor */
+/* Markdown editor: one field with a quiet icon toolbar on top (no classic button row) */
 .u2-md {
   border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
+  border-radius: 12px;
   background: var(--u-glass);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 .u2-md[aria-invalid="true"] {
   border-color: var(--u-danger);
 }
 .u2-md:focus-within {
-  border-color: var(--u-accent);
+  border-color: color-mix(in srgb, var(--u-accent) 60%, transparent);
+  box-shadow: 0 0 0 3px var(--u-accent-soft);
 }
 .u2-md__bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px;
-  padding: 4px;
+  gap: 1px;
+  padding: 5px 6px;
   border-block-end: 1px solid var(--u-line);
 }
 .u2-md__tool {
   display: inline-grid;
   place-items: center;
-  min-width: 30px;
+  width: 30px;
   height: 30px;
-  padding: 0 6px;
-  border: 1px solid transparent;
+  padding: 0;
+  border: 0;
   border-radius: var(--u-radius);
   background: none;
-  color: var(--u-text2);
-  font: 600 12px/1 var(--u-font);
+  color: var(--u-muted);
   cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
 }
 .u2-md__tool:hover {
-  background: var(--u-glass);
-  border-color: var(--u-edge);
+  background: var(--u-surface3);
+  color: var(--u-text);
 }
 .u2-md__tool[aria-pressed="true"] {
   background: var(--u-accent-soft);
   color: var(--u-accent);
 }
 .u2-md__tool:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
+}
+.u2-md__tool:disabled:hover {
+  background: none;
+  color: var(--u-muted);
 }
 .u2-md__tool svg {
   width: 16px;
   height: 16px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.u2-md__mode {
-  margin-inline-start: auto;
-  font-weight: 500;
+.u2-md__sep {
+  flex: 1;
 }
 .u2-md__content .ProseMirror,
 .u2-md__raw {
@@ -465,8 +474,9 @@ body.u2 .u2-switch:focus-visible {
   display: block;
   width: 100%;
   border: 0;
+  border-radius: 0 0 12px 12px;
   background: transparent;
-  font: 13px/1.5 var(--u-mono);
+  font: 13px/1.6 var(--u-mono);
   resize: vertical;
 }
 .u2-md__content .ProseMirror p {
@@ -513,8 +523,8 @@ body.u2 .u2-switch:focus-visible {
   list-style: none;
   background: var(--u-pop);
   border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
-  box-shadow: var(--u-shadow);
+  border-radius: 12px;
+  box-shadow: var(--u-shadow-pop);
 }
 .u2-mentions button {
   display: block;
@@ -560,7 +570,7 @@ body.u2 .u2-switch:focus-visible {
     margin: 0;
   }
   .u2-md__tool {
-    min-width: 44px;
+    width: 44px;
     height: 44px;
   }
 }
