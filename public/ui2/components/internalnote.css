@@ -24,11 +24,28 @@
   letter-spacing: 0.02em;
   color: var(--u-warn);
 }
-.u2-note-int textarea {
+/* One box: the note area has no frame of its own inside the tinted panel (Hody: no box in a box). */
+.u2-note-int textarea.u2-ctl {
   width: 100%;
-  min-height: 84px;
-  border-radius: var(--u-radius);
+  min-height: 72px;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
   resize: vertical;
+}
+body.u2 .u2-note-int textarea.u2-ctl:focus,
+body.u2 .u2-note-int textarea.u2-ctl:focus-visible {
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+/* Focus shows on the note itself, since the field inside has no frame. */
+.u2-note-int:focus-within {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--u-warn) 70%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--u-warn) 18%, transparent);
 }
 .u2-note-int p {
   margin: 6px 0 0;
