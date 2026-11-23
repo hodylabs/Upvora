@@ -5,6 +5,7 @@ import { Post } from "@fider/models"
 import ShowPostPage from "./ShowPost.page"
 import HomePage from "../Home/Home.page"
 import { canDeleteIdea, canEditIdea, canTogglePrivacy, mergeTarget } from "./rules"
+import { setTeamView } from "../../lib/teamView"
 
 type Role = "visitor" | "member" | "author" | "collaborator" | "admin"
 
@@ -341,7 +342,7 @@ describe("ui2 board overlay", () => {
       return Promise.resolve({ ok: false, data: {} })
     }) as unknown as typeof http.get
     // Vora's notes show to staff in Team view.
-    localStorage.setItem("ui2.teamView", "true")
+    setTeamView(true)
     renderBoard()
     const note = await waitFor(() => {
       const el = document.querySelector<HTMLElement>('[data-chip="duplicate"]')
@@ -351,6 +352,6 @@ describe("ui2 board overlay", () => {
     fireEvent.click(note)
     expect(location.pathname + location.hash).toBe("/posts/2/idea-2#merge=1")
     await waitFor(() => expect((dialog()?.querySelector("select[name=status]") as HTMLSelectElement)?.value).toBe("duplicate"))
-    localStorage.removeItem("ui2.teamView")
+    setTeamView(false)
   })
 })

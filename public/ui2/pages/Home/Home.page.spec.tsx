@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import { Fider, FiderContext, http, cache, navigator } from "@fider/services"
 import { Post, Tenant } from "@fider/models"
 import HomePage, { WELCOME_SETTING, strongMatch } from "./Home.page"
-import { TEAM_VIEW_KEY } from "./useTeamView"
+import { setTeamView } from "../../lib/teamView"
 import { DRAFT_KEYS } from "../../components/share/rules"
 
 const post = (number: number, extra: Partial<Post> = {}): Post =>
@@ -73,6 +73,7 @@ describe("ui2 Home page", () => {
     window.history.replaceState({}, "", "/")
     localStorage.clear()
     sessionStorage.clear()
+    setTeamView(false)
     mockGet()
     http.post = jest.fn(() => Promise.resolve({ ok: true, data: { id: 9, number: 9, title: "x", slug: "x", isApproved: true } })) as unknown as typeof http.post
   })
@@ -100,7 +101,7 @@ describe("ui2 Home page", () => {
     expect(off.container.querySelector(".u2-hero__edit")).toBeNull()
     off.unmount()
 
-    localStorage.setItem(TEAM_VIEW_KEY, "true")
+    act(() => setTeamView(true))
     const on = renderHome("staff", rows)
     await waitFor(() => expect(on.container.querySelector('[data-chip="similar"]')).not.toBeNull())
     expect(on.container.querySelector('[data-chip="duplicate"]')?.getAttribute("href")).toBe("/posts/2/idea-2#merge=1")
@@ -111,7 +112,7 @@ describe("ui2 Home page", () => {
   })
 
   test("Team view does nothing for members, even with the stored switch on", async () => {
-    localStorage.setItem(TEAM_VIEW_KEY, "true")
+    act(() => setTeamView(true))
     const { container } = renderHome("member", [post(1), post(2)])
     await waitFor(() => expect(container.querySelector(".u2-tr__week")).not.toBeNull())
     expect(container.querySelector("[data-chip], .u2-faces, .u2-hero__edit")).toBeNull()

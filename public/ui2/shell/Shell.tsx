@@ -15,9 +15,6 @@ import { requestShare } from "../lib/share"
 // team view, badges, theme, account), optional site banner, the page, footer.
 // Pages fill the main slot. There is no sidebar.
 
-// Kept so older imports still compile: the sidebar is gone, so this renders nothing.
-export const SidebarSlot: React.FC<{ children: React.ReactNode }> = () => null
-
 // The current path. Pages that change the query with replaceState fire URL_CHANGE_EVENT.
 const useLocationPath = () => {
   const [path, setPath] = useState(() => location.pathname)

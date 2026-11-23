@@ -18,7 +18,7 @@ import { postHref, replaceQuery } from "../../lib/nav"
 import { BoardControls } from "./BoardControls"
 import { Briefing } from "./Briefing"
 import { Hero } from "./Hero"
-import { useTeamView } from "./useTeamView"
+import { useTeamView } from "../../lib/teamView"
 import { BoardFilter, DEFAULT_LIMIT, filterFromURL, filterToQuery, searchParams } from "./filter"
 
 // Same props the server sends classic's Home page (app/handlers/post.go, renderBoard).
