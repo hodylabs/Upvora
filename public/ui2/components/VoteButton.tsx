@@ -92,7 +92,7 @@ export const VoteButton = (props: VoteButtonProps) => {
       data-vote={post.number}
     >
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 19V5M5 12l7-7 7 7" />
+        <path d="M12 4l7 8h-4v8H9v-8H5z" />
       </svg>
       {props.children}
       <span className={`u2-vote__n u2-mono${pop ? " is-pop" : ""}`} onAnimationEnd={() => setPop(false)}>

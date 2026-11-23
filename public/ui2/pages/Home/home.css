@@ -61,7 +61,6 @@
 }
 .u2-vora__icon,
 .u2-vora__share svg,
-.u2-btn__icon,
 .u2-nudge svg {
   width: 15px;
   height: 15px;
@@ -72,8 +71,7 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.u2-vora__share svg,
-.u2-btn__icon {
+.u2-vora__share svg {
   stroke: currentColor;
 }
 .u2-vora input {

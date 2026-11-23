@@ -1,29 +1,34 @@
-/* The new UI's design tokens ("Technical + personality", approved 2026-11-12).
+/* The Upvora look's design tokens (dark blend of NetBird and hody.dev, Hody 2026-11-23).
    Light is the base; dark overrides on body[data-theme="dark"], which base.html sets
    before first paint. The signal color follows the site's own primary color when the
    admin set one (--colors-primary-base from Admin, Theme), else safety orange. */
 body.u2 {
-  --u-bg: #fafafa;
+  --u-bg: #f6f6f9;
   --u-glass: #ffffff;
-  --u-surface2: #f3f4f6;
-  --u-edge: #dfe1e6;
-  --u-line: #ebecef;
-  --u-text: #111316;
-  --u-text2: #383c44;
-  --u-muted: #646a73;
+  --u-surface2: #f0f1f5;
+  --u-surface3: #e7e8ee;
+  --u-edge: #d3d5de;
+  --u-line: #e4e5ec;
+  --u-text: #12131a;
+  --u-text2: #3a3c4a;
+  --u-muted: #62647a;
   --u-accent: var(--colors-primary-base, #b84505);
   --u-accent-soft: color-mix(in srgb, var(--u-accent) 10%, transparent);
   --u-on-accent: #ffffff;
-  --u-chip: #f3f4f6;
+  --u-grad: linear-gradient(100deg, color-mix(in srgb, var(--u-accent) 86%, #fff) 0%, var(--u-accent) 50%, color-mix(in srgb, var(--u-accent) 84%, #000) 100%);
+  --u-glow: 0 8px 22px -12px color-mix(in srgb, var(--u-accent) 70%, transparent);
+  --u-aurora: radial-gradient(60vw 50vh at 0% 0%, color-mix(in srgb, var(--u-accent) 5%, transparent), transparent 70%);
+  --u-chip: #f0f1f5;
   --u-pop: #ffffff;
   --u-shadow: none;
-  --u-shadow-pop: 0 12px 32px -12px rgba(20, 26, 35, 0.28);
+  --u-shadow-pop: 0 16px 40px -16px rgba(20, 22, 35, 0.3);
+  --u-up: #138a57;
   --u-danger: #c43a3a;
   --u-warn: #8a5a00;
-  --u-s-review: #4d5869;
+  --u-s-review: #5d6075;
   --u-s-planned: #2f5fb3;
   --u-s-progress: #a84a08;
-  --u-s-shipped: #157443;
+  --u-s-shipped: #13734a;
   /* Scorecard bands, best to worst (the ring, chips and threshold dots). */
   --u-band-strong: #13693d;
   --u-band-good: #2a56a3;
@@ -31,37 +36,44 @@ body.u2 {
   --u-band-low: #a3420a;
   --u-band-reject: #b3302f;
 
-  --u-font: Geist, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --u-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --u-radius: 4px;
-  --u-radius-lg: 6px;
-  --u-row: 52px;
-  --u-side: 232px;
+  --u-font: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --u-display: "Space Grotesk", Inter, system-ui, sans-serif;
+  --u-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --u-radius: 10px;
+  --u-radius-lg: 14px;
+  --u-row: 54px;
+  --u-side: 236px;
 }
 
+/* Dark is the signature look (hody.dev): near-black, hairline edges, an orange glow. */
 body.u2[data-theme="dark"] {
   color-scheme: dark;
-  --u-bg: #111214;
-  --u-glass: #17181b;
-  --u-surface2: #1e2024;
-  --u-edge: #2e3136;
-  --u-line: #25282d;
-  --u-text: #e8e9ec;
-  --u-text2: #c3c6cc;
-  --u-muted: #8b9099;
-  --u-accent: var(--colors-primary-base, #ff8a3d);
+  --u-bg: #05050a;
+  --u-glass: #0b0b11;
+  --u-surface2: #131319;
+  --u-surface3: #1b1b22;
+  --u-edge: #26262e;
+  --u-line: #18181f;
+  --u-text: #eef0f6;
+  --u-text2: #c3c5d2;
+  --u-muted: #9a9ab2;
+  --u-accent: var(--colors-primary-base, #fd8d27);
   --u-accent-soft: color-mix(in srgb, var(--u-accent) 12%, transparent);
-  --u-on-accent: #140700;
-  --u-chip: #1e2024;
-  --u-pop: #1b1c20;
+  --u-on-accent: #1a0d02;
+  --u-grad: linear-gradient(100deg, color-mix(in srgb, var(--u-accent) 70%, #fff) 0%, var(--u-accent) 46%, color-mix(in srgb, var(--u-accent) 82%, #c00) 100%);
+  --u-glow: 0 10px 30px -12px color-mix(in srgb, var(--u-accent) 85%, transparent);
+  --u-aurora: radial-gradient(60vw 55vh at 0% 0%, color-mix(in srgb, var(--u-accent) 10%, transparent), transparent 70%);
+  --u-chip: #131319;
+  --u-pop: #0e0e15;
   --u-shadow: none;
-  --u-shadow-pop: 0 16px 40px -12px rgba(0, 0, 0, 0.6);
+  --u-shadow-pop: 0 24px 60px -20px rgba(0, 0, 0, 0.85);
+  --u-up: #4fd69c;
   --u-danger: #ff6b6b;
   --u-warn: #ffc46b;
-  --u-s-review: #9aa3ae;
-  --u-s-planned: #7aa7ff;
-  --u-s-progress: #ffb347;
-  --u-s-shipped: #5fd39a;
+  --u-s-review: #a3a6b8;
+  --u-s-planned: #7ea6ff;
+  --u-s-progress: #ffb04d;
+  --u-s-shipped: #4fd69c;
   --u-band-strong: #6fd39a;
   --u-band-good: #8fb0e6;
   --u-band-refine: #ffc46b;

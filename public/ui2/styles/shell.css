@@ -2,9 +2,15 @@
    locales (Arabic, Persian) mirror without extra rules. */
 body.u2 {
   margin: 0;
-  background-color: var(--u-bg);
+  background: var(--u-aurora) fixed, var(--u-bg);
   color: var(--u-text);
-  font: 14px/1.45 var(--u-font);
+  font: 14px/1.5 var(--u-font);
+  -webkit-font-smoothing: antialiased;
+}
+/* Headings carry the display face everywhere in the Upvora look. */
+body.u2 :is(h1, h2, h3) {
+  font-family: var(--u-display);
+  letter-spacing: -0.015em;
 }
 body.u2 *,
 body.u2 *::before,
@@ -59,7 +65,7 @@ body.u2 .u2-ovl__panel:focus-visible {
 
 .u2-panel {
   background: var(--u-glass);
-  border: 1px solid var(--u-edge);
+  border: 1px solid var(--u-line);
   border-radius: var(--u-radius-lg);
 }
 /* Floating layers (menus, popovers, dialogs) are the only things with a shadow. */
@@ -88,21 +94,40 @@ body.u2 .u2-ovl__panel:focus-visible {
   transition: background 0.12s, border-color 0.12s;
 }
 .u2-btn:hover {
-  border-color: color-mix(in srgb, var(--u-text) 22%, transparent);
+  border-color: color-mix(in srgb, var(--u-text) 26%, transparent);
+  background: var(--u-surface3);
 }
 .u2-btn--primary {
-  background: var(--u-accent);
+  background: var(--u-grad);
   border-color: transparent;
   color: var(--u-on-accent) !important;
   font-weight: 600;
+  box-shadow: var(--u-glow);
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
 }
 .u2-btn--primary:hover {
   border-color: transparent;
-  background: color-mix(in srgb, var(--u-accent) 88%, var(--u-text));
+  background: var(--u-grad);
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+.u2-btn--primary:active {
+  transform: none;
 }
 .u2-btn:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.u2-btn__icon {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .u2-iconbtn {
@@ -118,6 +143,7 @@ body.u2 .u2-ovl__panel:focus-visible {
 }
 .u2-iconbtn:hover {
   background: var(--u-surface2);
+  color: var(--u-text);
 }
 .u2-iconbtn svg {
   width: 18px;
@@ -141,10 +167,11 @@ body.u2 .u2-ovl__panel:focus-visible {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 60px;
-  padding-inline: 20px;
+  height: 56px;
+  padding-inline: 18px;
   border-block-end: 1px solid var(--u-line);
-  background: var(--u-glass);
+  background: color-mix(in srgb, var(--u-bg) 80%, transparent);
+  backdrop-filter: blur(12px);
 }
 .u2-top__menu {
   display: none;
@@ -155,11 +182,16 @@ body.u2 .u2-ovl__panel:focus-visible {
   gap: 10px;
   color: var(--u-text) !important;
   text-decoration: none;
-  font-weight: 600;
-  font-size: 15px;
+  font: 600 15px var(--u-display);
+  letter-spacing: -0.01em;
 }
 .u2-brand img {
-  border-radius: var(--u-radius);
+  border-radius: 8px;
+}
+.u2-top__new {
+  min-height: 34px;
+  padding-block: 0;
+  margin-inline-end: 4px;
 }
 .u2-top__end {
   margin-inline-start: auto;
@@ -176,28 +208,26 @@ body.u2 .u2-ovl__panel:focus-visible {
 }
 .u2-side {
   position: sticky;
-  inset-block-start: 60px;
+  inset-block-start: 56px;
   align-self: start;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 56px);
   overflow-y: auto;
   padding: 16px 12px;
   border-inline-end: 1px solid var(--u-line);
-  background: var(--u-glass);
 }
 .u2-main {
   min-width: 0;
   width: 100%;
-  max-width: 1320px;
-  padding: 28px 32px 0;
+  max-width: 1280px;
+  padding: 26px 36px 0;
 }
 /* Page titles: one size everywhere, like a dashboard. */
 .u2-home__title,
 .u2-roadmap__head h1,
 .u2-sc__head h1,
 .u2-admin__title {
-  font-size: 26px !important;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font: 600 26px/1.2 var(--u-display) !important;
+  letter-spacing: -0.025em;
 }
 .u2-main:focus {
   outline: none;
@@ -224,24 +254,37 @@ body.u2 .u2-ovl__panel:focus-visible {
   gap: 2px;
 }
 .u2-side__list a {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 11px;
-  min-height: 36px;
-  padding: 0 12px;
+  min-height: 34px;
+  padding: 0 10px;
   border-radius: var(--u-radius);
   font-size: 14px;
+  transition: background 0.15s, color 0.15s;
   color: var(--u-text2);
   text-decoration: none;
 }
 .u2-side__list a:hover {
-  background: color-mix(in srgb, var(--u-surface2) 60%, transparent);
+  background: var(--u-surface2);
   color: var(--u-text);
 }
 .u2-side__list a[aria-current="page"] {
   background: var(--u-surface2);
   color: var(--u-text);
   font-weight: 500;
+}
+/* The current page gets the brand marker on the sidebar's edge. */
+.u2-side__list a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -12px;
+  inset-block: 8px;
+  width: 3px;
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
+  background: var(--u-grad);
 }
 .u2-side__ico {
   width: 17px;
@@ -255,10 +298,11 @@ body.u2 .u2-ovl__panel:focus-visible {
   opacity: 0.8;
 }
 .u2-side__dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   margin-inline: 4px;
   flex: none;
+  border-radius: 50%;
   background: var(--u-dot, var(--u-accent));
 }
 
@@ -271,12 +315,15 @@ body.u2 .u2-ovl__panel:focus-visible {
   align-items: center;
   gap: 8px;
   padding: 3px 10px 3px 3px;
-  border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
-  background: var(--u-surface2);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
   color: var(--u-text);
   font: inherit;
   cursor: pointer;
+}
+.u2-avatarbtn:hover {
+  background: var(--u-surface2);
 }
 .u2-avatarbtn img {
   border-radius: 50%;
@@ -285,9 +332,11 @@ body.u2 .u2-ovl__panel:focus-visible {
   position: absolute;
   inset-inline-end: 0;
   inset-block-start: calc(100% + 6px);
-  min-width: 190px;
+  min-width: 200px;
   margin: 0;
   padding: 6px;
+  border: 1px solid var(--u-edge);
+  border-radius: 12px;
   list-style: none;
   background: var(--u-pop);
 }
@@ -309,7 +358,7 @@ body.u2 .u2-ovl__panel:focus-visible {
 .u2-menu__list a:focus-visible,
 .u2-menu__list button:hover,
 .u2-menu__list button:focus-visible {
-  background: var(--u-chip);
+  background: var(--u-surface2);
 }
 
 /* Banner and notices */
@@ -372,6 +421,9 @@ body.u2 .u2-ovl__panel:focus-visible {
     display: inline-grid;
   }
   .u2-avatarbtn__name {
+    display: none;
+  }
+  .u2-top__new {
     display: none;
   }
   .u2-body {

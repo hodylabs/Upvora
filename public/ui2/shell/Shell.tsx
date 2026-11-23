@@ -8,6 +8,7 @@ import { NotificationsBadge } from "../components/NotificationsBadge"
 import { ModerationBadge } from "../components/ModerationBadge"
 import { URL_CHANGE_EVENT, signInHref } from "../lib/nav"
 import { Menu, MenuItem } from "../components/Menu"
+import { requestShare } from "../lib/share"
 
 // The new UI's app shell: top bar (site, account, theme), optional site banner,
 // sidebar (views and products; behind a menu button on phones), the page, footer.
@@ -191,6 +192,20 @@ const Sidebar = (props: { id: string; open: boolean; slotRef: (el: HTMLElement |
   )
 }
 
+// Share from any page; the board has its own share box in the welcome card.
+const NewIdea = () => {
+  const fider = useFider()
+  if (fider.isReadOnly || fider.session.page === "Home/Home.page") return null
+  return (
+    <button type="button" className="u2-btn u2-btn--primary u2-top__new" onClick={() => requestShare("")}>
+      <svg className="u2-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+      <Trans id="ui2.shell.newidea">New idea</Trans>
+    </button>
+  )
+}
+
 export const Shell = (props: { children: React.ReactNode }) => {
   const fider = useFider()
   const tenant = fider.session.tenant
@@ -224,6 +239,7 @@ export const Shell = (props: { children: React.ReactNode }) => {
           <span>{tenant.name}</span>
         </a>
         <div className="u2-top__end">
+          <NewIdea />
           <ModerationBadge />
           <ThemeToggle />
           <NotificationsBadge />

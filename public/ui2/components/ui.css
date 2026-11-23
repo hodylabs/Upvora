@@ -10,45 +10,65 @@
   white-space: nowrap;
 }
 
-/* Vote button: a plain count with an up arrow; filled when it's your vote. */
+/* Vote button: a count under an arrow, no box; your vote fills the arrow in the brand color.
+   The large size (idea view) is a pill, filled with the brand gradient when it is your vote. */
 .u2-vote {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  width: 62px;
-  height: 30px;
-  padding: 0 8px;
-  border: 1px solid var(--u-edge);
+  gap: 1px;
+  width: 48px;
+  height: 42px;
+  padding: 0;
+  border: 0;
   border-radius: var(--u-radius);
-  background: transparent;
-  color: var(--u-text);
-  font: 500 13px var(--u-mono);
+  background: none;
+  color: var(--u-text2);
+  font: 600 13px var(--u-mono);
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
 .u2-vote svg {
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
   flex: none;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
+  stroke-width: 2.2;
   stroke-linejoin: round;
 }
 .u2-vote:hover {
-  border-color: var(--u-accent);
+  background: var(--u-surface3);
+  color: var(--u-text);
 }
 .u2-vote.is-on {
-  background: none;
-  border-color: var(--u-accent);
+  background: var(--u-accent-soft);
   color: var(--u-accent);
 }
+.u2-vote.is-on svg {
+  fill: currentColor;
+}
+.u2-vote:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
 .u2-vote--large {
+  flex-direction: row;
+  gap: 8px;
   width: auto;
-  flex: 1;
-  height: 44px;
-  font-size: 14px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--u-surface2);
+  box-shadow: inset 0 0 0 1px var(--u-edge);
+  color: var(--u-text);
+  font-size: 13px;
+}
+.u2-vote--large.is-on {
+  background: var(--u-grad);
+  box-shadow: var(--u-glow);
+  color: var(--u-on-accent);
 }
 .u2-vote__n {
   display: inline-block;
@@ -62,37 +82,44 @@
   }
 }
 
-/* Status pill: the four tones run in order. */
+/* Status: a ring that fills as the idea moves along (hollow, hollow, half, full). */
 .u2-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  gap: 8px;
+  gap: 7px;
   padding: 0;
   border: 0;
   background: none;
-  font-size: 13px;
+  color: var(--u-text2);
+  font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
 }
 .u2-pill::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: 11px;
+  height: 11px;
   flex: none;
-  background: currentColor;
+  border-radius: 50%;
+  border: 2px solid var(--u-tone);
 }
 .u2-pill--review {
-  color: var(--u-s-review);
+  --u-tone: var(--u-s-review);
 }
 .u2-pill--planned {
-  color: var(--u-s-planned);
+  --u-tone: var(--u-s-planned);
 }
 .u2-pill--progress {
-  color: var(--u-s-progress);
+  --u-tone: var(--u-s-progress);
+}
+.u2-pill--progress::before {
+  background: conic-gradient(var(--u-tone) 0 50%, transparent 0);
 }
 .u2-pill--shipped {
-  color: var(--u-s-shipped);
+  --u-tone: var(--u-s-shipped);
+}
+.u2-pill--shipped::before {
+  background: var(--u-tone);
 }
 
 /* Chips: product, tag, Vora notes, moved, warnings. */
@@ -113,8 +140,9 @@
 .u2-chip--product::before,
 .u2-chip--tag[style]::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
   background: var(--u-chip-dot, var(--u-accent));
 }
 a.u2-chip--product:hover {
