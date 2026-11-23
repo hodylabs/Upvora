@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useId } from "react"
 import { Trans } from "@lingui/react/macro"
 import { Tenant } from "@fider/models"
 import { Band, bands, ringPoint, thresholdDots } from "./score"
@@ -16,16 +16,38 @@ export const ScoreRing = (props: { score: number; band: Band; tenant: Tenant }) 
   const unscored = score === 0
   const threshold = band.threshold
   const low = tenant.scorecardBandLow
+  // useId gives ":r0:"; colons are dropped so the id is safe inside url(#...).
+  const gradId = `u2-ring-${useId().replace(/:/g, "")}`
+  // The top two bands get a gradient arc in their own color; the rest stay flat.
+  const strong = !unscored && (band.key === "strong" || band.key === "good")
   return (
     <div className="u2-ring">
       <div className={`u2-ring__dial u2-band--${unscored ? "none" : band.key}`}>
         <svg viewBox="0 0 160 160" aria-hidden="true">
+          {strong && (
+            <defs>
+              <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" className="u2-ring__stop-hi" />
+                <stop offset="1" className="u2-ring__stop" />
+              </linearGradient>
+            </defs>
+          )}
           <circle className="u2-ring__track" cx={C} cy={C} r={R} />
           {thresholdDots(tenant).map((d) => {
             const pt = ringPoint(d.threshold, R, C)
             return <circle key={d.key} className={`u2-ring__dot u2-band--${d.key}`} cx={pt.x} cy={pt.y} r="3.5" data-threshold={d.threshold} />
           })}
-          {p > 0 && <circle className="u2-ring__arc" cx={C} cy={C} r={R} strokeDasharray={`${(CIRC * p) / 100} ${CIRC}`} transform={`rotate(-90 ${C} ${C})`} />}
+          {p > 0 && (
+            <circle
+              className="u2-ring__arc"
+              cx={C}
+              cy={C}
+              r={R}
+              style={strong ? { stroke: `url(#${gradId})` } : undefined}
+              strokeDasharray={`${(CIRC * p) / 100} ${CIRC}`}
+              transform={`rotate(-90 ${C} ${C})`}
+            />
+          )}
         </svg>
         <div className="u2-ring__center">
           <span className="u2-ring__num u2-mono" data-score={score}>

@@ -1,9 +1,10 @@
-/* Roadmap: status lanes as glass columns with dense, row-like tiles. Phones get
-   one lane at a time behind lane tabs. Logical properties only. */
+/* Roadmap: one rounded panel per status lane (any number of them), side by side.
+   Narrow screens scroll the lanes sideways with snap; phones stack them. Logical
+   properties only. */
 .u2-roadmap {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 .u2-roadmap__head h1,
 .u2-roadmap__blank h1 {
@@ -30,65 +31,87 @@
 .u2-roadmap__search {
   width: auto;
   min-width: 200px;
+  margin-inline-start: auto;
+}
+.u2-roadmap__nomatch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--u-edge);
+  border-radius: var(--u-radius-lg);
+  color: var(--u-muted);
 }
 
-.u2-roadmap__tabs {
-  display: none;
-}
 .u2-roadmap__lanes {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(220px, 1fr);
+  grid-auto-columns: minmax(272px, 1fr);
   gap: 12px;
   align-items: start;
   overflow-x: auto;
-  padding-block-end: 4px;
+  padding-block-end: 6px;
+  scroll-snap-type: inline proximity;
+  scroll-padding-inline: 2px;
 }
 
+/* Lane: a rounded panel with a header strip (ring, name, mono count) */
+/* No overflow clipping here: the Move menu must be able to leave the lane. */
 .u2-lane {
-  --u-lane: var(--u-s-review);
   position: relative;
-  overflow: hidden;
   min-width: 0;
-}
-.u2-lane::before {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  inset-block-start: 0;
-  height: 2px;
-  background: var(--u-lane);
-}
-.u2-lane--planned {
-  --u-lane: var(--u-s-planned);
-}
-.u2-lane--progress {
-  --u-lane: var(--u-s-progress);
-}
-.u2-lane--shipped {
-  --u-lane: var(--u-s-shipped);
+  border-color: var(--u-edge);
+  scroll-snap-align: start;
 }
 .u2-lane.is-over {
-  outline: 2px dashed var(--u-lane);
+  outline: 2px dashed var(--u-accent);
   outline-offset: -2px;
 }
 .u2-lane__h {
   margin: 0;
-  font-size: inherit;
+  font: inherit;
+  letter-spacing: normal;
 }
 .u2-lane__toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  min-height: 46px;
-  padding: 10px 14px;
+  min-height: 44px;
+  padding: 0 14px 0 16px;
   border: 0;
-  background: none;
+  border-block-end: 1px solid var(--u-line);
+  background: var(--u-surface2);
   color: var(--u-text);
   font: inherit;
   cursor: pointer;
   text-align: start;
+}
+/* Inner corners follow the panel's, since the lane does not clip. */
+.u2-lane__toggle {
+  border-radius: calc(var(--u-radius-lg) - 1px) calc(var(--u-radius-lg) - 1px) 0 0;
+}
+.u2-lane__body > :last-child,
+.u2-lane__list:last-child > :last-child {
+  border-radius: 0 0 calc(var(--u-radius-lg) - 1px) calc(var(--u-radius-lg) - 1px);
+}
+.u2-lane.is-collapsed .u2-lane__toggle {
+  border-block-end-color: transparent;
+  border-radius: calc(var(--u-radius-lg) - 1px);
+}
+.u2-lane__toggle:focus-visible {
+  outline-offset: -2px;
+}
+.u2-lane__toggle .u2-pill {
+  color: var(--u-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+.u2-lane__toggle .u2-pill::before {
+  width: 14px;
+  height: 14px;
 }
 .u2-lane__n {
   font-size: 12px;
@@ -101,7 +124,7 @@
   fill: none;
   stroke: var(--u-muted);
   stroke-width: 2;
-  transition: transform 0.15s;
+  transition: transform 0.2s;
 }
 .u2-lane.is-collapsed .u2-lane__chev {
   transform: rotate(-90deg);
@@ -113,63 +136,68 @@
 }
 .u2-lane__empty {
   margin: 0;
-  padding: 10px 12px 14px;
+  padding: 18px 16px;
   font-size: 13px;
+  text-align: center;
 }
 .u2-lane__more {
   display: block;
   width: 100%;
-  min-height: 36px;
+  min-height: 38px;
   border: 0;
   border-block-start: 1px solid var(--u-line);
   background: none;
   color: var(--u-accent);
-  font: inherit;
-  font-weight: 500;
+  font: 500 12px var(--u-mono);
   cursor: pointer;
 }
+.u2-lane__more:hover {
+  background: var(--u-surface2);
+}
+.u2-lane__more:disabled {
+  color: var(--u-muted);
+  cursor: default;
+}
+.u2-lane__more:focus-visible {
+  outline-offset: -2px;
+}
 
-/* Tile: a dense row (vote, then title, chips and count) */
+/* Tile: title and meta on the start side, the vote on the end side */
 .u2-rtile {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 48px;
-  gap: 12px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
   min-height: var(--u-row);
-  padding: 11px 14px;
+  padding: 10px 8px 10px 16px;
   border-block-start: 1px solid var(--u-line);
+  transition: background 0.12s;
+}
+.u2-rtile:first-child {
+  border-block-start: 0;
 }
 .u2-rtile[draggable="true"] {
   cursor: grab;
 }
+/* The lift is a background change, never a shadow (flat panels, hairline edges). */
 .u2-rtile:hover,
 .u2-rtile:focus-within {
-  background: color-mix(in srgb, var(--u-text) 4%, transparent);
-}
-.u2-rtile .u2-vote {
-  width: 48px;
-  height: 26px;
-  padding: 0 6px;
-  gap: 3px;
+  background: var(--u-surface2);
 }
 .u2-rtile.is-shipped .u2-rtile__title {
   opacity: 0.62;
 }
 .u2-rtile__vote {
-  order: 2;
-  justify-self: end;
-  padding-block-start: 1px;
+  position: relative;
+  z-index: 1;
 }
 .u2-rtile__check {
   display: inline-flex;
-  min-height: 28px;
   align-items: center;
-  color: var(--u-s-shipped);
-}
-.u2-rtile__done {
-  font-size: 11px;
-  white-space: nowrap;
+  justify-content: center;
+  width: 48px;
+  height: 42px;
   color: var(--u-s-shipped);
 }
 .u2-rtile__check svg {
@@ -180,50 +208,65 @@
   stroke: currentColor;
   stroke-width: 2.4;
 }
+.u2-rtile__done {
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--u-s-shipped);
+}
 .u2-rtile__main {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 .u2-rtile__line {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
-  min-height: 28px;
 }
 .u2-rtile__title {
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   color: var(--u-text) !important;
+  font-size: 14px;
   font-weight: 500;
+  line-height: 1.35;
   text-decoration: none;
 }
-.u2-rtile__title:hover {
-  text-decoration: underline;
+/* Stretched link: the whole tile opens the idea; the vote and Move sit above it. */
+.u2-rtile__title::after {
+  content: "";
+  position: absolute;
+  inset: 0;
 }
-.u2-rtile__desc {
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
-  color: var(--u-muted);
+.u2-rtile__title:focus-visible {
+  outline: none;
+}
+.u2-rtile__title:focus-visible::after {
+  outline: 2px solid var(--u-accent);
+  outline-offset: -2px;
+  border-radius: var(--u-radius);
 }
 .u2-rtile__meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px 12px;
+  min-height: 20px;
+}
+.u2-rtile__meta a {
+  position: relative;
+  z-index: 1;
 }
 .u2-rtile__cmts {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--u-muted);
 }
 .u2-rtile__cmts svg {
@@ -234,57 +277,74 @@
   stroke-width: 2;
 }
 
-/* "Move to…" (staff): floats in the tile's corner on hover or keyboard focus, stays
-   tabbable, and takes no room while hidden. */
+/* "Move to…" (staff): pointer devices see it on hover or keyboard focus (it stays
+   tabbable while faded); touch devices always see it. */
 .u2-move {
-  position: absolute;
-  inset-block-end: 10px;
-  inset-inline-end: 14px;
+  position: relative;
+  z-index: 1;
+  margin-inline-start: auto;
+}
+/* An open menu must paint over the tiles below it, whose votes also sit at z-index 1. */
+.u2-move:focus-within {
+  z-index: 5;
 }
 .u2-move__btn {
+  display: inline-flex;
+  align-items: center;
   min-height: 24px;
-  padding: 0 8px;
+  padding: 0 10px;
   border: 1px solid var(--u-edge);
-  border-radius: var(--u-radius);
-  background: var(--u-pop);
+  border-radius: 999px;
+  background: var(--u-glass);
   color: var(--u-text2);
-  font: inherit;
-  font-size: 12px;
+  font: 500 11.5px var(--u-mono);
   cursor: pointer;
-  opacity: 0;
+  transition: opacity 0.12s, border-color 0.12s;
 }
-.u2-rtile:hover .u2-move__btn,
-.u2-rtile:focus-within .u2-move__btn,
-.u2-move__btn[aria-expanded="true"] {
-  opacity: 1;
+.u2-move__btn:hover {
+  border-color: var(--u-muted);
+  color: var(--u-text);
+}
+@media (hover: hover) {
+  .u2-move__btn {
+    opacity: 0;
+  }
+  .u2-rtile:hover .u2-move__btn,
+  .u2-rtile:focus-within .u2-move__btn,
+  .u2-move__btn[aria-expanded="true"] {
+    opacity: 1;
+  }
 }
 .u2-move__list {
   position: absolute;
   inset-inline-end: 0;
-  inset-block-start: calc(100% + 4px);
+  inset-block-start: calc(100% + 6px);
   z-index: 6;
-  min-width: 180px;
+  min-width: 190px;
   margin: 0;
   padding: 6px;
   list-style: none;
+  border-color: var(--u-edge);
   background: var(--u-pop);
 }
 .u2-move__list button {
   display: block;
   width: 100%;
-  min-height: 32px;
+  min-height: 34px;
   padding: 4px 10px;
   border: 0;
-  border-radius: var(--u-radius);
+  border-radius: 8px;
   background: none;
   color: var(--u-text);
   font: inherit;
+  font-size: 13px;
   text-align: start;
   cursor: pointer;
 }
 .u2-move__list button:hover,
 .u2-move__list button:focus-visible {
-  background: var(--u-chip);
+  background: var(--u-surface3);
+  outline: none;
 }
 
 /* Blank state and upsell over faint ghost lanes */
@@ -302,6 +362,7 @@
 }
 .u2-roadmap__blank p {
   margin: 0;
+  max-width: 46ch;
 }
 .u2-roadmap__ghost {
   position: absolute;
@@ -309,77 +370,51 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  opacity: 0.35;
+  opacity: 0.4;
   pointer-events: none;
+  mask-image: linear-gradient(to bottom, #000 30%, transparent);
 }
 .u2-roadmap__ghost > div {
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 14px;
+  border-style: dashed;
+  border-color: var(--u-edge);
 }
 .u2-roadmap__ghost i {
   display: block;
   height: 42px;
   border-radius: var(--u-radius);
-  background: var(--u-chip);
+  background: var(--u-surface2);
 }
 
-/* Phone: lane tabs, one lane at a time, 44 px targets */
-@media (max-width: 840px) {
-  .u2-roadmap__tabs {
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-  }
-  .u2-rtab {
-    flex: none;
-    min-height: 44px;
-    padding: 0 12px;
-    border: 1px solid transparent;
-    border-radius: var(--u-radius);
-    background: none;
-    color: var(--u-text2);
-    font: inherit;
-    cursor: pointer;
-  }
-  .u2-rtab[aria-pressed="true"] {
-    border-color: var(--u-edge);
-    background: var(--u-glass);
-    color: var(--u-text);
-    font-weight: 600;
-  }
+/* Phone: lanes stack; 44 px targets, 16 px inputs */
+@media (max-width: 640px) {
   .u2-roadmap__lanes {
     grid-auto-flow: row;
     grid-auto-columns: auto;
     overflow: visible;
   }
-  .u2-lane:not(.is-active) {
-    display: none;
-  }
   .u2-roadmap__search {
     width: 100%;
+    margin-inline-start: 0;
+    font-size: 16px;
   }
-  .u2-rtile {
-    grid-template-columns: minmax(0, 1fr) 48px;
+  .u2-lane__toggle,
+  .u2-lane__more,
+  .u2-move__btn,
+  .u2-move__list button {
+    min-height: 44px;
   }
   .u2-rtile .u2-vote {
-    width: 48px;
+    width: 56px;
     height: 44px;
   }
-  .u2-rtile__title {
-    white-space: normal;
+  .u2-roadmap__ghost {
+    grid-template-columns: 1fr;
   }
-  .u2-move {
-    position: relative;
-    inset: auto;
-    margin-inline-start: auto;
-  }
-  .u2-move__btn {
-    min-height: 44px;
-    opacity: 1;
-  }
-  .u2-lane__more {
-    min-height: 44px;
+  .u2-roadmap__ghost > div:not(:first-child) {
+    display: none;
   }
 }

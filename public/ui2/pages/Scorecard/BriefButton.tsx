@@ -37,7 +37,7 @@ export const BriefButton = (props: { postNumber: number }) => {
   // The shared Modal handles focus in and out, Esc, the backdrop and the focus trap.
   return (
     <>
-      <Button className="u2-sc__brief" onClick={() => setOpen(true)}>
+      <Button variant="primary" className="u2-sc__brief" onClick={() => setOpen(true)}>
         <Trans id="ui2.ideabrief.view">View Idea Brief</Trans>
       </Button>
       <Modal

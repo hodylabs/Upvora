@@ -5,7 +5,7 @@ import React, { useRef, useState } from "react"
 import { Trans } from "@lingui/react/macro"
 import { i18n } from "@lingui/core"
 import { Post, Status, Tag } from "@fider/models"
-import { actions, formatDate, markdown, notify, timeSince, truncate } from "@fider/services"
+import { actions, formatDate, notify, timeSince } from "@fider/services"
 import { useFider } from "@fider/hooks"
 import { VoteButton } from "../../components/VoteButton"
 import { StatusPill } from "../../components/StatusPill"
@@ -29,7 +29,6 @@ const DRAG_TYPE = "text/plain"
 interface TileProps {
   post: Post
   lane: Lane
-  tags: Tag[]
   staff: boolean
   targets: { slug: string; label: string }[]
   locale: string
@@ -42,7 +41,6 @@ const Tile = (props: TileProps) => {
   const { post } = props
   const tone = statusTone(props.lane.status.slug, props.lane.status.kind)
   const completed = isCompletedLane(props.lane.status)
-  const excerpt = post.description ? truncate(markdown.toText(post.description), 110) : ""
   const respondedAt = post.response?.respondedAt
   const cls = ["u2-rtile", post.hasVoted && "is-mine", tone === "shipped" && "is-shipped"].filter(Boolean).join(" ")
 
@@ -60,20 +58,10 @@ const Tile = (props: TileProps) => {
           : undefined
       }
     >
-      <div className="u2-rtile__vote">
-        {completed && respondedAt ? (
-          <span className="u2-rtile__check">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M5 12l5 5L19 7" />
-            </svg>
-          </span>
-        ) : (
-          <VoteButton post={post} onChange={props.onVoteChange} />
-        )}
-      </div>
       <div className="u2-rtile__main">
         <div className="u2-rtile__line">
-          <a className="u2-rtile__title" href={postHref(post)}>
+          {/* The title's link is stretched over the whole tile in CSS, so a click anywhere opens the idea. */}
+          <a className="u2-rtile__title" href={postHref(post)} draggable={props.staff ? false : undefined}>
             {post.title}
           </a>
           {props.showPending && !post.isApproved && (
@@ -87,7 +75,6 @@ const Tile = (props: TileProps) => {
             </span>
           )}
         </div>
-        {excerpt && <p className="u2-rtile__desc">{excerpt}</p>}
         <div className="u2-rtile__meta">
           {completed && respondedAt && (
             <span className="u2-rtile__done u2-mono" title={formatDate(props.locale, respondedAt)}>
@@ -95,11 +82,6 @@ const Tile = (props: TileProps) => {
             </span>
           )}
           {post.product && <ProductChip product={post.product} />}
-          {props.tags.map((t) => (
-            <span key={t.id} className="u2-chip u2-chip--tag" style={{ "--u-chip-dot": `#${t.color}` } as React.CSSProperties}>
-              {t.name}
-            </span>
-          ))}
           <span className="u2-rtile__cmts u2-mono">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M21 12a8 8 0 01-11.7 7.1L4 20l1-4.6A8 8 0 1121 12z" />
@@ -112,6 +94,17 @@ const Tile = (props: TileProps) => {
           {props.staff && <MoveMenu title={post.title} targets={props.targets} onMove={(slug) => props.onMove(post.number, slug)} />}
         </div>
       </div>
+      <div className="u2-rtile__vote">
+        {completed && respondedAt ? (
+          <span className="u2-rtile__check">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12l5 5L19 7" />
+            </svg>
+          </span>
+        ) : (
+          <VoteButton post={post} onChange={props.onVoteChange} />
+        )}
+      </div>
     </li>
   )
 }
@@ -121,7 +114,7 @@ const LaneColumn = (props: {
   posts: Post[]
   label: string
   collapsed: boolean
-  active: boolean
+  loading: boolean
   staff: boolean
   onToggle: () => void
   onDrop: (postNumber: number) => void
@@ -152,7 +145,7 @@ const LaneColumn = (props: {
 
   return (
     <section
-      className={`u2-lane u2-panel u2-lane--${tone}${props.collapsed ? " is-collapsed" : ""}${props.active ? " is-active" : ""}${over ? " is-over" : ""}`}
+      className={`u2-lane u2-panel u2-lane--${tone}${props.collapsed ? " is-collapsed" : ""}${over ? " is-over" : ""}`}
       aria-label={props.label}
       data-lane={status.slug}
       {...dropProps}
@@ -175,8 +168,8 @@ const LaneColumn = (props: {
           </p>
         )}
         {hasMore(props.lane) && (
-          <button type="button" className="u2-lane__more" onClick={props.onShowMore}>
-            <Trans id="roadmap.column.showmore">Show more</Trans>
+          <button type="button" className="u2-lane__more" onClick={props.onShowMore} disabled={props.loading} aria-busy={props.loading || undefined}>
+            {props.loading ? <Trans id="ui2.roadmap.loading">Loading…</Trans> : <Trans id="roadmap.column.showmore">Show more</Trans>}
           </button>
         )}
       </div>
@@ -238,7 +231,7 @@ export const RoadmapBoard = (props: RoadmapPageProps) => {
   const [lanes, setLanes] = useState<Lane[]>(() => lanesFrom(props.columns))
   const [filter, setFilter] = useState<LaneFilter>(() => ({ products: productIdsFromURL(products, location.search), tag: null, query: "" }))
   const [collapsed, setCollapsed] = useState<{ [slug: string]: boolean }>({})
-  const [activeLane, setActiveLane] = useState(() => lanes[0]?.status.slug || "")
+  const [loadingSlugs, setLoadingSlugs] = useState<string[]>([])
   const [announce, setAnnounce] = useState("")
   const lanesRef = useRef(lanes)
   lanesRef.current = lanes
@@ -260,8 +253,13 @@ export const RoadmapBoard = (props: RoadmapPageProps) => {
     const lane = lanesRef.current.find((l) => l.status.slug === slug)
     if (!lane) return
     const limit = lane.limit + LANE_STEP
-    const res = await actions.searchPosts({ statuses: [slug], limit })
-    if (!res.ok) return
+    setLoadingSlugs((ls) => [...ls, slug])
+    const res = await actions.searchPosts({ statuses: [slug], limit }).catch(() => ({ ok: false as const, data: [] as Post[] }))
+    setLoadingSlugs((ls) => ls.filter((x) => x !== slug))
+    if (!res.ok) {
+      notify.error(i18n._({ id: "ui2.roadmap.more.failed", message: "Could not load more ideas. Please try again." }))
+      return
+    }
     setLanes((ls) => ls.map((l) => (l.status.slug === slug ? { ...l, posts: res.data, limit } : l)))
   }
 
@@ -290,6 +288,12 @@ export const RoadmapBoard = (props: RoadmapPageProps) => {
     const next = toggleId(filter.products, id)
     setFilter({ ...filter, products: next })
     writeProductIds(products, next)
+  }
+
+  const filtered = filter.products.length > 0 || !!filter.tag || filter.query.trim() !== ""
+  const clearFilters = () => {
+    setFilter({ products: [], tag: null, query: "" })
+    writeProductIds(products, [])
   }
 
   if (!lanes.some((l) => l.posts.length > 0)) return <Blank />
@@ -333,22 +337,16 @@ export const RoadmapBoard = (props: RoadmapPageProps) => {
         )}
       </div>
 
-      {/* Phones show one lane at a time. */}
-      <div className="u2-roadmap__tabs" role="group" aria-label={i18n._({ id: "ui2.roadmap.lanes", message: "Lanes" })}>
-        {lanes.map((l) => (
-          <button
-            key={l.status.slug}
-            type="button"
-            className="u2-rtab"
-            aria-pressed={activeLane === l.status.slug}
-            onClick={() => setActiveLane(l.status.slug)}
-          >
-            {labelOf(l.status)} <span className="u2-mono u2-muted">{visiblePosts(l, filter).length}</span>
+      {filtered && !lanes.some((l) => visiblePosts(l, filter).length > 0) && (
+        <p className="u2-roadmap__nomatch" role="status">
+          <Trans id="ui2.roadmap.nomatch">None of the loaded ideas match these filters.</Trans>
+          <button type="button" className="u2-btn" onClick={clearFilters}>
+            <Trans id="ui2.roadmap.clear">Clear filters</Trans>
           </button>
-        ))}
-      </div>
+        </p>
+      )}
 
-      <div className="u2-roadmap__lanes">
+      <div className="u2-roadmap__lanes" role="group" aria-label={i18n._({ id: "ui2.roadmap.lanes", message: "Lanes" })}>
         {lanes.map((lane) => {
           const posts = visiblePosts(lane, filter)
           const targets = lanes.filter((l) => l !== lane).map((l) => ({ slug: l.status.slug, label: labelOf(l.status) }))
@@ -360,7 +358,7 @@ export const RoadmapBoard = (props: RoadmapPageProps) => {
               posts={posts}
               label={labelOf(lane.status)}
               collapsed={!!collapsed[slug]}
-              active={activeLane === slug}
+              loading={loadingSlugs.includes(slug)}
               staff={staff}
               onToggle={() => setCollapsed((c) => ({ ...c, [slug]: !c[slug] }))}
               onDrop={(num) => move(num, slug)}
@@ -371,7 +369,6 @@ export const RoadmapBoard = (props: RoadmapPageProps) => {
                   key={post.id}
                   post={post}
                   lane={lane}
-                  tags={tags.filter((t) => post.tags.includes(t.slug))}
                   staff={staff}
                   targets={targets}
                   locale={fider.currentLocale}

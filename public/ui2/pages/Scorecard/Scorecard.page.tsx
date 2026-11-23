@@ -11,7 +11,8 @@ import { StatusPill } from "../../components/StatusPill"
 import { statusInfo } from "../../lib/status"
 import { ProductFilter } from "../../components/ProductFilter"
 import { productIdsFromURL, toggleId, writeProductIds } from "../../lib/products"
-import { Bucket, bandForScore, computeWeightedScore, isScored, parseChoices, statusFieldOf } from "./score"
+import { Button } from "../../components/form"
+import { BandKey, Bucket, bandForScore, bands, computeWeightedScore, isScored, parseChoices, statusFieldOf } from "./score"
 
 // Same props the server sends classic (app/handlers/scorecard.go, ListScorecardsForTenant).
 export interface ScorecardRecord {
@@ -33,6 +34,8 @@ export interface ScorecardPageProps {
 }
 
 type Tab = "all" | Bucket
+// The band filter's keys: the five bands plus cards nobody has scored yet.
+type BandFilter = BandKey | "none"
 
 const TABS: { key: Tab; label: () => string }[] = [
   { key: "all", label: () => i18n._({ id: "ui2.scorecard.tab.all", message: "All" }) },
@@ -52,6 +55,8 @@ const ScorecardPage = (props: ScorecardPageProps) => {
   const trigger = tenant.scorecardTriggerStatusSlug ? statusInfo(tenant, tenant.scorecardTriggerStatusSlug) : null
   const [tab, setTab] = useState<Tab>("all")
   const [query, setQuery] = useState("")
+  const [bandKeys, setBandKeys] = useState<BandFilter[]>([])
+  const [creating, setCreating] = useState(false)
   const [productIds, setProductIds] = useState<number[]>(() => productIdsFromURL(products, location.search))
 
   // Tabs come from the header status field: each of its choices maps to a bucket.
@@ -66,12 +71,23 @@ const ScorecardPage = (props: ScorecardPageProps) => {
     if (b) counts[b]++
   }
 
+  const bandKeyOf = (c: ScorecardRecord): BandFilter => (isScored(c.values, fields) ? bandForScore(computeWeightedScore(c.values, fields), tenant).key : "none")
+
   const visible = cards.filter((c) => {
     if (productIds.length > 0 && !productIds.includes(c.productId ?? -1)) return false
+    if (bandKeys.length > 0 && !bandKeys.includes(bandKeyOf(c))) return false
     if (tab !== "all" && bucketOf(c) !== tab) return false
     const q = query.toLowerCase()
     return !q || `${c.title} ${statusOf(c)} ${c.submittedBy ?? ""}`.toLowerCase().includes(q)
   })
+
+  const clearFilters = () => {
+    setTab("all")
+    setQuery("")
+    setBandKeys([])
+    setProductIds([])
+    writeProductIds(products, [])
+  }
 
   const toggleProduct = (id: number) => {
     const next = toggleId(productIds, id)
@@ -79,11 +95,19 @@ const ScorecardPage = (props: ScorecardPageProps) => {
     writeProductIds(products, next)
   }
 
+  const toggleBand = (k: BandFilter) => setBandKeys((ks) => (ks.includes(k) ? ks.filter((x) => x !== k) : [...ks, k]))
+  const bandChips: { key: BandFilter; label: string }[] = [
+    ...bands(tenant).map((b) => ({ key: b.key as BandFilter, label: b.label })),
+    { key: "none", label: i18n._({ id: "ui2.scorecard.notscored", message: "Not scored" }) },
+  ]
+
   const create = async () => {
-    const r = await actions.createScorecard({})
+    setCreating(true)
+    const r = await actions.createScorecard({}).catch(() => ({ ok: false as const, data: undefined }))
     if (r.ok && r.data) {
       navigator.goTo(cardHref(r.data.id))
     } else {
+      setCreating(false)
       notify.error(i18n._({ id: "ui2.scorecard.create.failed", message: "Could not create scorecard." }))
     }
   }
@@ -94,9 +118,9 @@ const ScorecardPage = (props: ScorecardPageProps) => {
         <h1>
           <Trans id="header.nav.scorecard">Scorecard</Trans>
         </h1>
-        <button type="button" className="u2-btn u2-btn--primary" onClick={create}>
+        <Button variant="primary" onClick={create} loading={creating}>
           <Trans id="ui2.scorecard.new">New scorecard</Trans>
-        </button>
+        </Button>
       </header>
 
       {trigger && (
@@ -118,6 +142,19 @@ const ScorecardPage = (props: ScorecardPageProps) => {
           {TABS.map((t) => (
             <button key={t.key} type="button" className="u2-sc__tab" aria-pressed={tab === t.key} onClick={() => setTab(t.key)}>
               {t.label()} <span className="u2-mono u2-muted">{counts[t.key]}</span>
+            </button>
+          ))}
+        </div>
+        <div className="u2-pfilter u2-sc__bands" role="group" aria-label={i18n._({ id: "ui2.scorecard.bandfilter", message: "Filter by band" })}>
+          {bandChips.map((b) => (
+            <button
+              key={b.key}
+              type="button"
+              className={`u2-chip u2-pfilter__chip u2-sc__bandchip u2-band--${b.key}`}
+              aria-pressed={bandKeys.includes(b.key)}
+              onClick={() => toggleBand(b.key)}
+            >
+              {b.label}
             </button>
           ))}
         </div>
@@ -222,7 +259,12 @@ const ScorecardPage = (props: ScorecardPageProps) => {
                       button above.
                     </Trans>
                   ) : (
-                    <Trans id="ui2.scorecard.nomatch">No cards match this view.</Trans>
+                    <>
+                      <Trans id="ui2.scorecard.nomatch">No cards match this view.</Trans>{" "}
+                      <button type="button" className="u2-btn" onClick={clearFilters}>
+                        <Trans id="ui2.roadmap.clear">Clear filters</Trans>
+                      </button>
+                    </>
                   )}
                 </td>
               </tr>
