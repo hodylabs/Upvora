@@ -1,0 +1,43 @@
+.c-newlook {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 8px 16px;
+  background: #140d06;
+  color: #f4ede6;
+  font-size: 14px;
+}
+.c-newlook__go {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(100deg, #ffb04d, #fd8d27 46%, #e85d1f);
+  color: #1a0d02;
+  font-weight: 600;
+  cursor: pointer;
+}
+.c-newlook__go:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.c-newlook__x {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #c9bfb5;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.c-newlook__x:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.c-newlook button:focus-visible {
+  outline: 2px solid #fd8d27;
+  outline-offset: 2px;
+}
