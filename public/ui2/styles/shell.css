@@ -164,14 +164,18 @@ body.u2 .u2-ovl__panel:focus-visible {
   position: sticky;
   inset-block-start: 0;
   z-index: 5;
+  border-block-end: 1px solid var(--u-line);
+  background: color-mix(in srgb, var(--u-bg) 75%, transparent);
+  backdrop-filter: blur(12px);
+}
+.u2-top__in {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 56px;
-  padding-inline: 18px;
-  border-block-end: 1px solid var(--u-line);
-  background: color-mix(in srgb, var(--u-bg) 80%, transparent);
-  backdrop-filter: blur(12px);
+  gap: 8px;
+  max-width: 1120px;
+  min-height: 56px;
+  margin-inline: auto;
+  padding: 10px 24px;
 }
 .u2-top__menu {
   display: none;
@@ -179,11 +183,14 @@ body.u2 .u2-ovl__panel:focus-visible {
 .u2-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
+  margin-inline-end: 6px;
+  min-width: 0;
   color: var(--u-text) !important;
   text-decoration: none;
   font: 600 15px var(--u-display);
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 .u2-brand img {
   border-radius: 8px;
@@ -191,35 +198,137 @@ body.u2 .u2-ovl__panel:focus-visible {
 .u2-top__new {
   min-height: 34px;
   padding-block: 0;
-  margin-inline-end: 4px;
+  margin-inline-end: 2px;
+}
+.u2-top__signin {
+  min-height: 34px;
+  padding-block: 0;
 }
 .u2-top__end {
   margin-inline-start: auto;
   display: flex;
   align-items: center;
+  gap: 6px;
+}
+
+/* Product switcher: a menu button with the current board */
+.u2-pswitch__btn {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
+  height: 32px;
+  max-width: 220px;
+  padding: 0 10px;
+  border: 1px solid var(--u-line);
+  border-radius: 9px;
+  background: var(--u-glass);
+  color: var(--u-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.u2-pswitch__btn:hover {
+  border-color: var(--u-edge);
+}
+.u2-pswitch__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.u2-pswitch__chev {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  opacity: 0.6;
+}
+.u2-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--u-dot, var(--u-accent));
+}
+
+/* Section tabs */
+.u2-tabs {
+  display: flex;
+  gap: 2px;
+  margin-inline-start: 8px;
+}
+.u2-tabs a {
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--u-muted);
+  font-size: 13.5px;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.u2-tabs a:hover,
+.u2-tabs a[aria-current="page"] {
+  color: var(--u-text);
+  background: var(--u-surface2);
+}
+
+/* Team view switch (staff) */
+.u2-teamsw {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--u-line);
+  border-radius: 9px;
+  background: var(--u-glass);
+  color: var(--u-text2);
+  font: inherit;
+  font-size: 12.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.u2-teamsw:hover {
+  border-color: var(--u-edge);
+}
+.u2-teamsw__track {
+  position: relative;
+  width: 30px;
+  height: 17px;
+  flex: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--u-text) 18%, transparent);
+  transition: background 0.18s;
+}
+.u2-teamsw__track::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-start: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: inset-inline-start 0.18s;
+}
+.u2-teamsw[aria-checked="true"] .u2-teamsw__track {
+  background: var(--u-grad);
+}
+.u2-teamsw[aria-checked="true"] .u2-teamsw__track::after {
+  inset-inline-start: 15px;
 }
 
 .u2-body {
   flex: 1;
-  display: grid;
-  grid-template-columns: var(--u-side) minmax(0, 1fr);
   width: 100%;
-}
-.u2-side {
-  position: sticky;
-  inset-block-start: 56px;
-  align-self: start;
-  height: calc(100vh - 56px);
-  overflow-y: auto;
-  padding: 16px 12px;
-  border-inline-end: 1px solid var(--u-line);
 }
 .u2-main {
   min-width: 0;
   width: 100%;
-  max-width: 1280px;
-  padding: 26px 36px 0;
+  max-width: 1120px;
+  margin-inline: auto;
+  padding: 26px 24px 0;
 }
 /* Page titles: one size everywhere, like a dashboard. */
 .u2-home__title,
@@ -233,106 +342,22 @@ body.u2 .u2-ovl__panel:focus-visible {
   outline: none;
 }
 
-.u2-side__h {
-  margin: 20px 0 6px;
-  padding-inline: 12px;
-  font: 500 11px var(--u-mono);
-  text-transform: lowercase;
-  color: var(--u-muted);
-}
-.u2-side__h:first-child {
-  margin-block-start: 0;
-}
-.u2-side__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.u2-side__list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.u2-side__list a {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  min-height: 34px;
-  padding: 0 10px;
-  border-radius: var(--u-radius);
-  font-size: 14px;
-  transition: background 0.15s, color 0.15s;
-  color: var(--u-text2);
-  text-decoration: none;
-}
-.u2-side__list a:hover {
-  background: var(--u-surface2);
-  color: var(--u-text);
-}
-.u2-side__list a[aria-current="page"] {
-  background: var(--u-surface2);
-  color: var(--u-text);
-  font-weight: 500;
-}
-/* The current page gets the brand marker on the sidebar's edge. */
-.u2-side__list a[aria-current="page"]::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: -12px;
-  inset-block: 8px;
-  width: 3px;
-  border-start-end-radius: 3px;
-  border-end-end-radius: 3px;
-  background: var(--u-grad);
-}
-.u2-side__ico {
-  width: 17px;
-  height: 17px;
-  flex: none;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.8;
-}
-.u2-side__dot {
-  width: 8px;
-  height: 8px;
-  margin-inline: 4px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--u-dot, var(--u-accent));
-}
-
-/* Account menu */
+/* Menus (account, product switcher, phone menu) */
 .u2-menu {
   position: relative;
 }
 .u2-avatarbtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 3px 10px 3px 3px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: none;
-  color: var(--u-text);
-  font: inherit;
-  cursor: pointer;
-}
-.u2-avatarbtn:hover {
-  background: var(--u-surface2);
+  border-radius: 50%;
 }
 .u2-avatarbtn img {
   border-radius: 50%;
 }
 .u2-menu__list {
   position: absolute;
+  z-index: 6;
   inset-inline-end: 0;
   inset-block-start: calc(100% + 6px);
-  min-width: 200px;
+  min-width: 220px;
   margin: 0;
   padding: 6px;
   border: 1px solid var(--u-edge);
@@ -340,25 +365,52 @@ body.u2 .u2-ovl__panel:focus-visible {
   list-style: none;
   background: var(--u-pop);
 }
+.u2-menu__list--start {
+  inset-inline-end: auto;
+  inset-inline-start: 0;
+}
 .u2-menu__list a,
 .u2-menu__list button {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 9px;
   width: 100%;
   border: 0;
   background: none;
   font: inherit;
+  font-size: 13px;
   text-align: start;
   cursor: pointer;
   padding: 7px 10px;
-  border-radius: var(--u-radius);
-  color: var(--u-text) !important;
+  border-radius: 8px;
+  color: var(--u-text2) !important;
   text-decoration: none;
 }
 .u2-menu__list a:hover,
 .u2-menu__list a:focus-visible,
+.u2-menu__list a[aria-current="page"],
 .u2-menu__list button:hover,
 .u2-menu__list button:focus-visible {
   background: var(--u-surface2);
+  color: var(--u-text) !important;
+}
+/* Checkable items (phone menu's Team view) show their state as a check mark. */
+.u2-menu__list [role="menuitemcheckbox"]::after {
+  content: "";
+  margin-inline-start: auto;
+}
+.u2-menu__list [role="menuitemcheckbox"][aria-checked="true"]::after {
+  content: "\2713";
+  color: var(--u-accent);
+}
+.u2-menu__sep {
+  margin: 6px 4px;
+  border-block-start: 1px solid var(--u-line);
+}
+.u2-menu__h {
+  padding: 6px 10px 2px;
+  font: 11px var(--u-mono);
+  color: var(--u-muted);
 }
 
 /* Banner and notices */
@@ -406,58 +458,48 @@ body.u2 .u2-ovl__panel:focus-visible {
   font-size: 20px;
 }
 
-@media (min-width: 841px) {
-  .u2-body.is-admin {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .u2-body.is-admin .u2-side {
-    display: none;
-  }
-}
-
-/* Phone: sidebar behind the menu button */
+/* Phone: tabs and team view move into the menu button */
 @media (max-width: 840px) {
   .u2-top__menu {
-    display: inline-grid;
+    display: block;
   }
-  .u2-avatarbtn__name {
-    display: none;
-  }
+  .u2-tabs,
+  .u2-teamsw,
   .u2-top__new {
     display: none;
   }
-  .u2-body {
-    grid-template-columns: minmax(0, 1fr);
+  .u2-top__in {
+    padding: 6px 12px;
+    gap: 4px;
+  }
+  .u2-brand span {
+    display: none;
+  }
+  .u2-brand:not(:has(img)) span {
+    display: inline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .u2-pswitch__btn,
+  .u2-top__signin {
+    height: 44px;
+    min-height: 44px;
+  }
+  .u2-pswitch__btn {
+    max-width: 44vw;
   }
   .u2-main {
     padding: 16px 16px 0;
-  }
-  .u2-side {
-    display: none;
-  }
-  .u2-side.is-open {
-    display: block;
-    position: static;
-    height: auto;
-    border-inline-end: 0;
-    border-block-end: 1px solid var(--u-line);
   }
   /* 44 px touch targets for the shell's own controls */
   .u2-iconbtn {
     width: 44px;
     height: 44px;
   }
-  /* Name hidden on phones: a square button with the avatar centered. */
-  .u2-avatarbtn {
-    justify-content: center;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 0;
-  }
-  .u2-side__list a,
   .u2-menu__list a,
   .u2-menu__list button {
-    padding-block: 12px;
+    min-height: 44px;
+    font-size: 14px;
   }
   /* 16 px in every text field so iOS does not zoom on focus (a safety net for fields
      outside the shared .u2-ctl, which already does this). */

@@ -1,34 +1,28 @@
-import React, { createContext, useContext, useEffect, useState } from "react"
-import { createPortal } from "react-dom"
+import React, { useEffect, useState } from "react"
 import { Trans } from "@lingui/react/macro"
+import { i18n } from "@lingui/core"
 import { uploadedImageURL } from "@fider/services"
 import { useFider } from "@fider/hooks"
 import { applyTheme, followSystemTheme } from "../lib/theme"
 import { NotificationsBadge } from "../components/NotificationsBadge"
 import { ModerationBadge } from "../components/ModerationBadge"
 import { URL_CHANGE_EVENT, signInHref } from "../lib/nav"
+import { useIsStaff, useTeamView } from "../lib/teamView"
 import { Menu, MenuItem } from "../components/Menu"
 import { requestShare } from "../lib/share"
 
-// The new UI's app shell: top bar (site, account, theme), optional site banner,
-// sidebar (views and products; behind a menu button on phones), the page, footer.
-// Pages fill the main slot. Any page can add to the end of the sidebar with
-// <SidebarSlot>, e.g. the board's Vora briefing.
+// The new UI's app shell: a sticky top bar (brand, product switcher, section tabs,
+// team view, badges, theme, account), optional site banner, the page, footer.
+// Pages fill the main slot. There is no sidebar.
 
-const SidebarSlotContext = createContext<HTMLElement | null>(null)
+// Kept so older imports still compile: the sidebar is gone, so this renders nothing.
+export const SidebarSlot: React.FC<{ children: React.ReactNode }> = () => null
 
-export const SidebarSlot = (props: { children: React.ReactNode }) => {
-  const el = useContext(SidebarSlotContext)
-  return el ? createPortal(props.children, el) : null
-}
-
-// The current path and query. Pages that change the query with replaceState fire
-// URL_CHANGE_EVENT so the sidebar's aria-current stays right.
-const readLocation = () => ({ path: location.pathname, params: new URLSearchParams(location.search) })
-const useLocation = () => {
-  const [loc, setLoc] = useState(readLocation)
+// The current path. Pages that change the query with replaceState fire URL_CHANGE_EVENT.
+const useLocationPath = () => {
+  const [path, setPath] = useState(() => location.pathname)
   useEffect(() => {
-    const update = () => setLoc(readLocation())
+    const update = () => setPath(location.pathname)
     window.addEventListener(URL_CHANGE_EVENT, update)
     window.addEventListener("popstate", update)
     return () => {
@@ -36,7 +30,7 @@ const useLocation = () => {
       window.removeEventListener("popstate", update)
     }
   }, [])
-  return loc
+  return path
 }
 
 type Theme = "light" | "dark"
@@ -70,12 +64,130 @@ const ThemeToggle = () => {
   )
 }
 
+const Chevron = () => (
+  <svg className="u2-pswitch__chev" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+)
+
+const Dot = (props: { color?: string }) => (
+  <span className="u2-dot" style={props.color ? ({ "--u-dot": props.color } as React.CSSProperties) : undefined} aria-hidden="true" />
+)
+
+// Which board you are on: All products, or one product's board (/p/<slug>).
+const ProductSwitch = (props: { path: string }) => {
+  const fider = useFider()
+  const products = (fider.session.tenant.products || []).filter((p) => p.isActive)
+  if (products.length === 0) return null
+  const slug = props.path.startsWith("/p/") ? props.path.slice(3).split("/")[0] : ""
+  const current = products.find((p) => p.slug === slug)
+  const all = <Trans id="ui2.shell.allproducts">All products</Trans>
+  const items: MenuItem[] = [
+    {
+      key: "all",
+      href: "/",
+      current: props.path === "/",
+      label: (
+        <>
+          <Dot color="var(--u-muted)" />
+          {all}
+        </>
+      ),
+    },
+    { key: "sep", kind: "divider", label: null },
+    ...products.map((p) => ({
+      key: `p-${p.slug}`,
+      href: `/p/${p.slug}`,
+      current: p === current,
+      label: (
+        <>
+          <Dot color={p.color || undefined} />
+          {p.name}
+        </>
+      ),
+    })),
+  ]
+  return (
+    <Menu
+      className="u2-menu u2-pswitch"
+      triggerClassName="u2-pswitch__btn"
+      listClassName="u2-menu__list u2-menu__list--start u2-panel"
+      items={items}
+      trigger={
+        <>
+          <Dot color={current ? current.color || undefined : "var(--u-muted)"} />
+          <span className="u2-pswitch__name">{current ? current.name : all}</span>
+          <Chevron />
+        </>
+      }
+    />
+  )
+}
+
+// Section tabs, shared by the desktop tab row and the phone menu.
+const useTabs = (path: string) => {
+  const fider = useFider()
+  const staff = useIsStaff()
+  // Same rule as classic's header: staff only, when the scorecard is on.
+  const showScorecard = fider.session.tenant.isScorecardEnabled && staff
+  return [
+    { key: "ideas", href: "/", current: path === "/" || path.startsWith("/p/"), label: <Trans id="ui2.shell.ideas">Ideas</Trans> },
+    { key: "roadmap", href: "/roadmap", current: path === "/roadmap", label: <Trans id="ui2.shell.roadmap">Roadmap</Trans> },
+    ...(showScorecard
+      ? [{ key: "scorecard", href: "/scorecard", current: path === "/scorecard", label: <Trans id="header.nav.scorecard">Scorecard</Trans> }]
+      : []),
+  ]
+}
+
+const teamViewHint = () => i18n._({ id: "ui2.shell.teamview.hint", message: "Show pending ideas, voters and team notes" })
+
+const TeamSwitch = () => {
+  const [on, setOn] = useTeamView()
+  if (!useIsStaff()) return null
+  return (
+    <button type="button" className="u2-teamsw" role="switch" aria-checked={on} title={teamViewHint()} onClick={() => setOn(!on)}>
+      <span className="u2-teamsw__track" aria-hidden="true" />
+      <Trans id="ui2.shell.teamview">Team view</Trans>
+    </button>
+  )
+}
+
+// Phones: the tabs and the team switch live behind the menu button.
+const PhoneMenu = (props: { path: string }) => {
+  const tabs = useTabs(props.path)
+  const staff = useIsStaff()
+  const [on, setOn] = useTeamView()
+  const items: MenuItem[] = [
+    ...tabs,
+    ...(staff
+      ? [
+          { key: "sep", kind: "divider" as const, label: null },
+          { key: "teamview", checked: on, onSelect: () => setOn(!on), label: <Trans id="ui2.shell.teamview">Team view</Trans> },
+        ]
+      : []),
+  ]
+  return (
+    <Menu
+      className="u2-menu u2-top__menu"
+      triggerClassName="u2-iconbtn"
+      triggerLabel="Menu"
+      items={items}
+      trigger={
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      }
+    />
+  )
+}
+
 const AccountMenu = () => {
   const fider = useFider()
+  const staff = useIsStaff()
 
   if (!fider.session.isAuthenticated) {
     return (
-      <a className="u2-btn u2-btn--primary" href={signInHref()}>
+      <a className="u2-btn u2-top__signin" href={signInHref()}>
         <Trans id="ui2.shell.signin">Sign in</Trans>
       </a>
     )
@@ -83,23 +195,22 @@ const AccountMenu = () => {
 
   const user = fider.session.user
   const items: MenuItem[] = [
-    { key: "settings", href: "/settings", label: <Trans id="ui2.shell.settings">My settings</Trans> },
+    { key: "yours", kind: "heading", label: <Trans id="ui2.shell.yourstuff">your stuff</Trans> },
+    { key: "myvotes", href: "/?myvotes=true", label: <Trans id="ui2.shell.myvotes">My votes</Trans> },
+    { key: "myposts", href: "/?myposts=true", label: <Trans id="ui2.shell.myposts">My ideas</Trans> },
     { key: "notifications", href: "/notifications", label: <Trans id="ui2.shell.notifications">Notifications</Trans> },
-    ...(user.isCollaborator ? [{ key: "admin", href: "/admin", label: <Trans id="ui2.shell.admin">Site settings</Trans> }] : []),
+    { key: "sep1", kind: "divider", label: null },
+    { key: "settings", href: "/settings", label: <Trans id="ui2.shell.settings">My settings</Trans> },
+    ...(staff ? [{ key: "admin", href: "/admin", label: <Trans id="ui2.shell.admin">Site settings</Trans> }] : []),
+    { key: "sep2", kind: "divider", label: null },
     { key: "signout", href: "/signout", label: <Trans id="menu.signout">Sign out</Trans> },
   ]
   return (
     <Menu
-      triggerClassName="u2-avatarbtn"
-      // The name text is hidden on phones; this keeps the button named there.
+      triggerClassName="u2-iconbtn u2-avatarbtn"
       triggerLabel={user.name}
       items={items}
-      trigger={
-        <>
-          <img src={user.avatarURL} alt="" width={28} height={28} />
-          <span className="u2-avatarbtn__name">{user.name}</span>
-        </>
-      }
+      trigger={<img src={user.avatarURL} alt="" width={28} height={28} />}
     />
   )
 }
@@ -133,65 +244,6 @@ const Notices = () => {
   )
 }
 
-const Sidebar = (props: { id: string; open: boolean; slotRef: (el: HTMLElement | null) => void }) => {
-  const fider = useFider()
-  const { path, params } = useLocation()
-  const signedIn = fider.session.isAuthenticated
-  const products = (fider.session.tenant.products || []).filter((p) => p.isActive)
-  // Same rule as classic's header: staff only, when the scorecard is on.
-  const showScorecard =
-    fider.session.tenant.isScorecardEnabled && fider.session.isAuthenticated && (fider.session.user.isCollaborator || fider.session.user.isAdministrator)
-  const link = (href: string, label: React.ReactNode, current = path === href, icon?: React.ReactNode) => (
-    <li key={href}>
-      <a href={href} aria-current={current ? "page" : undefined}>
-        {icon}
-        {label}
-      </a>
-    </li>
-  )
-  const ico = (d: string) => (
-    <svg className="u2-side__ico" viewBox="0 0 24 24" aria-hidden="true">
-      <path d={d} />
-    </svg>
-  )
-  // Board views share "/" and differ by query; "All ideas" is current with neither on.
-  const myVotes = path === "/" && params.get("myvotes") === "true"
-  const myPosts = path === "/" && params.get("myposts") === "true"
-  return (
-    <nav id={props.id} className={`u2-side${props.open ? " is-open" : ""}`} aria-label="Board">
-      <h2 className="u2-side__h">
-        <Trans id="ui2.shell.views">Views</Trans>
-      </h2>
-      <ul className="u2-side__list">
-        {link("/", <Trans id="ui2.shell.allideas">All ideas</Trans>, path === "/" && !myVotes && !myPosts, ico("M4 6h16M4 12h16M4 18h10"))}
-        {signedIn && link("/?myvotes=true", <Trans id="ui2.shell.myvotes">My votes</Trans>, myVotes, ico("M12 19V5M6 11l6-6 6 6"))}
-        {signedIn &&
-          link("/?myposts=true", <Trans id="ui2.shell.myposts">My ideas</Trans>, myPosts, ico("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"))}
-        {link("/roadmap", <Trans id="ui2.shell.roadmap">Roadmap</Trans>, undefined, ico("M4 4v16M10 4v10M16 4v13M22 4v7"))}
-        {showScorecard && link("/scorecard", <Trans id="header.nav.scorecard">Scorecard</Trans>, undefined, ico("M3 12a9 9 0 1 1 18 0M12 12l4-4M7 17h10"))}
-      </ul>
-      {products.length > 0 && (
-        <>
-          <h2 className="u2-side__h">
-            <Trans id="ui2.shell.products">Products</Trans>
-          </h2>
-          <ul className="u2-side__list">
-            {products.map((p) =>
-              link(
-                `/p/${p.slug}`,
-                p.name,
-                undefined,
-                <span className="u2-side__dot" style={{ "--u-dot": p.color || undefined } as React.CSSProperties} aria-hidden="true" />
-              )
-            )}
-          </ul>
-        </>
-      )}
-      <div ref={props.slotRef} className="u2-side__extra" />
-    </nav>
-  )
-}
-
 // Share from any page; the board has its own share box in the welcome card.
 const NewIdea = () => {
   const fider = useFider()
@@ -209,11 +261,17 @@ const NewIdea = () => {
 export const Shell = (props: { children: React.ReactNode }) => {
   const fider = useFider()
   const tenant = fider.session.tenant
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [slotEl, setSlotEl] = useState<HTMLElement | null>(null)
+  const path = useLocationPath()
+  const tabs = useTabs(path)
+  const [teamView] = useTeamView()
   const logo = uploadedImageURL(tenant.logoBlobKey, 64)
-  // Admin pages bring their own nav: the board sidebar steps aside on desktop (phones keep the menu).
+  // Admin pages bring their own left nav inside the main slot.
   const admin = (fider.session.page || "").startsWith("Administration/")
+
+  // A body class lets page CSS reveal staff-only bits without reading the hook.
+  useEffect(() => {
+    document.body.classList.toggle("u2-team", teamView)
+  }, [teamView])
 
   return (
     <div className="u2-app">
@@ -222,35 +280,34 @@ export const Shell = (props: { children: React.ReactNode }) => {
       </a>
       <Notices />
       <header className="u2-top">
-        <button
-          type="button"
-          className="u2-iconbtn u2-top__menu"
-          aria-label="Menu"
-          aria-expanded={menuOpen}
-          aria-controls="u2-side"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 7h16M4 12h16M4 17h16" />
-          </svg>
-        </button>
-        <a className="u2-brand" href="/">
-          {logo && <img src={logo} alt="" width={28} height={28} />}
-          <span>{tenant.name}</span>
-        </a>
-        <div className="u2-top__end">
-          <NewIdea />
-          <ModerationBadge />
-          <ThemeToggle />
-          <NotificationsBadge />
-          <AccountMenu />
+        <div className="u2-top__in">
+          <a className="u2-brand" href="/">
+            {logo && <img src={logo} alt="" width={26} height={26} />}
+            <span>{tenant.name}</span>
+          </a>
+          <ProductSwitch path={path} />
+          <nav className="u2-tabs" aria-label="Sections">
+            {tabs.map((t) => (
+              <a key={t.key} href={t.href} aria-current={t.current ? "page" : undefined}>
+                {t.label}
+              </a>
+            ))}
+          </nav>
+          <div className="u2-top__end">
+            <NewIdea />
+            <TeamSwitch />
+            <ModerationBadge />
+            <NotificationsBadge />
+            <ThemeToggle />
+            <AccountMenu />
+            <PhoneMenu path={path} />
+          </div>
         </div>
       </header>
       <Banner />
       <div className={admin ? "u2-body is-admin" : "u2-body"}>
-        <Sidebar id="u2-side" open={menuOpen} slotRef={setSlotEl} />
         <main id="u2-main" className="u2-main" tabIndex={-1}>
-          <SidebarSlotContext.Provider value={slotEl}>{props.children}</SidebarSlotContext.Provider>
+          {props.children}
           <footer className="u2-foot">
             <a href="https://upvora.dev" rel="noopener" target="_blank">
               <Trans id="ui2.shell.powered">Powered by Upvora</Trans>

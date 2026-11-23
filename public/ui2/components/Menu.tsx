@@ -8,6 +8,12 @@ export interface MenuItem {
   // A link item; otherwise onSelect runs.
   href?: string
   onSelect?: () => void
+  // Marks the page you are on (link items).
+  current?: boolean
+  // A checkable item (menuitemcheckbox), e.g. the phone menu's Team view.
+  checked?: boolean
+  // Not an item: a divider line or a small group heading.
+  kind?: "divider" | "heading"
 }
 
 interface MenuProps {
@@ -29,7 +35,7 @@ export const Menu = (props: MenuProps) => {
   const trigger = useRef<HTMLButtonElement>(null)
   const startAtEnd = useRef(false)
 
-  const items = () => Array.from(wrap.current?.querySelectorAll<HTMLElement>("[role=menuitem]") || [])
+  const items = () => Array.from(wrap.current?.querySelectorAll<HTMLElement>("[role^=menuitem]") || [])
 
   useEffect(() => {
     if (!open) return
@@ -91,28 +97,38 @@ export const Menu = (props: MenuProps) => {
       </button>
       {open && (
         <ul className={props.listClassName || "u2-menu__list u2-panel"} role="menu">
-          {props.items.map((item) => (
-            <li key={item.key} role="none">
-              {item.href ? (
-                <a role="menuitem" tabIndex={-1} href={item.href} data-key={item.key}>
-                  {item.label}
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  role="menuitem"
-                  tabIndex={-1}
-                  data-key={item.key}
-                  onClick={() => {
-                    setOpen(false)
-                    item.onSelect?.()
-                  }}
-                >
-                  {item.label}
-                </button>
-              )}
-            </li>
-          ))}
+          {props.items.map((item) =>
+            item.kind === "divider" ? (
+              <li key={item.key} role="separator" className="u2-menu__sep" />
+            ) : item.kind === "heading" ? (
+              <li key={item.key} role="presentation" className="u2-menu__h">
+                {item.label}
+              </li>
+            ) : (
+              <li key={item.key} role="none">
+                {item.href ? (
+                  <a role="menuitem" tabIndex={-1} href={item.href} data-key={item.key} aria-current={item.current ? "page" : undefined}>
+                    {item.label}
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    role={item.checked === undefined ? "menuitem" : "menuitemcheckbox"}
+                    aria-checked={item.checked}
+                    tabIndex={-1}
+                    data-key={item.key}
+                    onClick={() => {
+                      // Focus back on the trigger so keyboard users are not dropped at the body.
+                      close()
+                      item.onSelect?.()
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                )}
+              </li>
+            )
+          )}
         </ul>
       )}
     </div>
