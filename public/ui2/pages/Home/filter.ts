@@ -3,9 +3,11 @@ import { SearchPostsParams } from "@fider/services/actions"
 
 // The board's query state. Same URL params as classic, so links keep working:
 // view, query, statuses, tags, products, myvotes, myposts, notags, limit.
+// "view" is classic's sort, so the List / By stage switch rides on its own "layout" param.
 export interface BoardFilter {
   query: string
   view: string
+  layout: string // "" (list) or "stage"
   statuses: string[] // may include the staff-only "pending" and "private" pseudo statuses
   tags: string[]
   products: number[]
@@ -20,6 +22,7 @@ export const DEFAULT_LIMIT = 30
 export const filterFromURL = (): BoardFilter => ({
   query: querystring.get("query"),
   view: querystring.get("view"),
+  layout: querystring.get("layout") === "stage" ? "stage" : "",
   statuses: querystring.getArray("statuses"),
   tags: querystring.getArray("tags"),
   products: querystring
@@ -42,6 +45,7 @@ export const filterToQuery = (f: BoardFilter): string =>
     notags: f.noTags ? "true" : undefined,
     query: f.query.trim().toLowerCase(),
     view: f.view,
+    layout: f.layout,
     limit: f.limit,
   })
 
@@ -60,6 +64,3 @@ export const searchParams = (f: BoardFilter, productId?: number): SearchPostsPar
   product: productId,
   products: f.products,
 })
-
-export const activeFilterCount = (f: BoardFilter): number =>
-  f.statuses.length + f.tags.length + f.products.length + (f.myVotes ? 1 : 0) + (f.myPosts ? 1 : 0) + (f.noTags ? 1 : 0)

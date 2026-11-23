@@ -2,7 +2,8 @@ import React from "react"
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import { Fider, FiderContext, http, cache } from "@fider/services"
 import { Post } from "@fider/models"
-import HomePage, { NUDGE_KEY } from "./Home.page"
+import HomePage, { NUDGE_KEY, WELCOME_SETTING } from "./Home.page"
+import { messageSize } from "./Welcome"
 import { SHARE_IDEA_EVENT } from "../../lib/share"
 import { toast } from "../../components/feedback/toast"
 
@@ -26,16 +27,16 @@ const post = (number: number, extra: Partial<Post> = {}): Post =>
     ...extra,
   }) as unknown as Post
 
-const fiderAs = (role: "visitor" | "member" | "staff") =>
+const fiderAs = (role: "visitor" | "member" | "staff", welcomeMessage = "Hello") =>
   Fider.initialize({
     settings: { environment: "development", oauth: [], locale: "en" },
-    tenant: { welcomeMessage: "Hello", statuses: [] },
+    tenant: { welcomeMessage, statuses: [] },
     user: role === "visitor" ? undefined : { name: "Ada Lovelace", isCollaborator: role === "staff", isAdministrator: false },
   })
 
-const renderHome = (role: "visitor" | "member" | "staff", posts: Post[]) =>
+const renderHome = (role: "visitor" | "member" | "staff", posts: Post[], welcomeMessage?: string) =>
   render(
-    <FiderContext.Provider value={fiderAs(role)}>
+    <FiderContext.Provider value={fiderAs(role, welcomeMessage)}>
       <HomePage posts={posts} tags={[]} searchNoiseWords={[]} countPerStatus={{ open: posts.length || 1 }} />
     </FiderContext.Provider>
   )
@@ -51,19 +52,30 @@ describe("ui2 Home page", () => {
     ) as unknown as typeof http.get
   })
 
-  test("staff get the full table with Vora notes from the insights", async () => {
-    const { container } = renderHome("staff", [post(1), post(2)])
-    expect(screen.getAllByRole("columnheader")).toHaveLength(7)
+  test("rows carry the number, this week's gain, the heat bar and Vora notes", async () => {
+    const { container } = renderHome("staff", [post(1, { votesCount: 10 }), post(2, { votesCount: 5 })])
     await waitFor(() => expect(container.querySelector('[data-chip="similar"]')).not.toBeNull())
     const merge = container.querySelector('[data-chip="duplicate"]') as HTMLAnchorElement
     expect(merge.getAttribute("href")).toBe("/posts/2/idea-2#merge=1")
-    expect(container.querySelector(".u2-tr__week")?.textContent).toBe("+4")
+    expect(container.querySelectorAll(".u2-tr__week")).toHaveLength(1)
+    expect(container.querySelector('.u2-tr[data-number="1"] .u2-tr__week')).not.toBeNull()
+    expect(container.querySelector(".u2-tr__num")?.textContent).toBe("#1")
+    const heat = Array.from(container.querySelectorAll<HTMLElement>(".u2-heat i")).map((i) => i.style.inlineSize)
+    expect(heat).toEqual(["100%", "50%"])
   })
 
-  test("visitors get votes, idea and status, and the dismissible nudge", async () => {
+  test("a click anywhere on a row opens the idea; links in it keep their own behavior", async () => {
+    window.scrollTo = jest.fn()
+    const { container } = renderHome("member", [post(1), post(2)])
+    await act(() => Promise.resolve())
+    fireEvent.click(container.querySelector('.u2-tr[data-index="1"] .u2-tr__meta') as HTMLElement)
+    expect(window.location.pathname).toBe("/posts/2/idea-2")
+  })
+
+  test("visitors get the list and the dismissible nudge", async () => {
     const { container } = renderHome("visitor", [post(1)])
     await act(() => Promise.resolve())
-    expect(screen.getAllByRole("columnheader")).toHaveLength(3)
+    expect(screen.getAllByRole("listitem")).toHaveLength(1)
     expect(container.querySelector(".u2-nudge")).not.toBeNull()
     fireEvent.click(container.querySelector(".u2-nudge button") as HTMLElement)
     expect(container.querySelector(".u2-nudge")).toBeNull()
@@ -110,5 +122,67 @@ describe("ui2 Home page", () => {
     fireEvent.click(container.querySelector(".u2-empty .u2-btn--primary") as HTMLElement)
     expect(error).toHaveBeenCalledTimes(1)
     error.mockRestore()
+  })
+
+  test("By stage groups the ideas by status, folds closed kinds, and keeps the layout in the URL", async () => {
+    const all = [post(1), post(2, { status: "planned" }), post(3, { status: "completed" })]
+    http.get = jest.fn((url: string) =>
+      Promise.resolve(url.startsWith("/api/v1/posts") ? { ok: true, data: all } : { ok: false, data: {} })
+    ) as unknown as typeof http.get
+    const { container } = renderHome("member", [post(1)])
+    // The layout switch: List, then By stage.
+    fireEvent.click(container.querySelectorAll(".u2-seg")[0].querySelectorAll("button")[1])
+    await waitFor(() => expect(container.querySelector('.u2-tr[data-number="2"]')).not.toBeNull())
+    expect(window.location.search).toContain("layout=stage")
+    // By stage asks for every status, closed kinds included.
+    const search = (http.get as jest.Mock).mock.calls.map((c) => c[0] as string).find((u) => u.startsWith("/api/v1/posts")) || ""
+    expect(search).toContain("completed")
+    const shipped = screen.getByRole("button", { name: /Completed/ })
+    expect(shipped.getAttribute("aria-expanded")).toBe("false")
+    expect(screen.getByRole("button", { name: /Planned/ }).getAttribute("aria-expanded")).toBe("true")
+    // Folded groups are left out of the keyboard order.
+    expect(Array.from(container.querySelectorAll(".u2-tr")).map((r) => r.getAttribute("data-number"))).toEqual(["1", "2"])
+    fireEvent.click(shipped)
+    expect(shipped.getAttribute("aria-expanded")).toBe("true")
+    expect(container.querySelector('.u2-tr[data-number="3"]')?.getAttribute("data-index")).toBe("2")
+  })
+
+  test("the welcome card sizes itself by the message, and staff get Edit or Add a message", async () => {
+    const short = renderHome("staff", [post(1)])
+    await act(() => Promise.resolve())
+    expect(short.container.querySelector(".u2-welcome.is-short")).not.toBeNull()
+    expect(short.container.querySelector(".u2-welcome__edit")?.getAttribute("href")).toBe(WELCOME_SETTING)
+    short.unmount()
+
+    const none = renderHome("staff", [post(1)], "")
+    await act(() => Promise.resolve())
+    expect(none.container.querySelector(".u2-welcome.is-none")).not.toBeNull()
+    expect(none.container.querySelector(".u2-welcome__add")?.getAttribute("href")).toBe(WELCOME_SETTING)
+    none.unmount()
+
+    const member = renderHome("member", [post(1)], "")
+    await act(() => Promise.resolve())
+    expect(member.container.querySelector(".u2-welcome__add, .u2-welcome__edit")).toBeNull()
+  })
+
+  test("a long message clamps with a Read more button that toggles", async () => {
+    const tall = jest.spyOn(Element.prototype, "scrollHeight", "get").mockReturnValue(400)
+    const { container } = renderHome("member", [post(1)], "word ".repeat(80))
+    await act(() => Promise.resolve())
+    expect(container.querySelector(".u2-welcome.is-long")).not.toBeNull()
+    const more = container.querySelector(".u2-welcome__more") as HTMLElement
+    expect(more.getAttribute("aria-expanded")).toBe("false")
+    fireEvent.click(more)
+    expect(more.getAttribute("aria-expanded")).toBe("true")
+    expect(container.querySelector(".u2-welcome.is-open")).not.toBeNull()
+    tall.mockRestore()
+  })
+
+  test("messageSize: none, short headline, long text", () => {
+    expect(messageSize("")).toBe("none")
+    expect(messageSize("<p> </p>")).toBe("none")
+    expect(messageSize("<p>Tell us what would make your work easier.</p>")).toBe("short")
+    expect(messageSize(`<p>${"a".repeat(141)}</p>`)).toBe("long")
+    expect(messageSize("<h2>Hi</h2><p>Short.</p>")).toBe("long")
   })
 })
