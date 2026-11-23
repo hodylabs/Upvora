@@ -490,11 +490,11 @@ const HomePage = (props: HomePageProps) => {
   )
 
   const hint = !canShare ? null : gate.required ? (
-    <Trans id="ui2.box.hint.required">Type to search. Press Enter or Share and Vora helps you put it into words.</Trans>
+    <Trans id="ui2.box.hint.required">Type to search. Press Enter to post it, and Vora helps you put it into words.</Trans>
   ) : gate.available ? (
-    <Trans id="ui2.box.hint.vora">Type to search. Press Enter or Share to post it, or ask Vora to help you put it into words.</Trans>
+    <Trans id="ui2.box.hint.vora">Type to search. Press Enter to post it, or ask Vora to help you put it into words.</Trans>
   ) : (
-    <Trans id="ui2.box.hint">Type to search. Press Enter or Share to post it as a new idea.</Trans>
+    <Trans id="ui2.box.hint">Type to search. Press Enter to post it as a new idea.</Trans>
   )
 
   return (

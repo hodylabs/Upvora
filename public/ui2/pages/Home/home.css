@@ -141,6 +141,10 @@
   font: inherit;
   font-size: 16px;
 }
+/* The whole box shows focus (ring above), so the field inside draws none: no box in a box. */
+body.u2 .u2-box__input:focus-visible {
+  outline: none;
+}
 .u2-box__input::placeholder {
   color: var(--u-muted);
 }
