@@ -544,7 +544,16 @@ const HomePage = (props: HomePageProps) => {
           )}
           {canShare && (
             <button type="button" className="u2-btn u2-btn--primary u2-box__share" disabled={posting} onClick={() => share(filter.query, details)}>
-              {query ? <Trans id="ui2.vora.go">Share</Trans> : tenant.railCtaButton || <Trans id="ui2.vora.share">Share an idea</Trans>}
+              {query ? (
+                <Trans id="ui2.vora.go">Share</Trans>
+              ) : (
+                <>
+                  <span className="u2-box__long">{tenant.railCtaButton || <Trans id="ui2.vora.share">Share an idea</Trans>}</span>
+                  <span className="u2-box__short">
+                    <Trans id="ui2.vora.go">Share</Trans>
+                  </span>
+                </>
+              )}
             </button>
           )}
         </div>

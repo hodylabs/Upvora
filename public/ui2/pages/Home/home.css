@@ -595,7 +595,17 @@ body.u2 .u2-box__input:focus-visible {
     font-size: 16px;
   }
 }
+.u2-box__short {
+  display: none;
+}
 @media (max-width: 480px) {
+  /* The site's longer button text would squeeze the field on narrow phones. */
+  .u2-box__long {
+    display: none;
+  }
+  .u2-box__short {
+    display: inline;
+  }
   /* Ask Vora keeps only its mark on narrow phones; the name stays for screen readers. */
   .u2-box__ask {
     font-size: 0;
