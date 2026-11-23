@@ -7,7 +7,7 @@ import { User, UserRole, UserStatus } from "@fider/models"
 import { actions, Fider, http, Result } from "@fider/services"
 import { Button, Select, TextInput } from "../../../components/form"
 import { Avatar } from "../../../components/feedback"
-import { AdminLayout } from "../AdminLayout"
+import { AdminLayout, AdminSection } from "../AdminLayout"
 
 // Members: search by name or email (debounced), filter by level, pages of 10, and
 // per user one "level" (administrator, collaborator, trusted member, member,
@@ -121,78 +121,86 @@ const ManageMembersPage = (props: ManageMembersPageProps) => {
       name="users"
       title={<Trans id="ui2.admin.members.title">Members</Trans>}
       subtitle={<Trans id="ui2.admin.members.sub">Manage your site administrators and collaborators</Trans>}
+      wide
     >
-      <TextInput
-        name="query"
-        type="search"
-        label={<Trans id="ui2.admin.members.search">Search</Trans>}
-        placeholder={i18n._({ id: "ui2.admin.members.searchph", message: "Search by name / email ..." })}
-        value={query}
-        onChange={search}
-      />
-      <Select
-        name="roles"
-        label={<Trans id="ui2.admin.members.role">Role</Trans>}
-        value={level}
-        onChange={(v) => filter(v as Level | "all")}
-        options={[
-          { value: "all", label: i18n._({ id: "ui2.admin.members.allroles", message: "All Roles" }) },
-          ...LEVELS.map((l) => ({ value: l, label: levelLabel(l, true) })),
-        ]}
-      />
+      <AdminSection className="u2-members__filters">
+        <TextInput
+          name="query"
+          type="search"
+          label={<Trans id="ui2.admin.members.search">Search</Trans>}
+          placeholder={i18n._({ id: "ui2.admin.members.searchph", message: "Search by name / email ..." })}
+          value={query}
+          onChange={search}
+        />
+        <Select
+          name="roles"
+          label={<Trans id="ui2.admin.members.role">Role</Trans>}
+          value={level}
+          onChange={(v) => filter(v as Level | "all")}
+          options={[
+            { value: "all", label: i18n._({ id: "ui2.admin.members.allroles", message: "All Roles" }) },
+            ...LEVELS.map((l) => ({ value: l, label: levelLabel(l, true) })),
+          ]}
+        />
+      </AdminSection>
 
-      <ul className="u2-alist u2-members" aria-live="polite">
-        {users.map((u) => {
-          const current = levelOf(u)
-          return (
-            <li key={u.id} data-user={u.id}>
-              <Avatar name={u.name} src={u.avatarURL} size={24} />
-              <div className="u2-alist__main">
-                <strong>{u.name}</strong>
-                <div className="u2-alist__meta" title={u.email}>
-                  {u.email || <Trans id="ui2.admin.members.noemail">No email</Trans>}
-                </div>
-              </div>
-              {me.id !== u.id && me.isAdministrator ? (
-                <select
-                  className="u2-ctl u2-members__level"
-                  aria-label={i18n._({ id: "ui2.admin.members.levelfor", message: "Role for {name}", values: { name: u.name } })}
-                  value={current}
-                  disabled={busy === u.id}
-                  onChange={(e) => changeLevel(u, e.target.value as Level)}
-                >
-                  {LEVELS.map((l) => (
-                    <option key={l} value={l}>
-                      {levelLabel(l)}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <span className={`u2-chip u2-members__badge u2-members__badge--${current}`}>{levelLabel(current).toLowerCase()}</span>
-              )}
-            </li>
+      <AdminSection
+        title={<Trans id="ui2.admin.members.title">Members</Trans>}
+        actions={
+          totalPages > 1 && (
+            <nav className="u2-row u2-members__pages" aria-label={i18n._({ id: "ui2.admin.members.pages", message: "Pages" })}>
+              <Button small disabled={page <= 1} onClick={() => reload(query, level, page - 1)}>
+                <Trans id="ui2.admin.members.prev">Previous</Trans>
+              </Button>
+              <span className="u2-muted u2-mono">
+                {page} / {totalPages}
+              </span>
+              <Button small disabled={page >= totalPages} onClick={() => reload(query, level, page + 1)}>
+                <Trans id="ui2.admin.members.next">Next</Trans>
+              </Button>
+            </nav>
           )
-        })}
-        {users.length === 0 && (
-          <li className="u2-alist__empty">
-            <Trans id="ui2.admin.members.none">No users found.</Trans>
-          </li>
-        )}
-      </ul>
-
-      {totalPages > 1 && (
-        <nav className="u2-row u2-members__pages" aria-label={i18n._({ id: "ui2.admin.members.pages", message: "Pages" })}>
-          <Button small disabled={page <= 1} onClick={() => reload(query, level, page - 1)}>
-            <Trans id="ui2.admin.members.prev">Previous</Trans>
-          </Button>
-          <span className="u2-muted u2-mono">
-            {page} / {totalPages}
-          </span>
-          <Button small disabled={page >= totalPages} onClick={() => reload(query, level, page + 1)}>
-            <Trans id="ui2.admin.members.next">Next</Trans>
-          </Button>
-        </nav>
-      )}
+        }
+      >
+        <ul className="u2-alist u2-members" aria-live="polite">
+          {users.map((u) => {
+            const current = levelOf(u)
+            return (
+              <li key={u.id} data-user={u.id}>
+                <Avatar name={u.name} src={u.avatarURL} size={24} />
+                <div className="u2-alist__main">
+                  <strong>{u.name}</strong>
+                  <div className="u2-alist__meta" title={u.email}>
+                    {u.email || <Trans id="ui2.admin.members.noemail">No email</Trans>}
+                  </div>
+                </div>
+                {me.id !== u.id && me.isAdministrator ? (
+                  <select
+                    className="u2-ctl u2-members__level"
+                    aria-label={i18n._({ id: "ui2.admin.members.levelfor", message: "Role for {name}", values: { name: u.name } })}
+                    value={current}
+                    disabled={busy === u.id}
+                    onChange={(e) => changeLevel(u, e.target.value as Level)}
+                  >
+                    {LEVELS.map((l) => (
+                      <option key={l} value={l}>
+                        {levelLabel(l)}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className={`u2-chip u2-members__badge u2-members__badge--${current}`}>{levelLabel(current).toLowerCase()}</span>
+                )}
+              </li>
+            )
+          })}
+          {users.length === 0 && (
+            <li className="u2-alist__empty">
+              <Trans id="ui2.admin.members.none">No users found.</Trans>
+            </li>
+          )}
+        </ul>
+      </AdminSection>
 
       <ul className="u2-muted u2-members__legend">
         <li>

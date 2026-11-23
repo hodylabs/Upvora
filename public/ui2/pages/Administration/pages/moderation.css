@@ -1,22 +1,31 @@
-/* Moderation queue: one dense list per kind, actions always visible (keyboard too). */
+/* Moderation queue: one list panel per kind with a mono header bar, hairline rows,
+   actions always visible (keyboard too). */
 .u2-mod {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 .u2-mod__empty {
   margin: 0;
-  padding: 28px 16px;
+  padding: 36px 16px;
+  color: var(--u-muted);
   text-align: center;
 }
-.u2-mod__section {
-  overflow: hidden;
-}
 .u2-mod__h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
-  padding: 10px 14px;
-  font-size: 14px;
-  font-weight: 600;
+  min-height: 46px;
+  padding: 8px 18px;
+  border-block-end: 1px solid var(--u-line);
+  border-start-start-radius: calc(var(--u-radius-lg) - 1px);
+  border-start-end-radius: calc(var(--u-radius-lg) - 1px);
+  background: var(--u-surface2);
+  font: 500 12px var(--u-mono);
+  letter-spacing: 0;
+  text-transform: lowercase;
+  color: var(--u-text2);
 }
 .u2-mod__list {
   margin: 0;
@@ -27,12 +36,20 @@
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr);
   gap: 12px;
-  padding: 10px 14px;
+  padding: 14px 18px;
   border-block-start: 1px solid var(--u-line);
+  transition: background 0.12s;
+}
+.u2-mod__item:first-child {
+  border-block-start: 0;
 }
 .u2-mod__item:hover,
 .u2-mod__item:focus-within {
-  background: color-mix(in srgb, var(--u-text) 4%, transparent);
+  background: color-mix(in srgb, var(--u-surface2) 55%, transparent);
+}
+.u2-mod__item:last-child {
+  border-end-start-radius: var(--u-radius-lg);
+  border-end-end-radius: var(--u-radius-lg);
 }
 .u2-mod__avatar {
   border-radius: 50%;
@@ -53,7 +70,7 @@
 }
 .u2-mod__time {
   margin-inline-start: auto;
-  font-size: 12px;
+  font: 12px var(--u-mono);
 }
 .u2-mod__link {
   color: var(--u-text) !important;
@@ -77,15 +94,21 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-block-start: 4px;
+  margin-block-start: 6px;
 }
 .u2-mod__acts .u2-btn {
   min-height: 30px;
   padding-block: 2px;
-  font-size: 12px;
+  font-size: 12.5px;
 }
 @media (max-width: 840px) {
   .u2-mod__acts .u2-btn {
     min-height: 44px;
+  }
+}
+@media (max-width: 700px) {
+  .u2-mod__h,
+  .u2-mod__item {
+    padding-inline: 14px;
   }
 }

@@ -6,7 +6,7 @@ import { Trans } from "@lingui/react/macro"
 import { actions, Failure } from "@fider/services"
 import { Button, Field, Form, Select, TextArea, Toggle } from "../../../components/form"
 import { toast } from "../../../components/feedback"
-import { AdminLayout } from "../AdminLayout"
+import { AdminLayout, AdminSection } from "../AdminLayout"
 
 // Site banner: on/off, color variant, message (500 characters), live preview.
 // The preview uses the same classes as the shell's banner.
@@ -53,29 +53,39 @@ const ManageBannerPage = (props: ManageBannerPageProps) => {
       subtitle={<Trans id="ui2.admin.banner.sub">Show a site-wide notice above the header for maintenance, releases, or incidents</Trans>}
     >
       <Form error={error} onSubmit={save}>
-        {enabled && message.trim() !== "" && (
-          <Field label={<Trans id="ui2.admin.banner.preview">Preview</Trans>} group>
-            <div className={`u2-banner u2-banner--${variant} u2-bannerprev`}>{message}</div>
+        <AdminSection title={<Trans id="ui2.admin.banner.preview">Preview</Trans>}>
+          <div className={enabled ? "u2-bannerprev" : "u2-bannerprev is-off"}>
+            <div className={`u2-banner u2-banner--${variant}`}>
+              {message.trim() || <Trans id="ui2.admin.banner.placeholder">Your message shows here.</Trans>}
+            </div>
+            <div className="u2-bannerprev__page" aria-hidden="true" />
+          </div>
+          {!enabled && (
+            <p className="u2-muted">
+              <Trans id="ui2.admin.banner.off">The banner is off; nobody sees it until you turn it on and save.</Trans>
+            </p>
+          )}
+        </AdminSection>
+        <AdminSection>
+          <Field name="enabled" label={enableLabel} group>
+            <Toggle checked={enabled} onChange={setEnabled} label={enableLabel} hideLabel />
           </Field>
-        )}
-        <Field name="enabled" label={enableLabel} group>
-          <Toggle checked={enabled} onChange={setEnabled} label={enableLabel} hideLabel />
-        </Field>
-        <Select
-          name="variant"
-          label={<Trans id="ui2.admin.banner.variant">Color variant</Trans>}
-          value={variant}
-          options={variants()}
-          onChange={(v) => setVariant(v || "info")}
-        />
-        <TextArea
-          name="message"
-          rows={3}
-          label={<Trans id="ui2.admin.banner.message">Message</Trans>}
-          value={message}
-          onChange={(v) => setMessage(v.slice(0, MAX_LEN))}
-          hint={<Trans id="ui2.admin.banner.charsleft">{remaining} characters remaining</Trans>}
-        />
+          <Select
+            name="variant"
+            label={<Trans id="ui2.admin.banner.variant">Color variant</Trans>}
+            value={variant}
+            options={variants()}
+            onChange={(v) => setVariant(v || "info")}
+          />
+          <TextArea
+            name="message"
+            rows={3}
+            label={<Trans id="ui2.admin.banner.message">Message</Trans>}
+            value={message}
+            onChange={(v) => setMessage(v.slice(0, MAX_LEN))}
+            hint={<Trans id="ui2.admin.banner.charsleft">{remaining} characters remaining</Trans>}
+          />
+        </AdminSection>
         <div className="u2-actions">
           <Button type="submit" variant="primary" loading={busy}>
             <Trans id="ui2.admin.banner.save">Save banner</Trans>

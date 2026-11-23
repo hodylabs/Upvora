@@ -82,6 +82,7 @@ const ManageAuthenticationPage = (props: ManageAuthenticationPageProps) => {
       name="authentication"
       title={<Trans id="ui2.admin.auth.title">Authentication</Trans>}
       subtitle={<Trans id="ui2.admin.auth.sub">Manage your site authentication</Trans>}
+      wide
     >
       {isAdding || editing ? (
         <OAuthForm key={editing?.provider || "new"} config={editing} cantDisable={cantDisable} onCancel={cancel} />

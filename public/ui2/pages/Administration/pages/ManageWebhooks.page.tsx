@@ -70,6 +70,7 @@ const ManageWebhooksPage = (props: ManageWebhooksPageProps) => {
       name="webhooks"
       title={<Trans id="ui2.admin.webhooks.title">Webhooks</Trans>}
       subtitle={<Trans id="ui2.admin.webhooks.sub">Manage your site webhooks</Trans>}
+      wide
     >
       {content}
     </AdminLayout>

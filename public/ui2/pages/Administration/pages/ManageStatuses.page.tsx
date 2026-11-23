@@ -1,4 +1,5 @@
 import "../components/groupB.css"
+import "../../../components/ui.css"
 import React, { useRef, useState } from "react"
 import { i18n } from "@lingui/core"
 import { Trans } from "@lingui/react/macro"
@@ -8,6 +9,7 @@ import { Button, Form, Select, SelectOption, TextInput, Toggle, Field } from "..
 import { ConfirmDialog, toast } from "../../../components/feedback"
 import { AdminLayout, AdminSection } from "../AdminLayout"
 import { slugify as productSlug } from "./ManageProducts.page"
+import { statusTone } from "../../../lib/status"
 
 // Statuses: classic's catalogue. Built-in (system) statuses can be renamed,
 // recolored, reordered or deactivated, never deleted; custom ones can be added
@@ -35,14 +37,6 @@ const colorOptions = (): SelectOption[] => [
   { value: "red", label: i18n._({ id: "admin.statuses.color.red", message: "Red" }) },
   { value: "gray", label: i18n._({ id: "admin.statuses.color.gray", message: "Gray" }) },
 ]
-
-const colorVar: { [c: string]: string } = {
-  blue: "var(--u-s-planned)",
-  green: "var(--u-s-shipped)",
-  yellow: "var(--u-warn)",
-  red: "var(--u-danger)",
-  gray: "var(--u-s-review)",
-}
 
 export const ordered = (list: Status[]): Status[] => [...list].sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
 
@@ -199,6 +193,7 @@ const ManageStatusesPage = (props: ManageStatusesPageProps) => {
       name="statuses"
       title={<Trans id="admin.statuses.page.title">Statuses</Trans>}
       subtitle={<Trans id="admin.statuses.page.subtitle">Customize the list of post statuses your admins can apply</Trans>}
+      wide
     >
       {draft && (
         <div className="u2-editbox">
@@ -304,7 +299,8 @@ const ManageStatusesPage = (props: ManageStatusesPageProps) => {
                   <span aria-hidden="true">↓</span>
                 </Button>
               </span>
-              <span className="u2-dot" style={{ "--u-dot": colorVar[s.color] || colorVar.gray } as React.CSSProperties} title={s.color} aria-hidden="true" />
+              {/* The same ring the board shows: hollow, half or full by how far the kind has moved. */}
+              <span className={`u2-pill u2-pill--${statusTone(s.slug, s.kind)} u2-status-ring`} aria-hidden="true" />
               <div className="u2-alist__main">
                 <strong>{s.label}</strong>{" "}
                 {s.isSystem && (

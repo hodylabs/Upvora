@@ -142,6 +142,7 @@ const ManageProductsPage = (props: ManageProductsPageProps) => {
       name="products"
       title={<Trans id="ui2.admin.products.title">Products</Trans>}
       subtitle={<Trans id="ui2.admin.products.sub">Separate boards and roadmaps per product: one install, one team, one sign-in</Trans>}
+      wide
     >
       {draft && (
         <div className="u2-editbox">

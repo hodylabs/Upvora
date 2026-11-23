@@ -113,7 +113,7 @@ const Item = (props: { item: ModerationItem; locale: string; busy: boolean; onAc
         </a>
         {item.type === "post" ? <p className="u2-mod__text">{excerpt}</p> : <p className="u2-mod__on u2-muted">{title}</p>}
         <div className="u2-mod__acts">
-          <Button disabled={props.busy} onClick={() => props.onAct(item, "approve")} data-verb="approve">
+          <Button variant="primary" disabled={props.busy} onClick={() => props.onAct(item, "approve")} data-verb="approve">
             <Trans id="action.publish">Publish</Trans>
           </Button>
           <Button disabled={props.busy} onClick={() => props.onAct(item, "decline")} data-verb="decline">
@@ -183,6 +183,7 @@ const ContentModerationPage = () => {
       subtitle={
         <Trans id="moderation.subtitle">These ideas and comments are from people outside of your trusted users list, you decide if they get published.</Trans>
       }
+      wide
     >
       <div className="u2-mod">
         {loading ? (

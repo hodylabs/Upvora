@@ -3,7 +3,7 @@ import { Trans } from "@lingui/react/macro"
 import { actions, Failure } from "@fider/services"
 import { useFider } from "@fider/hooks"
 import { Button, Form, TextArea } from "../../../components/form"
-import { AdminLayout } from "../AdminLayout"
+import { AdminLayout, AdminSection } from "../AdminLayout"
 
 // Advanced: both Custom CSS fields, each labelled with the look it applies to
 // (classic's targets classic's markup; the new look has its own, spec Decision),
@@ -55,52 +55,54 @@ const AdvancedSettingsPage = (props: AdvancedSettingsPageProps) => {
       subtitle={<Trans id="ui2.admin.general.sub">Manage your site settings</Trans>}
     >
       <Form error={error} onSubmit={save}>
-        <TextArea
-          name="ui2CustomCSS"
-          label={<Trans id="ui2.admin.advanced.ui2css">Custom CSS for the Upvora look</Trans>}
-          hint={
-            <>
-              <Trans id="ui2.admin.advanced.ui2csshint">Applies only when the site uses the Upvora look. Its classes start with u2-.</Trans> {cssAdvice}
-            </>
-          }
-          rows={10}
-          spellCheck={false}
-          value={ui2CustomCSS}
-          disabled={!isAdmin}
-          onChange={setUI2CustomCSS}
-        />
-        <TextArea
-          name="customCSS"
-          label={<Trans id="ui2.admin.advanced.classiccss">Custom CSS for the classic look</Trans>}
-          hint={<Trans id="ui2.admin.advanced.classiccsshint">Applies only when the site uses the classic look; it targets classic&apos;s markup.</Trans>}
-          rows={10}
-          spellCheck={false}
-          value={customCSS}
-          disabled={!isAdmin}
-          onChange={setCustomCSS}
-        />
-        {fider.settings.allowAllowedSchemes && (
+        <AdminSection>
           <TextArea
-            name="allowedSchemes"
-            label={<Trans id="ui2.admin.advanced.schemes">Allowed URL Schemes</Trans>}
+            name="ui2CustomCSS"
+            label={<Trans id="ui2.admin.advanced.ui2css">Custom CSS for the Upvora look</Trans>}
             hint={
               <>
-                <Trans id="ui2.admin.advanced.schemeshint">
-                  By default, uncommon URL schemes are forbidden in links. If you want to allow linking monero or bitcoin addresses, you should add{" "}
-                  <code>^monero:[48]</code> or <code>^bitcoin:(1|3|bc1)</code> here.
-                </Trans>{" "}
-                <Trans id="ui2.admin.advanced.schemesregex">
-                  These are regular expressions, one per line, matched against the link address. <code>^javascript</code> is always rejected.
-                </Trans>
+                <Trans id="ui2.admin.advanced.ui2csshint">Applies only when the site uses the Upvora look. Its classes start with u2-.</Trans> {cssAdvice}
               </>
             }
-            rows={3}
+            rows={10}
             spellCheck={false}
-            value={allowedSchemes}
+            value={ui2CustomCSS}
             disabled={!isAdmin}
-            onChange={setAllowedSchemes}
+            onChange={setUI2CustomCSS}
           />
-        )}
+          <TextArea
+            name="customCSS"
+            label={<Trans id="ui2.admin.advanced.classiccss">Custom CSS for the classic look</Trans>}
+            hint={<Trans id="ui2.admin.advanced.classiccsshint">Applies only when the site uses the classic look; it targets classic&apos;s markup.</Trans>}
+            rows={10}
+            spellCheck={false}
+            value={customCSS}
+            disabled={!isAdmin}
+            onChange={setCustomCSS}
+          />
+          {fider.settings.allowAllowedSchemes && (
+            <TextArea
+              name="allowedSchemes"
+              label={<Trans id="ui2.admin.advanced.schemes">Allowed URL Schemes</Trans>}
+              hint={
+                <>
+                  <Trans id="ui2.admin.advanced.schemeshint">
+                    By default, uncommon URL schemes are forbidden in links. If you want to allow linking monero or bitcoin addresses, you should add{" "}
+                    <code>^monero:[48]</code> or <code>^bitcoin:(1|3|bc1)</code> here.
+                  </Trans>{" "}
+                  <Trans id="ui2.admin.advanced.schemesregex">
+                    These are regular expressions, one per line, matched against the link address. <code>^javascript</code> is always rejected.
+                  </Trans>
+                </>
+              }
+              rows={3}
+              spellCheck={false}
+              value={allowedSchemes}
+              disabled={!isAdmin}
+              onChange={setAllowedSchemes}
+            />
+          )}
+        </AdminSection>
         {isAdmin && (
           <div className="u2-actions">
             <Button type="submit" variant="primary" loading={saving}>

@@ -1,5 +1,6 @@
 import "../../components/account/account.css"
 import "./design.css"
+import "../../components/ui.css"
 import React, { useState } from "react"
 import { Trans } from "@lingui/react/macro"
 import { Failure } from "@fider/services"
@@ -7,6 +8,8 @@ import { Button, Checkbox, Field, Form, IconButton, ImageUploader, RadioGroup, S
 import { MarkdownEditor } from "../../components/form/MarkdownEditor"
 import { Avatar, ConfirmDialog, Modal, toast } from "../../components/feedback"
 import { Markdown } from "../../components/content/Markdown"
+import { StatusPill } from "../../components/StatusPill"
+import { AdminSection } from "../Administration/AdminLayout"
 
 // /_design: the new UI's component gallery, so the whole system can be reviewed in one
 // place, in both themes. Sample content is placeholder text for reviewers.
@@ -14,6 +17,8 @@ import { Markdown } from "../../components/content/Markdown"
 const TOKENS = [
   "--u-bg",
   "--u-glass",
+  "--u-surface2",
+  "--u-surface3",
   "--u-edge",
   "--u-line",
   "--u-text",
@@ -21,9 +26,11 @@ const TOKENS = [
   "--u-muted",
   "--u-accent",
   "--u-accent-soft",
+  "--u-grad",
   "--u-on-accent",
   "--u-chip",
   "--u-pop",
+  "--u-up",
   "--u-danger",
   "--u-warn",
   "--u-s-review",
@@ -33,8 +40,8 @@ const TOKENS = [
 ]
 
 const TYPE = [
-  { name: "Page title", cls: "u2-ds-t1", size: "22 / 600" },
-  { name: "Section title", cls: "u2-ds-t2", size: "16 / 600" },
+  { name: "Page title (Space Grotesk)", cls: "u2-ds-t1", size: "26 / 600" },
+  { name: "Section title (Space Grotesk)", cls: "u2-ds-t2", size: "15 / 600" },
   { name: "Body", cls: "u2-ds-t3", size: "14 / 400" },
   { name: "Small", cls: "u2-ds-t4", size: "13 / 400" },
   { name: "Mono (numbers, IDs)", cls: "u2-ds-t5 u2-mono", size: "12 / 500" },
@@ -179,6 +186,101 @@ const DesignSystemPage = () => {
             </Button>
           </div>
         </Form>
+      </Section>
+
+      <Section id="u2-ds-toggles" title="Toggles">
+        <div className="u2-row">
+          <Toggle label="On" checked={on} onChange={setOn} />
+          <Toggle label="Off" checked={!on} onChange={(v) => setOn(!v)} />
+          <Toggle label="Disabled" checked={true} disabled onChange={() => undefined} />
+        </div>
+      </Section>
+
+      <Section id="u2-ds-chips" title="Chips">
+        <div className="u2-row">
+          <span className="u2-chip u2-chip--product" style={{ "--u-chip-dot": "#7ea6ff" } as React.CSSProperties}>
+            Mobile app
+          </span>
+          <span className="u2-chip u2-chip--tag" style={{ "--u-chip-dot": "#4fd69c" } as React.CSSProperties}>
+            onboarding
+          </span>
+          <span className="u2-chip u2-chip--vora">Vora</span>
+          <span className="u2-chip u2-chip--moved">moved</span>
+          <span className="u2-chip u2-chip--warn">needs details</span>
+        </div>
+      </Section>
+
+      <Section id="u2-ds-status" title="Status rings">
+        <p className="u2-muted">Hollow for open, review and planned kinds; half for in progress; full for shipped and completed.</p>
+        <div className="u2-row">
+          <StatusPill status={{ slug: "open", label: "Under review", tone: "review" }} />
+          <StatusPill status={{ slug: "planned", label: "Planned", tone: "planned" }} />
+          <StatusPill status={{ slug: "started", label: "In progress", tone: "progress" }} />
+          <StatusPill status={{ slug: "completed", label: "Shipped", tone: "shipped" }} />
+        </div>
+      </Section>
+
+      <Section id="u2-ds-votes" title="Vote states">
+        {/* Static markup with the vote button's classes: a real one would vote on a post. */}
+        <div className="u2-row" aria-hidden="true">
+          {[
+            { cls: "u2-vote u2-vote--row", n: 41 },
+            { cls: "u2-vote u2-vote--row is-on", n: 42 },
+            { cls: "u2-vote u2-vote--large", n: 41 },
+            { cls: "u2-vote u2-vote--large is-on", n: 42 },
+          ].map((v) => (
+            <span key={v.cls} className={v.cls}>
+              <svg viewBox="0 0 24 24">
+                <path d="M12 4l7 8h-4v8H9v-8H5z" />
+              </svg>
+              <span className="u2-vote__n u2-mono">{v.n}</span>
+            </span>
+          ))}
+        </div>
+        <p className="u2-muted">Row: not voted, voted. Idea view: not voted, voted.</p>
+      </Section>
+
+      <Section id="u2-ds-panels" title="Panels (site settings)">
+        <div className="u2-ds__panels">
+          <AdminSection title="Setting rows" lede="Label and help on one side, the control on the other.">
+            <Field label="Private board" hint="Only signed-in members can see ideas." group>
+              <Toggle label="Private board" hideLabel checked={on} onChange={setOn} />
+            </Field>
+            <TextInput name="panel-name" label="Board title" hint="Keep it short." value={text} onChange={setText} />
+          </AdminSection>
+          <AdminSection
+            title="Table"
+            actions={
+              <Button small variant="primary">
+                Add
+              </Button>
+            }
+          >
+            <ul className="u2-alist">
+              {["Under review", "Planned", "Shipped"].map((s) => (
+                <li key={s}>
+                  <div className="u2-alist__main">
+                    <strong>{s}</strong>
+                    <div className="u2-alist__meta">
+                      <code>{s.toLowerCase().replace(" ", "-")}</code>
+                    </div>
+                  </div>
+                  <div className="u2-alist__acts">
+                    <Button small variant="ghost">
+                      Edit
+                    </Button>
+                    <Button small variant="danger">
+                      Delete
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </AdminSection>
+          <AdminSection tone="danger" title="Danger panel" lede="For actions that cannot be undone.">
+            <Button variant="danger">Delete this site</Button>
+          </AdminSection>
+        </div>
       </Section>
 
       <Section id="u2-ds-feedback" title="Dialogs and toasts">

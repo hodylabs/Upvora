@@ -104,44 +104,47 @@ const ManageMCPPage = (props: ManageMCPPageProps) => {
       name="mcp"
       title={<Trans id="ui2.admin.mcp.title">MCP</Trans>}
       subtitle={<Trans id="ui2.admin.mcp.sub">Let AI assistants (MCP clients) work in Upvora as the signed-in user</Trans>}
+      wide
     >
-      <Field label={<Trans id="ui2.admin.mcp.enable">Enable MCP</Trans>} group>
-        <Toggle
-          checked={settings.enabled}
-          label={i18n._({ id: "ui2.admin.mcp.enable", message: "Enable MCP" })}
-          hideLabel
-          onChange={(v) => update({ enabled: v })}
+      <AdminSection>
+        <Field label={<Trans id="ui2.admin.mcp.enable">Enable MCP</Trans>} group>
+          <Toggle
+            checked={settings.enabled}
+            label={i18n._({ id: "ui2.admin.mcp.enable", message: "Enable MCP" })}
+            hideLabel
+            onChange={(v) => update({ enabled: v })}
+          />
+          <MCPConnectAddresses mcpUrl={props.mcpUrl} publicMcpUrls={props.publicMcpUrls} />
+        </Field>
+        <Select
+          name="minRole"
+          label={<Trans id="ui2.admin.mcp.minrole">Who may connect</Trans>}
+          value={settings.minRole}
+          onChange={(v) => update({ minRole: v as MCPMinRole })}
+          options={[
+            { value: "administrator", label: i18n._({ id: "ui2.admin.mcp.role.admin", message: "Administrators only" }) },
+            { value: "collaborator", label: i18n._({ id: "ui2.admin.mcp.role.collab", message: "Administrators and collaborators" }) },
+            { value: "visitor", label: i18n._({ id: "ui2.admin.mcp.role.visitor", message: "Any signed-in member" }) },
+          ]}
         />
-        <MCPConnectAddresses mcpUrl={props.mcpUrl} publicMcpUrls={props.publicMcpUrls} />
-      </Field>
-      <Select
-        name="minRole"
-        label={<Trans id="ui2.admin.mcp.minrole">Who may connect</Trans>}
-        value={settings.minRole}
-        onChange={(v) => update({ minRole: v as MCPMinRole })}
-        options={[
-          { value: "administrator", label: i18n._({ id: "ui2.admin.mcp.role.admin", message: "Administrators only" }) },
-          { value: "collaborator", label: i18n._({ id: "ui2.admin.mcp.role.collab", message: "Administrators and collaborators" }) },
-          { value: "visitor", label: i18n._({ id: "ui2.admin.mcp.role.visitor", message: "Any signed-in member" }) },
-        ]}
-      />
-      <Field
-        label={<Trans id="ui2.admin.mcp.dcr">Clients may register themselves</Trans>}
-        hint={
-          <Trans id="ui2.admin.mcp.dcrhint">
-            Lets an MCP client register automatically. Registering grants nothing on its own: people still sign in and approve. Turn this off to allow only the
-            clients listed below.
-          </Trans>
-        }
-        group
-      >
-        <Toggle
-          checked={settings.dcrEnabled}
-          label={i18n._({ id: "ui2.admin.mcp.dcr", message: "Clients may register themselves" })}
-          hideLabel
-          onChange={(v) => update({ dcrEnabled: v })}
-        />
-      </Field>
+        <Field
+          label={<Trans id="ui2.admin.mcp.dcr">Clients may register themselves</Trans>}
+          hint={
+            <Trans id="ui2.admin.mcp.dcrhint">
+              Lets an MCP client register automatically. Registering grants nothing on its own: people still sign in and approve. Turn this off to allow only
+              the clients listed below.
+            </Trans>
+          }
+          group
+        >
+          <Toggle
+            checked={settings.dcrEnabled}
+            label={i18n._({ id: "ui2.admin.mcp.dcr", message: "Clients may register themselves" })}
+            hideLabel
+            onChange={(v) => update({ dcrEnabled: v })}
+          />
+        </Field>
+      </AdminSection>
 
       <AdminSection
         title={<Trans id="ui2.admin.mcp.clients">Registered clients</Trans>}

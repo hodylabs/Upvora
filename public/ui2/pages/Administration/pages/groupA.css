@@ -1,4 +1,4 @@
-/* Authentication and Members pages. */
+/* Authentication, Members and Banner pages. */
 .u2-oauth__logo {
   flex: none;
   width: 20px;
@@ -10,38 +10,77 @@
   pointer-events: none;
 }
 .u2-oauth__on {
-  color: var(--u-s-shipped);
+  color: var(--u-up);
 }
 .u2-oauth__off {
   color: var(--u-danger);
 }
-.u2-members {
-  margin-block-start: 12px;
-}
 .u2-members__level {
   width: auto;
-  min-width: 160px;
+  min-width: 170px;
 }
-.u2-members__badge--administrator,
-.u2-members__badge--collaborator {
+.u2-chip.u2-members__badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--u-surface2);
+  font: 500 11px var(--u-mono);
+}
+.u2-chip.u2-members__badge--administrator,
+.u2-chip.u2-members__badge--collaborator {
   color: var(--u-s-planned);
 }
-.u2-members__badge--trusted {
-  color: var(--u-s-shipped);
+.u2-chip.u2-members__badge--trusted {
+  color: var(--u-up);
 }
-.u2-members__badge--blocked {
+.u2-chip.u2-members__badge--blocked {
   color: var(--u-danger);
 }
 .u2-members__pages {
-  margin-block-start: 10px;
+  gap: 6px;
 }
 .u2-members__legend {
-  margin-block-start: 14px;
+  display: grid;
+  gap: 4px;
+  margin: 16px 0 0;
   padding-inline-start: 18px;
   font-size: 13px;
 }
+@media (min-width: 901px) {
+  /* Search and role side by side: one filter bar, not two settings. */
+  .u2-admin .u2-members__filters > .u2-admin__sectbody {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 24px;
+  }
+  .u2-admin .u2-members__filters > .u2-admin__sectbody > .u2-fld {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 0;
+    border: 0;
+  }
+}
+
+/* Banner preview: the real banner over a sketch of the page under it. */
 .u2-bannerprev {
+  overflow: hidden;
+  border: 1px solid var(--u-line);
   border-radius: var(--u-radius);
+  background: var(--u-bg);
+}
+.u2-bannerprev .u2-banner {
   white-space: pre-wrap;
   font-weight: 600;
+}
+.u2-bannerprev__page {
+  height: 44px;
+  background:
+    linear-gradient(var(--u-line), var(--u-line)) 16px 16px / 30% 8px no-repeat,
+    linear-gradient(var(--u-line), var(--u-line)) 16px 30px / 55% 6px no-repeat;
+}
+.u2-bannerprev.is-off {
+  opacity: 0.5;
+}
+.u2-bannerprev + p {
+  margin: 10px 0 0;
+  font-size: 13px;
 }

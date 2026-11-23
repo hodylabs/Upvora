@@ -54,31 +54,31 @@ const withFider = (fider: ReturnType<typeof staff>, el: React.ReactElement) => r
 const names = (o: Opts) => adminNavItems(staff(o)).map((i) => i.name)
 
 describe("ui2 admin nav gating", () => {
-  test("administrators get classic's full menu, in classic's order", () => {
+  test("administrators get classic's full menu, grouped by section", () => {
     expect(names({ billing: true })).toEqual([
       "general",
       "privacy",
-      "users",
-      "tags",
       "theme",
-      "ai",
-      "mcp",
+      "banner",
+      "advanced",
+      "users",
+      "invitations",
+      "authentication",
+      "tags",
       "products",
       "statuses",
       "scorecard-settings",
-      "banner",
-      "invitations",
-      "authentication",
-      "advanced",
-      "billing",
+      "ai",
+      "mcp",
       "webhooks",
+      "billing",
       "export",
       "danger-zone",
     ])
   })
 
   test("collaborators see General, Tags, Scorecard and Invitations only", () => {
-    expect(names({ role: "collaborator", billing: true })).toEqual(["general", "tags", "scorecard-settings", "invitations"])
+    expect(names({ role: "collaborator", billing: true })).toEqual(["general", "invitations", "tags", "scorecard-settings"])
   })
 
   test("billing only when billing is on; danger zone only in multi-host mode", () => {
@@ -245,5 +245,34 @@ describe("ui2 Advanced", () => {
     fireEvent.change(ui2, { target: { value: ".u2-row{gap:0}" } })
     await act(async () => fireEvent.submit(container.querySelector("form") as HTMLFormElement))
     expect(mock.post).toHaveBeenCalledWith("/_api/admin/settings/advanced", { customCSS: ".c{}", allowedSchemes: "", ui2CustomCSS: ".u2-row{gap:0}" })
+  })
+})
+
+describe("ui2 admin layout", () => {
+  test("the nav is grouped into sections, with a select for phones", () => {
+    httpMock.alwaysOk()
+    const { container } = withFider(
+      staff({ role: "collaborator" }),
+      <AdminLayout name="tags" title="Tags">
+        <p>x</p>
+      </AdminLayout>
+    )
+    expect(container.querySelectorAll(".u2-admin__navgroup")).toHaveLength(3)
+    const jump = container.querySelector("#u2-admin-jump") as HTMLSelectElement
+    expect(jump.value).toBe("/admin/tags")
+    expect(jump.querySelectorAll("optgroup")).toHaveLength(3)
+  })
+
+  test("General focuses the welcome message when the board links to #welcome-message", () => {
+    httpMock.alwaysOk()
+    const scroll = jest.fn()
+    Element.prototype.scrollIntoView = scroll
+    Object.defineProperty(window, "location", { configurable: true, value: { ...window.location, hash: "#welcome-message" } })
+    const { container } = withFider(staff(), <GeneralSettingsPage />)
+    const field = container.querySelector("#welcome-message textarea")
+    expect(field).not.toBeNull()
+    expect(document.activeElement).toBe(field)
+    expect(scroll).toHaveBeenCalled()
+    Object.defineProperty(window, "location", { configurable: true, value: { ...window.location, hash: "" } })
   })
 })
