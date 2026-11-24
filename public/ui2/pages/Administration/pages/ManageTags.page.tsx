@@ -76,7 +76,7 @@ const TagForm = (props: TagFormProps) => {
   return (
     <div className="u2-editbox">
       <Form error={error} onSubmit={save}>
-        <TextInput name="name" label={<Trans id="ui2.admin.tags.name">Name</Trans>} value={name} onChange={setName} />
+        <TextInput name="name" label={<Trans id="ui2.admin.tags.name">Name</Trans>} value={name} onChange={setName} autoFocus />
         <TextInput
           name="color"
           label={<Trans id="ui2.admin.tags.color">Color</Trans>}

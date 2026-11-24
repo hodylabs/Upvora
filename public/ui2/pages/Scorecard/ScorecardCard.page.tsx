@@ -381,7 +381,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
               </span>
               <a className="u2-sc__idea-title" href={postHref(post)} target="_blank" rel="noopener">
                 {post.title}
-                <span aria-hidden="true"> ↗</span>
+                <span aria-hidden="true">{"\u00a0↗"}</span>
               </a>
               {post.description && <p className="u2-sc__idea-desc">{post.description}</p>}
               <div className="u2-sc__meta">

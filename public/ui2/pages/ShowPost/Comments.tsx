@@ -136,6 +136,10 @@ export const CommentItem = (props: CommentItemProps) => {
     if (props.highlighted) ref.current?.scrollIntoView?.({ block: "center" })
   }, [props.highlighted])
 
+  useEffect(() => {
+    if (editing) focusComposer(ref.current)
+  }, [editing])
+
   const save = async () => {
     setBusy(true)
     const r = await actions.updateComment(props.post.number, comment.id, content, attachments)

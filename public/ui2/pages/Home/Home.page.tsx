@@ -539,7 +539,10 @@ const HomePage = (props: HomePageProps) => {
           {canShare && gate.available && (
             <button type="button" className="u2-btn u2-btn--ghost u2-box__ask" disabled={posting} onClick={() => openChat(query, details)}>
               <span className="u2-logo" aria-hidden="true" />
-              <Trans id="ui2.box.ask">Ask Vora</Trans>
+              <span className="u2-box__long">
+                <Trans id="ui2.box.ask">Ask Vora</Trans>
+              </span>
+              <span className="u2-box__short">Vora</span>
             </button>
           )}
           {canShare && (

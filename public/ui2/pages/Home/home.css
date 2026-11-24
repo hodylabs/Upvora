@@ -573,13 +573,4 @@ body.u2 .u2-box__input:focus-visible {
   .u2-box__short {
     display: inline;
   }
-  /* Ask Vora keeps only its mark on narrow phones; the name stays for screen readers. */
-  .u2-box__ask {
-    font-size: 0;
-    gap: 0;
-  }
-  .u2-box__ask .u2-logo {
-    width: 18px;
-    height: 18px;
-  }
 }

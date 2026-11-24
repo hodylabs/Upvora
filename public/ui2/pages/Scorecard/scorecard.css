@@ -464,6 +464,9 @@ body.u2 .u2-sc__titleinput:focus-visible {
   margin: 0;
   font-size: 12px;
 }
+.u2-sc__score-val small {
+  white-space: nowrap;
+}
 .u2-sc__score-val {
   display: flex;
   flex-direction: column;
@@ -777,7 +780,7 @@ body.u2 .u2-sc__titleinput:focus-visible {
     font-size: 40px;
   }
   .u2-ring__side {
-    min-width: 0;
+    min-width: 100%;
   }
   .u2-sc__titleinput {
     font-size: 24px;
@@ -805,7 +808,7 @@ body.u2 .u2-sc__titleinput:focus-visible {
     grid-template-columns: minmax(0, 1fr);
   }
   .u2-sc__score {
-    grid-template-columns: minmax(0, 1fr) 36px;
+    grid-template-columns: minmax(0, 1fr) 64px;
   }
   .u2-sc__slider {
     grid-column: 1 / -1;
