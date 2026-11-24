@@ -1130,6 +1130,7 @@
   "ui2.scorecard.untitled": "Scorecard #{id}",
   "ui2.scorecard.userplaceholder": "Pick a collaborator or admin, or type any name",
   "ui2.scorecard.views": "Scorecard views",
+  "ui2.scorecard.votes": "{votes, plural, one {# vote} other {# votes}}",
   "ui2.scorecard.weighted": "Weighted score",
   "ui2.search.failed": "The search could not run. The list below is from before it; try again.",
   "ui2.settings.apikey.confirmtext": "Your current key stops working immediately. Anything that uses it will fail until you give it the new key.",
