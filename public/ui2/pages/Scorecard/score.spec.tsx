@@ -179,13 +179,14 @@ describe("ui2 Scorecard card", () => {
 
     fireEvent.change(container.querySelector("#sc-effort") as HTMLInputElement, { target: { value: "5" } })
     expect(num()).toBe("75")
-    // The segments: tap 2 for effort, then tap 2 again to clear it.
-    const seg = (n: number) => container.querySelectorAll('[data-field="effort"] .u2-range__segs span')[n - 1] as HTMLElement
-    fireEvent.click(seg(2))
+    // Slide effort to 2, then back to 0 (unscored), then to 5; the passed step dots light up.
+    const effort = container.querySelector("#sc-effort") as HTMLInputElement
+    fireEvent.change(effort, { target: { value: "2" } })
     expect(num()).toBe("54")
-    fireEvent.click(seg(2))
+    expect(container.querySelectorAll('[data-field="effort"] .u2-range__track i.is-on')).toHaveLength(3)
+    fireEvent.change(effort, { target: { value: "0" } })
     expect(num()).toBe("40")
-    fireEvent.click(seg(5))
+    fireEvent.change(effort, { target: { value: "5" } })
     expect(num()).toBe("75")
     expect(container.querySelector(".u2-ring__legend .is-current")?.className).toContain("u2-band--good")
     expect(put).not.toHaveBeenCalled()

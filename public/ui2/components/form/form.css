@@ -575,60 +575,117 @@ body.u2 .u2-switch:focus-visible {
   }
 }
 
-/* Range slider */
-/* Rating segments: the native input is hidden but focusable; its focus rings the segments. */
+/* Range slider: a drawn track (fill + step dots) under a native input whose own track is
+   transparent, so only its thumb shows. --f is the value as 0..1; the thumb is 20px, so
+   positions run from 10px to 100% - 10px to line up with the thumb's center. */
 .u2-range {
+  --thumb: 20px;
   position: relative;
+  display: flex;
+  align-items: center;
+  height: 32px;
+}
+.u2-range__track {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 99px;
+  background: var(--u-surface3);
+}
+.u2-range__track::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--f));
+  border-radius: inherit;
+  background: var(--u-grad);
+  box-shadow: 0 0 12px -2px var(--u-accent);
+  transition: width 0.18s ease;
+}
+.u2-range__track i {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--s));
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--u-muted);
+  opacity: 0.6;
+}
+.u2-range__track i.is-on {
+  background: var(--u-on-accent);
+  opacity: 0.7;
 }
 .u2-range input {
-  position: absolute;
-  inset: 0;
+  position: relative;
   width: 100%;
   height: 100%;
   margin: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-.u2-range__segs {
-  display: flex;
-  gap: 4px;
-  padding: 3px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--u-bg) 55%, transparent);
-}
-.u2-range input:focus-visible + .u2-range__segs {
-  box-shadow: 0 0 0 2px var(--u-accent);
-}
-.u2-range__segs span {
-  flex: 1;
-  display: grid;
-  place-items: center;
-  height: 30px;
-  border-radius: 9px;
-  background: var(--u-surface3);
-  color: var(--u-muted);
-  font: 500 12px var(--u-mono);
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
-.u2-range__segs span:hover {
-  color: var(--u-text);
-  box-shadow: inset 0 0 0 1px var(--u-edge);
+.u2-range input::-webkit-slider-runnable-track {
+  background: transparent;
 }
-.u2-range__segs span.is-on {
-  background: var(--u-grad);
-  color: var(--u-on-accent);
-  font-weight: 600;
-  box-shadow: 0 0 14px -4px var(--u-accent);
+.u2-range input::-moz-range-track {
+  background: transparent;
 }
-.u2-range.is-disabled .u2-range__segs {
-  opacity: 0.5;
+.u2-range input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: var(--thumb);
+  height: var(--thumb);
+  border-radius: 50%;
+  background: #fff;
+  border: 0;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--u-accent) 35%, transparent), 0 2px 10px -2px var(--u-accent);
+  transition: box-shadow 0.15s, transform 0.15s;
 }
-.u2-range.is-disabled .u2-range__segs span {
+.u2-range input::-moz-range-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  border-radius: 50%;
+  background: #fff;
+  border: 0;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--u-accent) 35%, transparent), 0 2px 10px -2px var(--u-accent);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.u2-range input:hover::-webkit-slider-thumb,
+.u2-range input:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+.u2-range input:hover::-moz-range-thumb,
+.u2-range input:active::-moz-range-thumb {
+  transform: scale(1.12);
+}
+.u2-range input:focus-visible {
+  outline: none;
+}
+.u2-range input:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px var(--u-bg), 0 0 0 5px var(--u-accent), 0 2px 12px -2px var(--u-accent);
+}
+.u2-range input:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px var(--u-bg), 0 0 0 5px var(--u-accent), 0 2px 12px -2px var(--u-accent);
+}
+.u2-range.is-disabled {
+  opacity: 0.45;
+}
+.u2-range.is-disabled input {
   cursor: not-allowed;
 }
+@media (prefers-reduced-motion: reduce) {
+  .u2-range__track::before {
+    transition: none;
+  }
+}
 @media (max-width: 700px) {
-  .u2-range__segs span {
+  .u2-range {
+    --thumb: 26px;
     height: 44px;
   }
 }
