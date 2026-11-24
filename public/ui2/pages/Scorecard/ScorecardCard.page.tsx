@@ -9,7 +9,7 @@ import { actions, formatDate, navigator, notify } from "@fider/services"
 import { useFider } from "@fider/hooks"
 import { postHref } from "../../lib/nav"
 import { bandForScore, computeWeightedScore, isAnswered, parseChoices } from "./score"
-import { ScoreMeter } from "./ScoreMeter"
+import { ScoreRing } from "./ScoreRing"
 import { InternalNote as TeamNote } from "../../components/InternalNote"
 import { BriefButton } from "./BriefButton"
 import { Range } from "../../components/form/Range"
@@ -218,7 +218,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
             </span>
             {f.question && <p className="u2-sc__score-q u2-muted">{f.question}</p>}
           </div>
-          <Range id={id} className="u2-sc__slider" min={0} max={5} value={n} disabled={retired} ticks onChange={(v) => setValue(key, v)} />
+          <Range id={id} className="u2-sc__slider" min={0} max={5} value={n} disabled={retired} onChange={(v) => setValue(key, v)} />
           <span className={`u2-sc__score-val u2-mono${n === 0 ? " is-unset" : ""}`}>
             {n === 0 ? "–" : n}
             <small>
@@ -366,7 +366,7 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
         <div className="u2-scc__main">
           {/* The score and the dimensions that make it, in one panel tinted by the band. */}
           <section className={`u2-scc__score u2-band--${score === 0 ? "none" : band.key}`}>
-            <ScoreMeter score={score} band={band} tenant={tenant} />
+            <ScoreRing score={score} band={band} tenant={tenant} />
             {group("scoring", grouped["scoring"], true)}
           </section>
           {GROUP_ORDER.filter((g) => g !== "scoring").map((g) => group(g, grouped[g]))}

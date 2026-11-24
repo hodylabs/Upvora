@@ -165,14 +165,14 @@ body.u2 .u2-ovl__panel:focus-visible {
   position: sticky;
   inset-block-start: 0;
   z-index: 5;
-  padding: 12px 12px 0;
+  padding: 12px 28px 0;
   pointer-events: none;
 }
 .u2-top__in {
   display: flex;
   align-items: center;
   gap: 8px;
-  max-width: 1096px;
+  max-width: 1704px;
   min-height: 56px;
   margin-inline: auto;
   padding: 8px 10px 8px 14px;
@@ -356,9 +356,10 @@ body.u2 .u2-ovl__panel:focus-visible {
 .u2-main {
   min-width: 0;
   width: 100%;
-  max-width: 1120px;
+  /* Pages use the screen's width; the cap only keeps very wide screens readable. */
+  max-width: 1760px;
   margin-inline: auto;
-  padding: 26px 24px 0;
+  padding: 26px 40px 0;
 }
 /* Page titles: one size everywhere, like a dashboard. */
 .u2-home__title,

@@ -172,14 +172,22 @@ describe("ui2 Scorecard card", () => {
         <ScorecardCardPage scorecard={{ id: 5, title: "Alpha", values: { impact: 5 }, createdAt: "2026-11-01T00:00:00Z", updatedAt: "" }} />
       </FiderContext.Provider>
     )
-    const num = () => container.querySelector(".u2-meter__num")?.getAttribute("data-score")
+    const num = () => container.querySelector(".u2-ring__num")?.getAttribute("data-score")
     expect(num()).toBe("40")
-    expect(container.querySelectorAll(".u2-meter__zone")).toHaveLength(5)
-    expect(container.querySelector(".u2-meter__zone.is-current")?.className).toContain("u2-band--refine")
+    expect(container.querySelectorAll(".u2-ring__seg")).toHaveLength(5)
+    expect(container.querySelector(".u2-ring__legend .is-current")?.className).toContain("u2-band--refine")
 
     fireEvent.change(container.querySelector("#sc-effort") as HTMLInputElement, { target: { value: "5" } })
     expect(num()).toBe("75")
-    expect(container.querySelector(".u2-meter__zone.is-current")?.className).toContain("u2-band--good")
+    // The segments: tap 2 for effort, then tap 2 again to clear it.
+    const seg = (n: number) => container.querySelectorAll('[data-field="effort"] .u2-range__segs span')[n - 1] as HTMLElement
+    fireEvent.click(seg(2))
+    expect(num()).toBe("54")
+    fireEvent.click(seg(2))
+    expect(num()).toBe("40")
+    fireEvent.click(seg(5))
+    expect(num()).toBe("75")
+    expect(container.querySelector(".u2-ring__legend .is-current")?.className).toContain("u2-band--good")
     expect(put).not.toHaveBeenCalled()
     await act(async () => {
       jest.advanceTimersByTime(SAVE_DEBOUNCE_MS)
