@@ -126,7 +126,7 @@ describe("ui2 Scorecard list", () => {
     )
     expect(container.querySelector('[data-card="1"] [data-score]')?.getAttribute("data-score")).toBe("100")
     expect(container.querySelector('[data-card="1"] [data-band]')?.getAttribute("data-band")).toBe("strong")
-    expect(container.querySelector('[data-card="1"] .u2-sc__strip i')).toHaveStyle({ width: "100%" })
+    expect(container.querySelector('[data-card="1"] .u2-sc__mini')?.getAttribute("style")).toContain("--p: 100")
     expect(container.querySelector('[data-card="2"] [data-band]')).toBeNull()
 
     const tabs = container.querySelectorAll<HTMLButtonElement>(".u2-sc__tab")

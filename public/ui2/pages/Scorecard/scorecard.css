@@ -47,18 +47,18 @@
 .u2-sc {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 .u2-sc__head {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-block-start: 18px;
 }
 .u2-sc__head h1 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font: 600 30px/1.15 var(--u-display);
+  letter-spacing: -0.03em;
 }
 .u2-sc__head .u2-btn {
   margin-inline-start: auto;
@@ -67,165 +67,204 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0;
-  font-size: 13px;
+  margin: -6px 0 0;
+  font-size: 13.5px;
 }
 .u2-sc__off {
   margin: 0;
-  padding: 8px 12px;
-  border: 1px solid var(--u-edge);
+  padding: 10px 14px;
   border-radius: var(--u-radius);
-  background: var(--u-chip);
+  background: color-mix(in srgb, var(--u-warn) 10%, transparent);
   color: var(--u-warn);
 }
+
+/* Filters: view pills with counts and the search box on one line, band and product
+   pills on the next. Same pills as the board. */
 .u2-sc__tools {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 10px 8px;
+  margin-block-start: 6px;
 }
-.u2-sc__tools-end {
+.u2-sc__tabs,
+.u2-sc__bands {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-inline-start: auto;
-}
-/* Views: a segmented control (the board's List / By stage switch). */
-.u2-sc__tabs {
-  display: inline-flex;
-  padding: 3px;
-  border: 1px solid var(--u-line);
-  border-radius: var(--u-radius);
-  background: var(--u-glass);
-}
-.u2-sc__tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 7px;
-  background: none;
-  color: var(--u-muted);
-  font: inherit;
-  font-size: 12.5px;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
-}
-.u2-sc__tab:hover {
-  color: var(--u-text);
-}
-.u2-sc__tab[aria-pressed="true"] {
-  background: var(--u-surface3);
-  color: var(--u-text);
-}
-.u2-sc__tab .u2-mono {
-  font-size: 11px;
 }
 .u2-sc__bands {
   flex-basis: 100%;
-  order: 3;
 }
-/* Inputs, selects and textareas are the shared .u2-ctl; the filter only sizes itself. */
+.u2-sc__bands .u2-pfilter {
+  display: contents;
+}
+/* Product chips read as board pills here too. */
+.u2-sc__bands .u2-pfilter__chip {
+  height: 30px;
+  padding: 0 12px;
+  border-color: var(--u-line);
+  border-radius: 999px;
+  background: var(--u-glass);
+  font-size: 12.5px;
+}
+.u2-sc__bands .u2-pfilter__chip[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--u-text);
+  color: var(--u-bg);
+}
+.u2-sc__sep {
+  width: 1px;
+  height: 18px;
+  margin-inline: 4px;
+  background: var(--u-edge);
+}
+.u2-sc__bandchip.is-on::before {
+  box-shadow: 0 0 0 2px var(--u-bg);
+}
+/* The search: the board's box, smaller. The frame shows focus, the field draws none. */
+.u2-sc__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  margin-inline-start: auto;
+  padding-inline: 12px;
+  border: 1px solid var(--u-line);
+  border-radius: 12px;
+  background: var(--u-glass);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.u2-sc__search:focus-within {
+  border-color: color-mix(in srgb, var(--u-accent) 60%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--u-accent) 14%, transparent);
+}
+.u2-sc__search svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: var(--u-muted);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+}
 .u2-sc__input {
-  width: auto;
-  min-width: 200px;
+  width: 200px;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--u-text);
+  font: inherit;
+  font-size: 13.5px;
+}
+body.u2 .u2-sc__input:focus-visible {
+  outline: none;
+}
+.u2-sc__input::placeholder {
+  color: var(--u-muted);
 }
 /* A multiline field starts one line tall, as before the shared control. */
 .u2-sc textarea.u2-ctl {
   min-height: 36px;
 }
 
-/* List table: dense 42 px rows */
-.u2-sc__wrap {
-  overflow-x: auto;
-  border-color: var(--u-edge);
-}
-.u2-sc__table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.u2-sc__table th {
-  height: 40px;
-  padding-inline: 16px;
-  border-block-end: 1px solid var(--u-line);
-  background: var(--u-surface2);
-  font: 500 11px var(--u-mono);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--u-muted);
-  text-align: start;
-  white-space: nowrap;
-}
-.u2-sc__table td {
-  height: var(--u-row);
-  padding: 10px 16px;
+/* List: the board's rows. Score ring on the start, title and meta, band on the end. */
+.u2-sc__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 18px;
   border-block-start: 1px solid var(--u-line);
-  vertical-align: middle;
-}
-.u2-sc__table .is-end {
-  text-align: end;
-}
-.u2-sc__table tbody tr:first-child td {
-  border-block-start: 0;
-}
-.u2-sc__table tbody tr[data-card] {
   cursor: pointer;
   transition: background 0.12s;
 }
-.u2-sc__table tbody tr[data-card]:hover,
-.u2-sc__table tbody tr[data-card]:focus-within {
+.u2-sc__row:first-child {
+  border-block-start: 0;
+}
+.u2-sc__row:hover,
+.u2-sc__row:focus-within {
   background: var(--u-surface2);
+}
+/* The score as a small ring: a conic fill to --p percent in the band color. */
+.u2-sc__mini {
+  --p: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: conic-gradient(var(--u-b) calc(var(--p) * 1%), var(--u-surface3) 0);
+}
+.u2-sc__mini::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--u-glass);
+}
+.u2-sc__row:hover .u2-sc__mini::before {
+  background: var(--u-surface2);
+}
+.u2-sc__mini span {
+  position: relative;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--u-text);
+}
+.u2-sc__mini.u2-band--none span {
+  color: var(--u-muted);
+}
+.u2-sc__main {
+  min-width: 0;
 }
 .u2-sc__title {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
+  min-width: 0;
 }
 .u2-sc__title a {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--u-text) !important;
+  font-size: 14.5px;
   font-weight: 500;
   text-decoration: none;
 }
 .u2-sc__title a:hover {
   text-decoration: underline;
 }
-.u2-sc__sub {
-  font-size: 11px;
+.u2-sc__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin-block-start: 4px;
+  color: var(--u-muted);
+  font-size: 12.5px;
+}
+.u2-sc__meta .u2-mono {
+  font-size: 11.5px;
+}
+.u2-sc__status-t {
+  color: var(--u-text2);
+}
+.u2-sc__end {
+  justify-self: end;
+}
+.u2-band.u2-band--none {
+  border-style: dashed;
+  background: none;
   color: var(--u-muted);
 }
-.u2-sc__total {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 3px;
-}
-.u2-sc__total b {
-  font-weight: 600;
-}
-.u2-sc__strip {
-  display: block;
-  width: 72px;
-  height: 4px;
-  border-radius: 4px;
-  background: var(--u-surface3);
-  overflow: hidden;
-}
-.u2-sc__strip i {
-  display: block;
-  height: 100%;
-  border-radius: 4px;
-  background: var(--u-b);
-}
-/* The top two bands get a gradient in their own color, like the card's ring. */
-.u2-sc__strip.u2-band--strong i,
-.u2-sc__strip.u2-band--good i {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--u-b) 55%, var(--u-text)), var(--u-b));
-}
-.u2-sc__empty td {
-  height: auto;
+.u2-sc__empty {
   padding: 48px 16px;
   text-align: center;
   color: var(--u-muted);
@@ -597,19 +636,32 @@
 }
 
 @media (max-width: 840px) {
-  .u2-sc__tools-end {
-    margin-inline-start: 0;
+  .u2-sc__search {
+    order: -1;
+    flex-basis: 100%;
+    height: 44px;
+  }
+  .u2-sc__input {
     width: 100%;
+    font-size: 16px;
+  }
+  .u2-sc__row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 12px;
+    padding: 12px 14px;
+  }
+  .u2-sc__title a {
+    white-space: normal;
+  }
+  .u2-sc__end {
+    grid-column: 2;
+    justify-self: start;
   }
   .u2-sc__block {
     padding: 18px 16px;
   }
   .u2-sc__titleinput {
     font-size: 21px;
-  }
-  .u2-sc__tabs {
-    max-width: 100%;
-    overflow-x: auto;
   }
   .u2-sc__status select.u2-ctl {
     min-height: 40px;
@@ -623,11 +675,9 @@
     display: inline-flex;
     align-items: center;
   }
-  .u2-sc__input {
-    width: 100%;
-  }
-  .u2-sc__tab {
-    height: 44px;
+  .u2-sc .u2-fchip,
+  .u2-sc__bands .u2-pfilter__chip {
+    min-height: 44px;
   }
   .u2-sc__brief {
     min-height: 44px;
@@ -641,9 +691,5 @@
   .u2-sc__slider {
     grid-column: 1 / -1;
     grid-row: 2;
-  }
-  .u2-sc__table th:nth-child(5),
-  .u2-sc__table td:nth-child(5) {
-    display: none;
   }
 }

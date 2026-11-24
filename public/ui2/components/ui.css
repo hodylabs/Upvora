@@ -163,6 +163,40 @@ a.u2-chip--product:hover {
   color: var(--u-warn);
 }
 
+/* Filter pills (board, scorecard): outlined, inverted when on, dashed to add. */
+.u2-fchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--u-line);
+  border-radius: 999px;
+  background: var(--u-glass);
+  color: var(--u-text2);
+  font: inherit;
+  font-size: 12.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.u2-fchip:hover {
+  border-color: var(--u-edge);
+  color: var(--u-text);
+}
+.u2-fchip.is-on {
+  border-color: transparent;
+  background: var(--u-text);
+  color: var(--u-bg);
+}
+.u2-fchip.is-add {
+  border-style: dashed;
+  border-color: var(--u-edge);
+  color: var(--u-muted);
+}
+.u2-fchip__n {
+  font-size: 11px;
+  opacity: 0.7;
+}
 /* Avatar stack */
 .u2-faces {
   display: inline-flex;

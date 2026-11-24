@@ -2,7 +2,7 @@ import "../../components/form/form.css"
 import "./scorecard.css"
 
 import React, { useMemo, useState } from "react"
-import { Trans } from "@lingui/react/macro"
+import { Trans, Plural } from "@lingui/react/macro"
 import { i18n } from "@lingui/core"
 import { actions, navigator, notify } from "@fider/services"
 import { useFider } from "@fider/hooks"
@@ -140,137 +140,124 @@ const ScorecardPage = (props: ScorecardPageProps) => {
       <div className="u2-sc__tools">
         <div className="u2-sc__tabs" role="group" aria-label={i18n._({ id: "ui2.scorecard.views", message: "Scorecard views" })}>
           {TABS.map((t) => (
-            <button key={t.key} type="button" className="u2-sc__tab" aria-pressed={tab === t.key} onClick={() => setTab(t.key)}>
-              {t.label()} <span className="u2-mono u2-muted">{counts[t.key]}</span>
+            <button
+              key={t.key}
+              type="button"
+              className={`u2-fchip u2-sc__tab${tab === t.key ? " is-on" : ""}`}
+              aria-pressed={tab === t.key}
+              onClick={() => setTab(t.key)}
+            >
+              {t.label()} <span className="u2-fchip__n u2-mono">{counts[t.key]}</span>
             </button>
           ))}
         </div>
-        <div className="u2-pfilter u2-sc__bands" role="group" aria-label={i18n._({ id: "ui2.scorecard.bandfilter", message: "Filter by band" })}>
+        <label className="u2-sc__search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            type="search"
+            className="u2-sc__input"
+            placeholder={i18n._({ id: "ui2.scorecard.filter", message: "Filter cards" })}
+            aria-label={i18n._({ id: "ui2.scorecard.filter", message: "Filter cards" })}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+        <div className="u2-sc__bands" role="group" aria-label={i18n._({ id: "ui2.scorecard.bandfilter", message: "Filter by band" })}>
           {bandChips.map((b) => (
             <button
               key={b.key}
               type="button"
-              className={`u2-chip u2-pfilter__chip u2-sc__bandchip u2-band--${b.key}`}
+              className={`u2-fchip u2-sc__bandchip u2-band--${b.key}${bandKeys.includes(b.key) ? " is-on" : ""}`}
               aria-pressed={bandKeys.includes(b.key)}
               onClick={() => toggleBand(b.key)}
             >
               {b.label}
             </button>
           ))}
-        </div>
-        <div className="u2-sc__tools-end">
+          {products.length > 0 && <span className="u2-sc__sep" aria-hidden="true" />}
           <ProductFilter products={products} selected={productIds} onToggle={toggleProduct} />
-          <input
-            type="search"
-            className="u2-ctl u2-sc__input"
-            placeholder={i18n._({ id: "ui2.scorecard.filter", message: "Filter cards" })}
-            aria-label={i18n._({ id: "ui2.scorecard.filter", message: "Filter cards" })}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
         </div>
       </div>
 
-      <div className="u2-panel u2-sc__wrap">
-        <table className="u2-sc__table">
-          <thead>
-            <tr>
-              <th scope="col">
-                <Trans id="ui2.table.idea">Idea</Trans>
-              </th>
-              <th scope="col">
-                <Trans id="ui2.table.status">Status</Trans>
-              </th>
-              <th scope="col">
-                <Trans id="ui2.scorecard.band">Band</Trans>
-              </th>
-              <th scope="col" className="is-end">
-                <Trans id="ui2.scorecard.score">Score</Trans>
-              </th>
-              <th scope="col">
-                <Trans id="ui2.scorecard.submittedby">Submitted by</Trans>
-              </th>
-              <th scope="col" className="is-end">
-                <Trans id="ui2.table.votes">Votes</Trans>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map((c) => {
-              const score = computeWeightedScore(c.values, fields)
-              const band = bandForScore(score, tenant)
-              const scored = isScored(c.values, fields)
-              const status = statusOf(c)
-              const product = products.find((p) => p.id === c.productId)
-              const number = c.postNumber
-              return (
-                <tr key={c.id} data-card={c.id} onClick={() => navigator.goTo(cardHref(c.id))}>
-                  <td>
-                    <div className="u2-sc__title">
-                      <a href={cardHref(c.id)} onClick={(e) => e.stopPropagation()}>
-                        {c.title || i18n._({ id: "ui2.scorecard.untitled", message: "Scorecard #{id}", values: { id: c.id } })}
-                      </a>
-                      {product && <ProductChip product={product} />}
-                    </div>
-                    {c.postNumber != null && (
-                      <div className="u2-sc__sub u2-mono">
-                        <Trans id="ui2.scorecard.ideanumber">Idea #{number}</Trans>
-                      </div>
-                    )}
-                  </td>
-                  <td>{status ? <span className="u2-chip">{status}</span> : <span className="u2-muted">–</span>}</td>
-                  <td>
-                    {scored ? (
-                      <span className={`u2-band u2-band--${band.key}`} data-band={band.key}>
-                        {band.label}
-                      </span>
-                    ) : (
-                      <span className="u2-chip u2-muted">
-                        <Trans id="ui2.scorecard.notscored">Not scored</Trans>
-                      </span>
-                    )}
-                  </td>
-                  <td className="is-end">
-                    {scored ? (
-                      <span className="u2-sc__total">
-                        <span className="u2-mono" data-score={score}>
-                          <b>{score}</b>
-                          <span className="u2-muted">/100</span>
-                        </span>
-                        <span className={`u2-sc__strip u2-band--${band.key}`} aria-hidden="true">
-                          <i style={{ width: `${Math.min(100, score)}%` }} />
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="u2-muted">–</span>
-                    )}
-                  </td>
-                  <td>{c.submittedBy || <span className="u2-muted">–</span>}</td>
-                  <td className="is-end u2-mono">{c.postNumber != null ? (c.postVotes ?? 0) : <span className="u2-muted">–</span>}</td>
-                </tr>
-              )
-            })}
-            {visible.length === 0 && (
-              <tr className="u2-sc__empty">
-                <td colSpan={6}>
-                  {cards.length === 0 ? (
-                    <Trans id="ui2.scorecard.empty">
-                      No scorecards yet. Cards get created automatically when an idea&apos;s status changes to your configured trigger, or manually with the
-                      button above.
-                    </Trans>
-                  ) : (
-                    <>
-                      <Trans id="ui2.scorecard.nomatch">No cards match this view.</Trans>{" "}
-                      <button type="button" className="u2-btn" onClick={clearFilters}>
-                        <Trans id="ui2.roadmap.clear">Clear filters</Trans>
-                      </button>
-                    </>
+      <div className="u2-panel u2-sc__list" role="list" aria-label={i18n._({ id: "header.nav.scorecard", message: "Scorecard" })}>
+        {visible.map((c) => {
+          const score = computeWeightedScore(c.values, fields)
+          const band = bandForScore(score, tenant)
+          const scored = isScored(c.values, fields)
+          const status = statusOf(c)
+          const product = products.find((p) => p.id === c.productId)
+          const number = c.postNumber
+          const votes = c.postVotes ?? 0
+          return (
+            <div key={c.id} role="listitem" className="u2-sc__row" data-card={c.id} onClick={() => navigator.goTo(cardHref(c.id))}>
+              <span
+                className={`u2-sc__mini u2-band--${scored ? band.key : "none"}`}
+                style={{ "--p": scored ? Math.min(100, score) : 0 } as React.CSSProperties}
+                aria-hidden="true"
+              >
+                <span className="u2-mono">{scored ? score : "–"}</span>
+              </span>
+              <div className="u2-sc__main">
+                <div className="u2-sc__title">
+                  <a href={cardHref(c.id)} onClick={(e) => e.stopPropagation()}>
+                    {c.title || i18n._({ id: "ui2.scorecard.untitled", message: "Scorecard #{id}", values: { id: c.id } })}
+                  </a>
+                  {product && <ProductChip product={product} />}
+                </div>
+                <div className="u2-sc__meta">
+                  {number != null && (
+                    <span className="u2-mono">
+                      <Trans id="ui2.scorecard.ideanumber">Idea #{number}</Trans>
+                    </span>
                   )}
-                </td>
-              </tr>
+                  {status && <span className="u2-sc__status-t">{status}</span>}
+                  {c.submittedBy && <span>{c.submittedBy}</span>}
+                  {number != null && (
+                    <span>
+                      <Plural id="ui2.scorecard.votes" value={votes} one="# vote" other="# votes" />
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="u2-sc__end">
+                {scored ? (
+                  <>
+                    <span className={`u2-band u2-band--${band.key}`} data-band={band.key}>
+                      {band.label}
+                    </span>
+                    <span className="u2-sr" data-score={score}>
+                      {score}/100
+                    </span>
+                  </>
+                ) : (
+                  <span className="u2-band u2-band--none">
+                    <Trans id="ui2.scorecard.notscored">Not scored</Trans>
+                  </span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+        {visible.length === 0 && (
+          <div className="u2-sc__empty">
+            {cards.length === 0 ? (
+              <Trans id="ui2.scorecard.empty">
+                No scorecards yet. Cards get created automatically when an idea&apos;s status changes to your configured trigger, or manually with the button
+                above.
+              </Trans>
+            ) : (
+              <>
+                <Trans id="ui2.scorecard.nomatch">No cards match this view.</Trans>{" "}
+                <button type="button" className="u2-btn" onClick={clearFilters}>
+                  <Trans id="ui2.roadmap.clear">Clear filters</Trans>
+                </button>
+              </>
             )}
-          </tbody>
-        </table>
+          </div>
+        )}
       </div>
     </div>
   )
