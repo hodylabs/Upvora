@@ -54,20 +54,6 @@ export const bandForScore = (score: number, t: BandTenant): Band => {
   return all.slice(0, 4).find((b) => score >= b.threshold) || all[4]
 }
 
-// The ring's threshold dots: each band's start, for thresholds strictly inside 0..100.
-export const thresholdDots = (t: BandTenant): { key: BandKey; threshold: number }[] =>
-  bands(t)
-    .slice(0, 4)
-    .reverse()
-    .map((b) => ({ key: b.key, threshold: b.threshold }))
-    .filter((d) => d.threshold > 0 && d.threshold < 100)
-
-// A point on a ring of radius r centered at (c, c), `percent` of the way round from 12 o'clock.
-export const ringPoint = (percent: number, r: number, c: number): { x: number; y: number } => {
-  const a = ((percent * 3.6 - 90) * Math.PI) / 180
-  return { x: c + r * Math.cos(a), y: c + r * Math.sin(a) }
-}
-
 // A card counts as scored when any active score field has a non-zero value (classic's list rule).
 export const isScored = (values: Record<string, unknown> | undefined, fields: ScorecardField[]): boolean =>
   fields.some((f) => f.type === "score" && f.isActive && String(values?.[f.key] ?? "0") !== "0")

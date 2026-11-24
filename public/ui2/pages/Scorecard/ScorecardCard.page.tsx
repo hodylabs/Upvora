@@ -9,7 +9,7 @@ import { actions, formatDate, navigator, notify } from "@fider/services"
 import { useFider } from "@fider/hooks"
 import { postHref } from "../../lib/nav"
 import { bandForScore, computeWeightedScore, isAnswered, parseChoices } from "./score"
-import { ScoreRing } from "./ScoreRing"
+import { ScoreMeter } from "./ScoreMeter"
 import { InternalNote as TeamNote } from "../../components/InternalNote"
 import { BriefButton } from "./BriefButton"
 import { Range } from "../../components/form/Range"
@@ -201,7 +201,11 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
     )
 
     if (f.type === "score") {
+      const weight = f.weight ?? 0
       const n = typeof val === "number" ? val : parseInt(strVal, 10) || 0
+      // What this row adds to the total (retired fields add nothing, as in the total); rounded
+      // per row, so rows may differ from the total by 1.
+      const pts = retired ? 0 : Math.round((n * weight) / 5)
       return (
         <div key={key} className="u2-sc__score" data-field={key}>
           <div className="u2-sc__score-head">
@@ -209,11 +213,18 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
               {f.label}
               {retired && retiredTag}
             </label>
-            <span className="u2-mono u2-muted">×{f.weight ?? 0}</span>
+            <span className="u2-sc__weight u2-mono">
+              <Trans id="ui2.scorecard.weight">weight {weight}</Trans>
+            </span>
             {f.question && <p className="u2-sc__score-q u2-muted">{f.question}</p>}
           </div>
           <Range id={id} className="u2-sc__slider" min={0} max={5} value={n} disabled={retired} ticks onChange={(v) => setValue(key, v)} />
-          <span className={`u2-sc__score-val u2-mono${n === 0 ? " is-unset" : ""}`}>{n === 0 ? "–" : n}</span>
+          <span className={`u2-sc__score-val u2-mono${n === 0 ? " is-unset" : ""}`}>
+            {n === 0 ? "–" : n}
+            <small>
+              <Trans id="ui2.scorecard.adds">+{pts} pts</Trans>
+            </small>
+          </span>
         </div>
       )
     }
@@ -294,8 +305,22 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
   const comments = post?.commentsCount ?? 0
   const number = post?.number
 
+  const group = (g: string, rows: ScorecardField[] | undefined, inScore = false) => {
+    if (!rows || rows.length === 0) return null
+    const sorted = [...rows].sort((a, b) => a.sortOrder - b.sortOrder)
+    return (
+      <section key={g} className={inScore ? "u2-scc__dims" : "u2-scc__group"} data-group={g} aria-labelledby={`u2-sc-g-${g}`}>
+        <header className="u2-sc__group-head">
+          <h2 id={`u2-sc-g-${g}`}>{groupLabel(g)}</h2>
+          <span className="u2-muted">{groupHint(g)}</span>
+        </header>
+        <div className={g === "scoring" ? "u2-sc__scores" : "u2-sc__grid"}>{sorted.map(renderField)}</div>
+      </section>
+    )
+  }
+
   return (
-    <div className="u2-sc u2-sc--card">
+    <div className="u2-sc u2-scc">
       <div className="u2-sc__top">
         <a href="/scorecard" className="u2-sc__crumb">
           <Trans id="ui2.scorecard.back">All scorecards</Trans>
@@ -303,110 +328,89 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
         <span className={`u2-sc__save${saveState === "error" ? " u2-danger" : " u2-muted"}`} role="status" data-state={saveState}>
           {saveText[saveState]}
         </span>
-        {post && (
-          <a className="u2-btn" href={postHref(post)} target="_blank" rel="noopener">
-            <Trans id="ui2.scorecard.openidea">Open idea</Trans>
-            <span aria-hidden="true">↗</span>
-          </a>
-        )}
       </div>
 
-      {/* One document: title, property pills, then hairline-separated blocks (no boxes inside). */}
-      <article className="u2-panel u2-sc__doc">
-        <header className="u2-sc__block u2-sc__dochead">
-          <input
-            className="u2-ctl u2-sc__titleinput"
-            value={title}
-            onChange={(e) => changeTitle(e.target.value)}
-            aria-label={i18n._({ id: "ui2.scorecard.titlelabel", message: "Scorecard title" })}
-          />
-          <div className="u2-sc__props">
-            {headerFields.map((f) => (
-              <label key={f.key} className="u2-sc__prop u2-sc__status">
-                <span className="u2-muted">{f.label}</span>
-                {/* Classic keeps the header status editable even when retired. */}
-                {choiceSelect(f, `sc-${f.key}`, false)}
-              </label>
+      <header className="u2-scc__head">
+        <input
+          className="u2-sc__titleinput"
+          value={title}
+          onChange={(e) => changeTitle(e.target.value)}
+          aria-label={i18n._({ id: "ui2.scorecard.titlelabel", message: "Scorecard title" })}
+        />
+        <div className="u2-sc__props">
+          {headerFields.map((f) => (
+            <label key={f.key} className="u2-sc__prop u2-sc__status">
+              <span className="u2-muted">{f.label}</span>
+              {/* Classic keeps the header status editable even when retired. */}
+              {choiceSelect(f, `sc-${f.key}`, false)}
+            </label>
+          ))}
+          {post && (
+            <span className="u2-sc__prop">
+              <Trans id="ui2.scorecard.counts">
+                <strong>{votes}</strong> votes, <strong>{comments}</strong> comments
+              </Trans>
+            </span>
+          )}
+          {post &&
+            Array.isArray(post.tags) &&
+            post.tags.map((t) => (
+              <span key={String(t)} className="u2-sc__prop">
+                {String(t)}
+              </span>
             ))}
-            <span className={`u2-sc__prop u2-sc__prop--band u2-band--${score === 0 ? "none" : band.key}`}>
-              {score === 0 ? <Trans id="ui2.scorecard.notscored">Not scored</Trans> : band.label}
-            </span>
-            {post && (
-              <span className="u2-sc__prop u2-mono">
-                <Trans id="ui2.scorecard.counts">
-                  <strong>{votes}</strong> votes, <strong>{comments}</strong> comments
-                </Trans>
-              </span>
-            )}
-            {post &&
-              Array.isArray(post.tags) &&
-              post.tags.map((t) => (
-                <span key={String(t)} className="u2-sc__prop">
-                  {String(t)}
-                </span>
-              ))}
-          </div>
-        </header>
-
-        <section className="u2-sc__block">
-          <ScoreRing score={score} band={band} tenant={tenant} />
-        </section>
-
-        {post ? (
-          // Rendered live from the linked idea; edits there show here on the next load.
-          <section className="u2-sc__block u2-sc__idea">
-            <span className="u2-sc__eyebrow u2-mono">
-              <Trans id="ui2.scorecard.ideanumber">Idea #{number}</Trans>
-            </span>
-            <strong className="u2-sc__idea-title">{post.title}</strong>
-            {post.description && <p className="u2-sc__idea-desc">{post.description}</p>}
-            <div className="u2-sc__meta">
-              <span>
-                <Trans id="ui2.scorecard.submitted">
-                  Submitted by <strong>{author}</strong> on {submittedOn}
-                </Trans>
-              </span>
-              <span>
-                <Trans id="ui2.scorecard.added">To scorecard {addedOn}</Trans>
-              </span>
-              <BriefButton postNumber={post.number} />
-            </div>
-          </section>
-        ) : (
-          <p className="u2-sc__block u2-sc__meta u2-muted">
-            <Trans id="ui2.scorecard.standalone">Standalone scorecard (not linked to an idea), created {addedOn}</Trans>
-          </p>
-        )}
-
-        {post && isStaff && (
-          <div className="u2-sc__block">
-            <TeamNote postNumber={post.number} initial={props.internalNote} />
-          </div>
-        )}
-
-        {GROUP_ORDER.map((g) => {
-          const rows = grouped[g]
-          if (!rows || rows.length === 0) return null
-          const sorted = [...rows].sort((a, b) => a.sortOrder - b.sortOrder)
-          return (
-            <section key={g} className="u2-sc__block u2-sc__group" data-group={g} aria-labelledby={`u2-sc-g-${g}`}>
-              <header className="u2-sc__group-head">
-                <h2 id={`u2-sc-g-${g}`}>{groupLabel(g)}</h2>
-                <span className="u2-muted">{groupHint(g)}</span>
-              </header>
-              <div className={g === "scoring" ? "u2-sc__scores" : "u2-sc__grid"}>{sorted.map(renderField)}</div>
-            </section>
-          )
-        })}
-      </article>
-
-      {isStaff && (
-        <div className="u2-sc__danger">
-          <button type="button" className="u2-btn u2-sc__delete" onClick={remove}>
-            <Trans id="ui2.scorecard.delete">Delete scorecard</Trans>
-          </button>
         </div>
-      )}
+      </header>
+
+      <div className="u2-scc__body">
+        <div className="u2-scc__main">
+          {/* The score and the dimensions that make it, in one panel tinted by the band. */}
+          <section className={`u2-scc__score u2-band--${score === 0 ? "none" : band.key}`}>
+            <ScoreMeter score={score} band={band} tenant={tenant} />
+            {group("scoring", grouped["scoring"], true)}
+          </section>
+          {GROUP_ORDER.filter((g) => g !== "scoring").map((g) => group(g, grouped[g]))}
+        </div>
+
+        <aside className="u2-scc__side">
+          {post ? (
+            // Rendered live from the linked idea; edits there show here on the next load.
+            <section className="u2-scc__idea">
+              <span className="u2-sc__eyebrow u2-mono">
+                <Trans id="ui2.scorecard.ideanumber">Idea #{number}</Trans>
+              </span>
+              <a className="u2-sc__idea-title" href={postHref(post)} target="_blank" rel="noopener">
+                {post.title}
+                <span aria-hidden="true"> ↗</span>
+              </a>
+              {post.description && <p className="u2-sc__idea-desc">{post.description}</p>}
+              <div className="u2-sc__meta">
+                <span>
+                  <Trans id="ui2.scorecard.submitted">
+                    Submitted by <strong>{author}</strong> on {submittedOn}
+                  </Trans>
+                </span>
+                <span>
+                  <Trans id="ui2.scorecard.added">To scorecard {addedOn}</Trans>
+                </span>
+              </div>
+              <BriefButton postNumber={post.number} />
+            </section>
+          ) : (
+            <p className="u2-scc__idea u2-sc__meta u2-muted">
+              <Trans id="ui2.scorecard.standalone">Standalone scorecard (not linked to an idea), created {addedOn}</Trans>
+            </p>
+          )}
+
+          {post && isStaff && <TeamNote postNumber={post.number} initial={props.internalNote} />}
+
+          {isStaff && (
+            <button type="button" className="u2-sc__delete" onClick={remove}>
+              <Trans id="ui2.scorecard.delete">Delete scorecard</Trans>
+            </button>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }

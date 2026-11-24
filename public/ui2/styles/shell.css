@@ -160,22 +160,30 @@ body.u2 .u2-ovl__panel:focus-visible {
   display: flex;
   flex-direction: column;
 }
+/* The top bar floats: a rounded glass island under the page edge, not a ruled strip. */
 .u2-top {
   position: sticky;
   inset-block-start: 0;
   z-index: 5;
-  border-block-end: 1px solid var(--u-line);
-  background: color-mix(in srgb, var(--u-bg) 75%, transparent);
-  backdrop-filter: blur(12px);
+  padding: 12px 12px 0;
+  pointer-events: none;
 }
 .u2-top__in {
   display: flex;
   align-items: center;
   gap: 8px;
-  max-width: 1120px;
+  max-width: 1096px;
   min-height: 56px;
   margin-inline: auto;
-  padding: 10px 24px;
+  padding: 8px 10px 8px 14px;
+  border: 1px solid var(--u-line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--u-surface2) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--u-text) 6%, transparent) inset,
+    0 18px 50px -24px rgba(0, 0, 0, 0.55);
+  pointer-events: auto;
 }
 .u2-top__menu {
   display: none;
@@ -184,7 +192,6 @@ body.u2 .u2-ovl__panel:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  margin-inline-end: 6px;
   min-width: 0;
   color: var(--u-text) !important;
   text-decoration: none;
@@ -205,30 +212,42 @@ body.u2 .u2-ovl__panel:focus-visible {
   padding-block: 0;
 }
 .u2-top__end {
-  margin-inline-start: auto;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-/* Product switcher: a menu button with the current board */
+/* Product switcher: reads as the second step of a path after the site name. */
+.u2-pswitch {
+  display: inline-flex;
+  align-items: center;
+}
+.u2-pswitch::before {
+  content: "/";
+  margin-inline: 4px 2px;
+  color: var(--u-edge);
+  font-size: 18px;
+  font-weight: 300;
+}
 .u2-pswitch__btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   height: 32px;
   max-width: 220px;
-  padding: 0 10px;
-  border: 1px solid var(--u-line);
+  padding: 0 8px;
+  border: 0;
   border-radius: 9px;
-  background: var(--u-glass);
-  color: var(--u-text);
+  background: none;
+  color: var(--u-text2);
   font: inherit;
-  font-size: 13px;
+  font-size: 13.5px;
   cursor: pointer;
 }
-.u2-pswitch__btn:hover {
-  border-color: var(--u-edge);
+.u2-pswitch__btn:hover,
+.u2-pswitch__btn[aria-expanded="true"] {
+  background: var(--u-surface3);
+  color: var(--u-text);
 }
 .u2-pswitch__name {
   overflow: hidden;
@@ -253,70 +272,81 @@ body.u2 .u2-ovl__panel:focus-visible {
 }
 
 /* Section tabs */
+/* Section tabs: centered in a track; the current one is lifted with an accent glow under it. */
 .u2-tabs {
   display: flex;
   gap: 2px;
-  margin-inline-start: 8px;
+  margin-inline: auto;
+  padding: 3px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--u-bg) 55%, transparent);
 }
 .u2-tabs a {
-  padding: 6px 10px;
-  border-radius: 8px;
+  position: relative;
+  padding: 6px 14px;
+  border-radius: 9px;
   color: var(--u-muted);
   font-size: 13.5px;
   text-decoration: none;
   transition: background 0.15s, color 0.15s;
 }
-.u2-tabs a:hover,
+.u2-tabs a:hover {
+  color: var(--u-text);
+}
 .u2-tabs a[aria-current="page"] {
   color: var(--u-text);
-  background: var(--u-surface2);
+  background: var(--u-surface3);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--u-text) 8%, transparent) inset;
+}
+.u2-tabs a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 35%;
+  inset-block-end: -3px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--u-grad);
+  box-shadow: 0 0 10px var(--u-accent);
 }
 
 /* Team view switch (staff) */
+/* Team view (staff): a chip whose dot lights up when on. */
 .u2-teamsw {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--u-line);
-  border-radius: 9px;
-  background: var(--u-glass);
-  color: var(--u-text2);
+  padding: 0 12px;
+  border: 1px dashed var(--u-edge);
+  border-radius: 999px;
+  background: none;
+  color: var(--u-muted);
   font: inherit;
   font-size: 12.5px;
   white-space: nowrap;
   cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
 .u2-teamsw:hover {
-  border-color: var(--u-edge);
+  color: var(--u-text);
 }
 .u2-teamsw__track {
-  position: relative;
-  width: 30px;
-  height: 17px;
+  width: 7px;
+  height: 7px;
   flex: none;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--u-text) 18%, transparent);
-  transition: background 0.18s;
-}
-.u2-teamsw__track::after {
-  content: "";
-  position: absolute;
-  inset-block-start: 2px;
-  inset-inline-start: 2px;
-  width: 13px;
-  height: 13px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: inset-inline-start 0.18s;
+  background: var(--u-muted);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.u2-teamsw[aria-checked="true"] {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--u-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--u-accent) 12%, transparent);
+  color: var(--u-text);
 }
 .u2-teamsw[aria-checked="true"] .u2-teamsw__track {
-  background: var(--u-grad);
-}
-.u2-teamsw[aria-checked="true"] .u2-teamsw__track::after {
-  inset-inline-start: 15px;
+  background: var(--u-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--u-accent) 25%, transparent), 0 0 10px var(--u-accent);
 }
 
 .u2-body {
@@ -468,9 +498,15 @@ body.u2 .u2-ovl__panel:focus-visible {
   .u2-top__new {
     display: none;
   }
+  .u2-top {
+    padding: 8px 8px 0;
+  }
   .u2-top__in {
-    padding: 6px 12px;
+    padding: 4px 6px 4px 10px;
     gap: 4px;
+  }
+  .u2-top__end {
+    margin-inline-start: auto;
   }
   .u2-brand span {
     display: none;

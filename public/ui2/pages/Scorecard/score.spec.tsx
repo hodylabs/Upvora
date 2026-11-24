@@ -2,7 +2,7 @@ import React from "react"
 import { render, fireEvent, act, screen } from "@testing-library/react"
 import { Fider, FiderContext, http } from "@fider/services"
 import { ScorecardField, Tenant } from "@fider/models"
-import { bandForScore, computeWeightedScore, isAnswered, isScored, parseChoices, thresholdDots } from "./score"
+import { bandForScore, computeWeightedScore, isAnswered, isScored, parseChoices } from "./score"
 import ScorecardPage from "./Scorecard.page"
 import ScorecardCardPage, { SAVE_DEBOUNCE_MS } from "./ScorecardCard.page"
 
@@ -74,11 +74,6 @@ describe("scorecard score and bands (classic's logic)", () => {
     expect(bandForScore(50, tenant).label).toBe("Needs Refinement")
     expect(bandForScore(30, tenant).label).toBe("Low Priority")
     expect(bandForScore(0, tenant).label).toBe("Not Recommended")
-  })
-
-  test("threshold dots sit at each band start strictly inside 0..100", () => {
-    expect(thresholdDots(tenant).map((d) => d.threshold)).toEqual([20, 40, 60, 80])
-    expect(thresholdDots({ ...tenant, scorecardBandLow: 0, scorecardBandStrong: 100 } as Tenant).map((d) => d.key)).toEqual(["refine", "good"])
   })
 
   test("scored, answered and choices", () => {
@@ -177,14 +172,14 @@ describe("ui2 Scorecard card", () => {
         <ScorecardCardPage scorecard={{ id: 5, title: "Alpha", values: { impact: 5 }, createdAt: "2026-11-01T00:00:00Z", updatedAt: "" }} />
       </FiderContext.Provider>
     )
-    const num = () => container.querySelector(".u2-ring__num")?.getAttribute("data-score")
+    const num = () => container.querySelector(".u2-meter__num")?.getAttribute("data-score")
     expect(num()).toBe("40")
-    expect(container.querySelectorAll(".u2-ring__dot")).toHaveLength(4)
-    expect(container.querySelector(".u2-ring__bands .is-current")?.className).toContain("u2-band--refine")
+    expect(container.querySelectorAll(".u2-meter__zone")).toHaveLength(5)
+    expect(container.querySelector(".u2-meter__zone.is-current")?.className).toContain("u2-band--refine")
 
     fireEvent.change(container.querySelector("#sc-effort") as HTMLInputElement, { target: { value: "5" } })
     expect(num()).toBe("75")
-    expect(container.querySelector(".u2-ring__bands .is-current")?.className).toContain("u2-band--good")
+    expect(container.querySelector(".u2-meter__zone.is-current")?.className).toContain("u2-band--good")
     expect(put).not.toHaveBeenCalled()
     await act(async () => {
       jest.advanceTimersByTime(SAVE_DEBOUNCE_MS)
