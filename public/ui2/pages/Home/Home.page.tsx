@@ -115,6 +115,8 @@ const HomePage = (props: HomePageProps) => {
   const [chat, setChat] = useState<{ messages: AIMessage[]; input: string } | null>(null)
   const [draft, setDraft] = useState<VoraDraft | null>(null)
   const [chatKey, setChatKey] = useState(0)
+  // Bumped each time Enter or Share asks for the details step; 0 means no step open.
+  const [compose, setCompose] = useState(0)
   const [isPrivate, setIsPrivate] = useState(false)
   // Classic's rule for the "Make private" choice.
   const canMakePrivate = staff || (signedIn && !!tenant.membersPrivateIdeas)
@@ -273,7 +275,10 @@ const HomePage = (props: HomePageProps) => {
     setErrors([])
     setShared("")
     // Details belong to the typed idea; an emptied box starts a new one.
-    if (!q.trim()) setDetails("")
+    if (!q.trim()) {
+      setDetails("")
+      setCompose(0)
+    }
     update({ query: q })
   }
 
@@ -291,6 +296,7 @@ const HomePage = (props: HomePageProps) => {
     setErrors([])
     setShared("")
     setDraft(null)
+    setCompose(0)
     setChat({ messages: [], input: text })
     // A new key remounts VoraChat, so a reply still pending from the last conversation is dropped.
     setChatKey((k) => k + 1)
@@ -316,6 +322,7 @@ const HomePage = (props: HomePageProps) => {
       setIsPrivate(false)
       setDraft(null)
       setChat(null)
+      setCompose(0)
       if (seq.current !== before) return
       update({ query: "" })
     } catch {
@@ -352,6 +359,26 @@ const HomePage = (props: HomePageProps) => {
     }
     post(title, description)
   }
+
+  // Enter and Share in the box never post a bare title: they open the details step
+  // (or Vora, when the site requires it). The card's own Share idea button posts.
+  const startIdea = () => {
+    const title = query.trim()
+    if (!canShare || posting) return
+    if (draft) return document.getElementById("u2-card-details")?.focus()
+    if (!title) return inputRef.current?.focus()
+    if (!signedIn) return toSignIn(title, details)
+    if (gate.required) return openChat(title, details)
+    if (!titleLongEnough(title)) {
+      setErrors([i18n._({ id: "ui2.share.tooshort", message: "Add a few more words: a title needs at least 10 characters." })])
+      return
+    }
+    setErrors([])
+    setCompose((n) => n + 1)
+  }
+  useEffect(() => {
+    if (compose) document.getElementById("u2-card-details")?.focus()
+  }, [compose])
 
   // By stage: groups for the site's statuses, plus any status a loaded idea has that the list lacks.
   const groupSlugs = [
@@ -426,8 +453,10 @@ const HomePage = (props: HomePageProps) => {
         <span className="u2-logo" aria-hidden="true" />
         {vora ? (
           <Trans id="ui2.card.drafted">Vora drafted your idea. Check the details, then share it.</Trans>
-        ) : (
+        ) : noMatch ? (
           <Trans id="ui2.card.lead">Nothing like this yet. Share it as a new idea:</Trans>
+        ) : (
+          <Trans id="ui2.card.leadnew">Add the details, then share it as a new idea:</Trans>
         )}
       </p>
       <h2 id="u2-card-title" className="u2-card__title">
@@ -490,11 +519,11 @@ const HomePage = (props: HomePageProps) => {
   )
 
   const hint = !canShare ? null : gate.required ? (
-    <Trans id="ui2.box.hint.required">Type to search. Press Enter to post it, and Vora helps you put it into words.</Trans>
+    <Trans id="ui2.box.hint.required">Type to search. Press Enter and Vora helps you put your idea into words.</Trans>
   ) : gate.available ? (
-    <Trans id="ui2.box.hint.vora">Type to search. Press Enter to post it, or ask Vora to help you put it into words.</Trans>
+    <Trans id="ui2.box.hint.vora">Type to search. Press Enter to add details and share it, or ask Vora to help you put it into words.</Trans>
   ) : (
-    <Trans id="ui2.box.hint">Type to search. Press Enter to post it as a new idea.</Trans>
+    <Trans id="ui2.box.hint">Type to search. Press Enter to add details and share it as a new idea.</Trans>
   )
 
   return (
@@ -527,7 +556,7 @@ const HomePage = (props: HomePageProps) => {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.nativeEvent.isComposing) {
                 e.preventDefault()
-                share(filter.query, details)
+                startIdea()
               } else if (e.key === "Escape") {
                 inputRef.current?.blur()
               }
@@ -546,7 +575,7 @@ const HomePage = (props: HomePageProps) => {
             </button>
           )}
           {canShare && (
-            <button type="button" className="u2-btn u2-btn--primary u2-box__share" disabled={posting} onClick={() => share(filter.query, details)}>
+            <button type="button" className="u2-btn u2-btn--primary u2-box__share" disabled={posting} onClick={startIdea}>
               {query ? (
                 <Trans id="ui2.vora.go">Share</Trans>
               ) : (
@@ -594,6 +623,7 @@ const HomePage = (props: HomePageProps) => {
               messages={chat.messages}
               onMessages={(messages) => setChat((c) => c && { ...c, messages })}
               input={chat.input}
+              autoSend
               onInput={(input) => setChat((c) => c && { ...c, input })}
               onDone={(res, transcript) => {
                 setChat(null)
@@ -603,6 +633,8 @@ const HomePage = (props: HomePageProps) => {
           </section>
         )}
 
+        {/* Once opened, the details card stays here, so a search that lands later never remounts it mid-typing. */}
+        {!!compose && !chat && !draft && !!query && shareCard(query, () => share(query, details), false)}
         {draft && shareCard(draft.title, () => post(draft.title, draft.description, draft), true)}
 
         {matchNote && (
@@ -620,7 +652,7 @@ const HomePage = (props: HomePageProps) => {
                   {matchNote.hasVoted ? <Trans id="ui2.match.voted">You voted for it</Trans> : <Trans id="ui2.match.vote">Vote for it</Trans>}
                 </VoteButton>
                 {canShare && (
-                  <button type="button" className="u2-btn u2-btn--ghost" onClick={() => share(query, details)}>
+                  <button type="button" className="u2-btn u2-btn--ghost" onClick={startIdea}>
                     <Trans id="ui2.match.different">Mine is different, share it</Trans>
                   </button>
                 )}
@@ -705,7 +737,9 @@ const HomePage = (props: HomePageProps) => {
                   </div>
                 )
               ) : searchFailed ? null : noMatch ? (
-                shareCard(query, () => share(query, details), false)
+                compose ? null : (
+                  shareCard(query, () => share(query, details), false)
+                )
               ) : loading ? null : (
                 <p className="u2-empty u2-panel u2-muted">
                   <Trans id="home.postscontainer.label.noresults">No results matched your search, try something different.</Trans>

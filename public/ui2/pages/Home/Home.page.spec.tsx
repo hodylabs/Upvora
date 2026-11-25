@@ -66,6 +66,8 @@ const gets = (prefix: string) => (http.get as jest.Mock).mock.calls.map((c) => c
 const box = () => screen.getByRole("searchbox") as HTMLInputElement
 const shareButton = () => document.querySelector(".u2-box__share") as HTMLElement
 const composer = () => document.querySelector<HTMLTextAreaElement>("#u2-share-composer")
+const cardShare = () => document.querySelector(".u2-card .u2-btn--primary") as HTMLElement
+const posted = () => (http.post as jest.Mock).mock.calls.filter((c) => c[0] === "/api/v1/posts")
 const type = (text: string) => fireEvent.change(box(), { target: { value: text } })
 
 describe("ui2 Home page", () => {
@@ -139,12 +141,16 @@ describe("ui2 Home page", () => {
     expect(container.querySelector('.u2-tr[data-number="1"]')).toBeNull()
   })
 
-  test("Enter posts the typed text directly as a new idea, which lands on top", async () => {
+  test("Enter opens the details step instead of posting; Share idea posts it on top", async () => {
     const created = post(9, { title: "Dark mode for the board" })
     mockGet({ search: [post(1)], one: created })
     const { container } = renderHome("member", [post(1)])
     type("Dark mode for the board")
     fireEvent.keyDown(box(), { key: "Enter" })
+    await waitFor(() => expect(document.activeElement?.id).toBe("u2-card-details"))
+    expect(container.querySelector(".u2-card__title")?.textContent).toBe("Dark mode for the board")
+    expect(http.post).not.toHaveBeenCalled()
+    fireEvent.click(cardShare())
     await waitFor(() => expect(screen.getByRole("status").getAttribute("data-state")).toBe("live"))
     const [url, body] = (http.post as jest.Mock).mock.calls[0]
     expect(url).toBe("/api/v1/posts")
@@ -160,6 +166,7 @@ describe("ui2 Home page", () => {
     renderHome("member", [post(1)])
     type("Dark mode for the board")
     fireEvent.click(shareButton())
+    fireEvent.click(cardShare())
     await waitFor(() => expect(screen.getByRole("status").getAttribute("data-state")).toBe("pending"))
 
     http.post = jest.fn(() =>
@@ -167,6 +174,7 @@ describe("ui2 Home page", () => {
     ) as unknown as typeof http.post
     type("Dark mode for the board")
     fireEvent.click(shareButton())
+    fireEvent.click(cardShare())
     await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("Title is taken"))
   })
 
@@ -197,13 +205,14 @@ describe("ui2 Home page", () => {
     expect(document.querySelector(".u2-box__share, .u2-box__ask")).toBeNull()
   })
 
-  test("when the site requires Vora, Share opens the inline chat with the text instead of posting", async () => {
+  test("when the site requires Vora, one Enter opens the chat and sends the text to Vora", async () => {
     renderHome("member", [post(1)], { ...vora, voraRequired: true } as Partial<Tenant>)
     type("Dark mode for the board")
-    fireEvent.click(shareButton())
-    await waitFor(() => expect(composer()).not.toBeNull())
-    expect(composer()?.value).toBe("Dark mode for the board")
-    expect(http.post).not.toHaveBeenCalled()
+    fireEvent.keyDown(box(), { key: "Enter" })
+    await waitFor(() => expect(http.post).toHaveBeenCalledWith("/api/v1/ai/ideate", expect.anything()))
+    expect((http.post as jest.Mock).mock.calls[0][1].messages).toEqual([{ role: "user", content: "Dark mode for the board" }])
+    expect(composer()?.value).toBe("")
+    expect(posted()).toHaveLength(0)
     fireEvent.click(screen.getByRole("button", { name: "Close Vora" }))
     expect(composer()).toBeNull()
   })
@@ -215,7 +224,9 @@ describe("ui2 Home page", () => {
     renderHome("member", [post(1)], vora)
     type("export to csv")
     fireEvent.click(document.querySelector(".u2-box__ask") as HTMLElement)
-    await waitFor(() => expect(composer()?.value).toBe("export to csv"))
+    await waitFor(() => expect(composer()).not.toBeNull())
+    await waitFor(() => expect(http.post).toHaveBeenCalledWith("/api/v1/ai/ideate", expect.anything()))
+    expect((http.post as jest.Mock).mock.calls[0][1].messages).toEqual([{ role: "user", content: "export to csv" }])
   })
 
   test("no match: an inline card shares the typed title with optional details", async () => {
@@ -243,6 +254,8 @@ describe("ui2 Home page", () => {
     fireEvent.change(container.querySelector("#u2-card-details") as HTMLElement, { target: { value: "Monthly" } })
     type("Export a board to CSV file")
     fireEvent.keyDown(box(), { key: "Enter" })
+    expect(document.activeElement?.id).toBe("u2-card-details")
+    fireEvent.click(cardShare())
     await waitFor(() => expect(http.post).toHaveBeenCalled())
     expect((http.post as jest.Mock).mock.calls[0][1]).toMatchObject({ title: "Export a board to CSV file", description: "Monthly", productId: 2 })
   })
@@ -278,6 +291,8 @@ describe("ui2 Home page", () => {
     fireEvent.click(vote)
     await waitFor(() => expect((http.post as jest.Mock).mock.calls[0][0]).toBe("/api/v1/posts/5/votes/toggle"))
     fireEvent.click(document.querySelector(".u2-match__acts .u2-btn--ghost") as HTMLElement)
+    expect(document.activeElement?.id).toBe("u2-card-details")
+    fireEvent.click(cardShare())
     await waitFor(() => expect((http.post as jest.Mock).mock.calls[1][0]).toBe("/api/v1/posts"))
   })
 

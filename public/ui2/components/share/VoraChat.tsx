@@ -20,6 +20,8 @@ interface VoraChatProps {
   input: string
   onInput: (text: string) => void
   onDone: (result: AIFinalizeResponse, transcript: AIMessage[]) => void
+  // Send the opening input as the first message, so one Enter in the box starts the talk.
+  autoSend?: boolean
 }
 
 // The Vora conversation, as classic's VoraChat: a failed turn keeps the person's
@@ -113,6 +115,16 @@ export const VoraChat = (props: VoraChatProps) => {
     props.onInput("")
     run([...messages, { role: "user", content: text }])
   }
+
+  // A ref, not the effect alone: StrictMode runs mount effects twice.
+  const autoSent = useRef(false)
+  useEffect(() => {
+    if (props.autoSend && !autoSent.current && messages.length === 0) {
+      autoSent.current = true
+      send()
+    }
+    // Mount only: later input is the person's own typing.
+  }, [])
 
   const composer = (
     <div className="u2-share__composer">
