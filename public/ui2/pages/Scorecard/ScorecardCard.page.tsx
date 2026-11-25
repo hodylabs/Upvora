@@ -360,6 +360,32 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
               </span>
             ))}
         </div>
+        {/* The linked idea, under the pills: no side column, so the score panel gets the full width. */}
+        {post ? (
+          <>
+            <div className="u2-sc__meta u2-scc__idea">
+              {/* Rendered live from the linked idea; edits there show here on the next load. */}
+              <a className="u2-sc__idea-title" href={postHref(post)} target="_blank" rel="noopener">
+                <Trans id="ui2.scorecard.ideanumber">Idea #{number}</Trans>
+                <span aria-hidden="true">{"\u00a0↗"}</span>
+              </a>
+              <span>
+                <Trans id="ui2.scorecard.submitted">
+                  Submitted by <strong>{author}</strong> on {submittedOn}
+                </Trans>
+              </span>
+              <span>
+                <Trans id="ui2.scorecard.added">To scorecard {addedOn}</Trans>
+              </span>
+              <BriefButton postNumber={post.number} />
+            </div>
+            {post.description && post.description.trim() !== post.title.trim() && <p className="u2-sc__idea-desc">{post.description}</p>}
+          </>
+        ) : (
+          <p className="u2-sc__meta u2-muted">
+            <Trans id="ui2.scorecard.standalone">Standalone scorecard (not linked to an idea), created {addedOn}</Trans>
+          </p>
+        )}
       </header>
 
       <div className="u2-scc__body">
@@ -370,46 +396,13 @@ const ScorecardCardPage = (props: ScorecardCardPageProps) => {
             {group("scoring", grouped["scoring"], true)}
           </section>
           {GROUP_ORDER.filter((g) => g !== "scoring").map((g) => group(g, grouped[g]))}
-        </div>
-
-        <aside className="u2-scc__side">
-          {post ? (
-            // Rendered live from the linked idea; edits there show here on the next load.
-            <section className="u2-scc__idea">
-              <span className="u2-sc__eyebrow u2-mono">
-                <Trans id="ui2.scorecard.ideanumber">Idea #{number}</Trans>
-              </span>
-              <a className="u2-sc__idea-title" href={postHref(post)} target="_blank" rel="noopener">
-                {post.title}
-                <span aria-hidden="true">{"\u00a0↗"}</span>
-              </a>
-              {post.description && <p className="u2-sc__idea-desc">{post.description}</p>}
-              <div className="u2-sc__meta">
-                <span>
-                  <Trans id="ui2.scorecard.submitted">
-                    Submitted by <strong>{author}</strong> on {submittedOn}
-                  </Trans>
-                </span>
-                <span>
-                  <Trans id="ui2.scorecard.added">To scorecard {addedOn}</Trans>
-                </span>
-              </div>
-              <BriefButton postNumber={post.number} />
-            </section>
-          ) : (
-            <p className="u2-scc__idea u2-sc__meta u2-muted">
-              <Trans id="ui2.scorecard.standalone">Standalone scorecard (not linked to an idea), created {addedOn}</Trans>
-            </p>
-          )}
-
           {post && isStaff && <TeamNote postNumber={post.number} initial={props.internalNote} />}
-
           {isStaff && (
             <button type="button" className="u2-sc__delete" onClick={remove}>
               <Trans id="ui2.scorecard.delete">Delete scorecard</Trans>
             </button>
           )}
-        </aside>
+        </div>
       </div>
     </div>
   )

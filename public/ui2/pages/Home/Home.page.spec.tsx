@@ -5,6 +5,7 @@ import { Post, Tenant } from "@fider/models"
 import HomePage, { WELCOME_SETTING, strongMatch } from "./Home.page"
 import { setTeamView } from "../../lib/teamView"
 import { DRAFT_KEYS } from "../../components/share/rules"
+import { SHARE_IDEA_EVENT } from "../../lib/share"
 
 const post = (number: number, extra: Partial<Post> = {}): Post =>
   ({
@@ -68,6 +69,19 @@ const shareButton = () => document.querySelector(".u2-box__share") as HTMLElemen
 const composer = () => document.querySelector<HTMLTextAreaElement>("#u2-share-composer")
 const cardShare = () => document.querySelector(".u2-card .u2-btn--primary") as HTMLElement
 const posted = () => (http.post as jest.Mock).mock.calls.filter((c) => c[0] === "/api/v1/posts")
+// The share dialog lives in the shell; these tests catch the box's request for it.
+const listeners: EventListener[] = []
+afterEach(() => listeners.splice(0).forEach((on) => window.removeEventListener(SHARE_IDEA_EVENT, on)))
+const shareRequests = () => {
+  const seen: unknown[] = []
+  const on = (e: Event) => {
+    e.preventDefault()
+    seen.push((e as CustomEvent).detail)
+  }
+  window.addEventListener(SHARE_IDEA_EVENT, on)
+  listeners.push(on)
+  return seen
+}
 const type = (text: string) => fireEvent.change(box(), { target: { value: text } })
 
 describe("ui2 Home page", () => {
@@ -141,21 +155,25 @@ describe("ui2 Home page", () => {
     expect(container.querySelector('.u2-tr[data-number="1"]')).toBeNull()
   })
 
-  test("Enter opens the details step instead of posting; Share idea posts it on top", async () => {
-    const created = post(9, { title: "Dark mode for the board" })
-    mockGet({ search: [post(1)], one: created })
-    const { container } = renderHome("member", [post(1)])
+  test("Enter opens the share dialog on its form with the typed title, and never posts", async () => {
+    const asked = shareRequests()
+    renderHome("member", [post(1)])
     type("Dark mode for the board")
     fireEvent.keyDown(box(), { key: "Enter" })
-    await waitFor(() => expect(document.activeElement?.id).toBe("u2-card-details"))
-    expect(container.querySelector(".u2-card__title")?.textContent).toBe("Dark mode for the board")
+    expect(asked).toEqual([{ title: "Dark mode for the board", mode: "form", productId: 0, isPrivate: false }])
+    fireEvent.click(shareButton())
+    expect(asked).toHaveLength(2)
     expect(http.post).not.toHaveBeenCalled()
+  })
+
+  test("the no-match card's Share idea posts, and the new idea lands on top", async () => {
+    mockGet({ search: [], one: post(9, { title: "Dark mode for the board" }) })
+    const { container } = renderHome("member", [post(1)])
+    type("Dark mode for the board")
+    await waitFor(() => expect(container.querySelector(".u2-card")).not.toBeNull())
     fireEvent.click(cardShare())
     await waitFor(() => expect(screen.getByRole("status").getAttribute("data-state")).toBe("live"))
-    const [url, body] = (http.post as jest.Mock).mock.calls[0]
-    expect(url).toBe("/api/v1/posts")
-    expect(body).toMatchObject({ title: "Dark mode for the board", description: "" })
-    await waitFor(() => expect(container.querySelector('.u2-tr[data-index="0"]')?.getAttribute("data-number")).toBe("9"))
+    expect(posted()[0][1]).toMatchObject({ title: "Dark mode for the board", description: "" })
     expect(box().value).toBe("")
   })
 
@@ -163,9 +181,10 @@ describe("ui2 Home page", () => {
     http.post = jest.fn(() =>
       Promise.resolve({ ok: true, data: { id: 9, number: 9, title: "x", slug: "x", isApproved: false } })
     ) as unknown as typeof http.post
-    renderHome("member", [post(1)])
+    mockGet({ search: [] })
+    const { container } = renderHome("member", [post(1)])
     type("Dark mode for the board")
-    fireEvent.click(shareButton())
+    await waitFor(() => expect(container.querySelector(".u2-card")).not.toBeNull())
     fireEvent.click(cardShare())
     await waitFor(() => expect(screen.getByRole("status").getAttribute("data-state")).toBe("pending"))
 
@@ -173,7 +192,7 @@ describe("ui2 Home page", () => {
       Promise.resolve({ ok: false, data: {}, error: { errors: [{ field: "title", message: "Title is taken" }] } })
     ) as unknown as typeof http.post
     type("Dark mode for the board")
-    fireEvent.click(shareButton())
+    await waitFor(() => expect(container.querySelector(".u2-card")).not.toBeNull())
     fireEvent.click(cardShare())
     await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("Title is taken"))
   })
@@ -253,11 +272,25 @@ describe("ui2 Home page", () => {
     fireEvent.change(container.querySelector(".u2-card select") as HTMLElement, { target: { value: "2" } })
     fireEvent.change(container.querySelector("#u2-card-details") as HTMLElement, { target: { value: "Monthly" } })
     type("Export a board to CSV file")
-    fireEvent.keyDown(box(), { key: "Enter" })
-    expect(document.activeElement?.id).toBe("u2-card-details")
     fireEvent.click(cardShare())
     await waitFor(() => expect(http.post).toHaveBeenCalled())
     expect((http.post as jest.Mock).mock.calls[0][1]).toMatchObject({ title: "Export a board to CSV file", description: "Monthly", productId: 2 })
+  })
+
+  test("Enter hands the card's product and Make private to the dialog", async () => {
+    const asked = shareRequests()
+    mockGet({ search: [] })
+    const products = [
+      { id: 1, name: "Web", slug: "web" },
+      { id: 2, name: "Mobile", slug: "mobile" },
+    ]
+    const { container } = renderHome("member", [post(1)], { products, membersPrivateIdeas: true } as unknown as Partial<Tenant>)
+    type("Export a board to CSV")
+    await waitFor(() => expect(container.querySelector(".u2-card select")).not.toBeNull())
+    fireEvent.change(container.querySelector(".u2-card select") as HTMLElement, { target: { value: "2" } })
+    fireEvent.click(container.querySelector(".u2-card input[type=checkbox]") as HTMLElement)
+    fireEvent.keyDown(box(), { key: "Enter" })
+    expect(asked).toEqual([{ title: "Export a board to CSV", mode: "form", productId: 2, isPrivate: true }])
   })
 
   test("the card offers Make private under classic's rule, and sends the choice", async () => {
@@ -278,6 +311,7 @@ describe("ui2 Home page", () => {
   })
 
   test("Vora's match note offers Vote for it and Mine is different", async () => {
+    const asked = shareRequests()
     mockGet({ search: [post(1)], similar: [post(5, { title: "Offline mode for the desktop app", votesCount: 214 })] })
     http.post = jest.fn((url: string) =>
       Promise.resolve(
@@ -291,9 +325,7 @@ describe("ui2 Home page", () => {
     fireEvent.click(vote)
     await waitFor(() => expect((http.post as jest.Mock).mock.calls[0][0]).toBe("/api/v1/posts/5/votes/toggle"))
     fireEvent.click(document.querySelector(".u2-match__acts .u2-btn--ghost") as HTMLElement)
-    expect(document.activeElement?.id).toBe("u2-card-details")
-    fireEvent.click(cardShare())
-    await waitFor(() => expect((http.post as jest.Mock).mock.calls[1][0]).toBe("/api/v1/posts"))
+    expect(asked).toEqual([{ title: "offline mode please", mode: "form", productId: 0, isPrivate: false }])
   })
 
   test("strongMatch needs half the typed words in the title", () => {

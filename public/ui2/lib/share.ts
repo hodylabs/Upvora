@@ -5,9 +5,14 @@ export const SHARE_IDEA_EVENT = "ui2:share-idea"
 
 export interface ShareIdeaDetail {
   title: string
+  // "form" opens on "Write it yourself" (the box's Enter); unset starts with Vora where it serves.
+  mode?: "form"
+  // What the board's inline card already chose, so the dialog starts from it.
+  productId?: number
+  isPrivate?: boolean
 }
 
-export const requestShare = (title: string): boolean => {
-  const event = new CustomEvent<ShareIdeaDetail>(SHARE_IDEA_EVENT, { detail: { title }, cancelable: true })
+export const requestShare = (title: string, extra: Omit<ShareIdeaDetail, "title"> = {}): boolean => {
+  const event = new CustomEvent<ShareIdeaDetail>(SHARE_IDEA_EVENT, { detail: { title, ...extra }, cancelable: true })
   return !window.dispatchEvent(event)
 }

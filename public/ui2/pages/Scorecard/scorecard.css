@@ -532,18 +532,12 @@ body.u2 .u2-sc__titleinput:focus-visible {
   white-space: pre-wrap;
 }
 
-/* Card page: title and properties, then the score panel and field groups on the start,
-   the linked idea, team note and delete in a sticky side column. */
+/* Card page: title, property pills and the linked idea's line, then one full-width
+   column: the score panel, the field groups, the team note and delete. */
 .u2-scc__head {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-.u2-scc__body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 24px;
-  align-items: start;
 }
 .u2-scc__main {
   display: flex;
@@ -552,8 +546,7 @@ body.u2 .u2-sc__titleinput:focus-visible {
   min-width: 0;
 }
 .u2-scc__score,
-.u2-scc__group,
-.u2-scc__idea {
+.u2-scc__group {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -575,41 +568,28 @@ body.u2 .u2-sc__titleinput:focus-visible {
   padding-block-start: 18px;
   border-block-start: 1px solid var(--u-line);
 }
-.u2-scc__side {
-  position: sticky;
-  inset-block-start: 92px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
 .u2-scc__idea {
-  gap: 8px;
-  padding: 18px 20px;
+  font-size: 13px;
 }
 .u2-scc__idea .u2-sc__idea-title {
   color: var(--u-text) !important;
-  font: 600 16px/1.35 var(--u-display);
+  font: 600 13px/1.4 var(--u-font);
   text-decoration: none;
 }
 .u2-scc__idea .u2-sc__idea-title:hover {
   text-decoration: underline;
 }
-.u2-scc__idea .u2-sc__idea-desc {
+.u2-scc__head .u2-sc__idea-desc {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 2;
   font-size: 13.5px;
   line-height: 1.55;
 }
-.u2-scc__idea .u2-sc__meta {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-}
-.u2-scc__idea .u2-sc__brief {
+.u2-scc__head .u2-sc__delete,
+.u2-scc__main .u2-sc__delete {
   align-self: flex-start;
-  margin-block-start: 4px;
 }
 
 /* The ring: five band arcs, a glowing arc to the score with a knob, the number inside;
@@ -737,14 +717,6 @@ body.u2 .u2-sc__titleinput:focus-visible {
   }
 }
 
-@media (max-width: 1000px) {
-  .u2-scc__body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .u2-scc__side {
-    position: static;
-  }
-}
 
 @media (max-width: 840px) {
   .u2-sc__search {

@@ -25,6 +25,9 @@ import { CREATED_MODERATION, CREATED_SUCCESS, DRAFT_KEYS, MAX_ATTACHMENTS, fileK
 
 interface ShareDialogProps {
   initialTitle: string
+  // "form" skips Vora's tab (the box's Enter, when Vora is not required).
+  initialMode?: "form"
+  initialPrivate?: boolean
   // The product board it was opened from, if any.
   initialProductId?: number
   onClose: () => void
@@ -75,7 +78,7 @@ const ShareDialog = (props: ShareDialogProps) => {
   })
   const [allTags, setAllTags] = useState<Tag[]>([])
   const [tags, setTags] = useState<Tag[]>([])
-  const [isPrivate, setIsPrivate] = useState(false)
+  const [isPrivate, setIsPrivate] = useState(!!props.initialPrivate)
   const [similar, setSimilar] = useState<Post[]>([])
   const [error, setError] = useState<Failure>()
   const [submitting, setSubmitting] = useState(false)
@@ -83,9 +86,10 @@ const ShareDialog = (props: ShareDialogProps) => {
   const firstRender = useRef(true)
 
   // Start with Vora where it serves this product, with the bar's text ready to send.
-  const [mode, setMode] = useState<"vora" | "form">(gate.available ? "vora" : "form")
+  const [mode, setMode] = useState<"vora" | "form">(props.initialMode ?? (gate.available ? "vora" : "form"))
   useEffect(() => {
-    if (gate.available && mode === "vora" && props.initialTitle) setComposer(props.initialTitle)
+    // Seeded on the form tab too, so switching to Vora keeps the text.
+    if (gate.available && props.initialTitle) setComposer(props.initialTitle)
   }, [])
 
   const showForm = !gate.required || !!brief
@@ -355,6 +359,8 @@ const ShareDialog = (props: ShareDialogProps) => {
               <Field stacked group label={i18n._({ id: "ui2.share.description", message: "Description" })}>
                 <MarkdownEditor
                   key={editorKey}
+                  // From the box's Enter the title is already typed: the description is next.
+                  autoFocus={props.initialMode === "form" && !!props.initialTitle && editorKey === "manual"}
                   field="description"
                   label={i18n._({ id: "ui2.share.description", message: "Description" })}
                   initialValue={description}

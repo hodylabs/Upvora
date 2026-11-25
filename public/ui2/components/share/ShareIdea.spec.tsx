@@ -60,6 +60,30 @@ describe("ui2 ShareIdea", () => {
     await waitFor(() => expect(composer()?.value).toBe("Export to CSV"))
   })
 
+  test("the box's Enter opens on Write it yourself even where Vora serves; Vora stays one click away", async () => {
+    renderHost("member", vora)
+    act(() => {
+      requestShare("Export to CSV", { mode: "form" })
+    })
+    await dialog()
+    await waitFor(() => expect(titleInput()?.value).toBe("Export to CSV"))
+    expect(composer()).toBeNull()
+    const [toVora, toForm] = Array.from(document.querySelectorAll<HTMLButtonElement>(".u2-share__mode"))
+    expect(toForm.getAttribute("aria-pressed")).toBe("true")
+    fireEvent.click(toVora)
+    await waitFor(() => expect(composer()?.value).toBe("Export to CSV"))
+  })
+
+  test("where Vora is required, asking for the form still lands on Vora", async () => {
+    renderHost("member", { ...vora, voraRequired: true })
+    act(() => {
+      requestShare("Export to CSV", { mode: "form" })
+    })
+    await dialog()
+    await waitFor(() => expect(composer()).not.toBeNull())
+    expect(titleInput()).toBeNull()
+  })
+
   test("signed out: sign in first, coming back to this page with ?share=1", () => {
     window.history.replaceState({}, "", "/p/mobile?query=dark")
     const goTo = jest.spyOn(navigator, "goTo").mockImplementation(() => undefined)

@@ -22,7 +22,7 @@ export const boardProductId = (products: { id: number; slug: string }[], path = 
 export const ShareIdea = () => {
   const fider = useFider()
   const signedIn = fider.session.isAuthenticated
-  const [open, setOpen] = useState<{ title: string } | null>(null)
+  const [open, setOpen] = useState<ShareIdeaDetail | null>(null)
 
   useEffect(() => {
     if (cache.session.get(CREATED_SUCCESS)) {
@@ -53,7 +53,8 @@ export const ShareIdea = () => {
         navigator.goTo(shareSignInHref())
         return
       }
-      setOpen({ title: (e as CustomEvent<ShareIdeaDetail>).detail?.title || "" })
+      const detail = (e as CustomEvent<ShareIdeaDetail>).detail
+      setOpen({ ...detail, title: detail?.title || "" })
     }
     window.addEventListener(SHARE_IDEA_EVENT, onShare)
     return () => window.removeEventListener(SHARE_IDEA_EVENT, onShare)
@@ -62,7 +63,13 @@ export const ShareIdea = () => {
   if (!open) return null
   return (
     <Suspense fallback={null}>
-      <ShareDialog initialTitle={open.title} initialProductId={boardProductId(fider.session.tenant.products ?? [])} onClose={() => setOpen(null)} />
+      <ShareDialog
+        initialTitle={open.title}
+        initialMode={open.mode}
+        initialPrivate={open.isPrivate}
+        initialProductId={open.productId ?? boardProductId(fider.session.tenant.products ?? [])}
+        onClose={() => setOpen(null)}
+      />
     </Suspense>
   )
 }

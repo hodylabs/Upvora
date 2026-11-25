@@ -51,6 +51,8 @@ export interface MarkdownEditorProps {
   maxAttachments?: number
   maxImageSizeKB?: number
   maxLength?: number
+  // Put the cursor at the end of the text once the editor is ready.
+  autoFocus?: boolean
 }
 
 const DEFAULT_MAX_LENGTH = 4000
@@ -269,6 +271,7 @@ export const MarkdownEditor = (props: MarkdownEditorProps) => {
       content: initialContent.current,
       contentType: "markdown",
       editable: !props.disabled,
+      autofocus: props.autoFocus ? "end" : false,
       onUpdate: ({ editor }) => {
         const md = editor.getMarkdown().trim()
         setLength(md.length)

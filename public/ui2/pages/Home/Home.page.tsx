@@ -11,6 +11,7 @@ import { StatusPill } from "../../components/StatusPill"
 import { VoteButton } from "../../components/VoteButton"
 import { isTypingTarget, useRowKeys } from "../../components/useRowKeys"
 import { VoraChat } from "../../components/share/VoraChat"
+import { requestShare } from "../../lib/share"
 import { DRAFT_KEYS, shareSignInHref, titleLongEnough, voraGate } from "../../components/share/rules"
 import { statusInfo } from "../../lib/status"
 import { BoardInsights, duplicateOf, fetchInsights } from "../../lib/insights"
@@ -115,8 +116,6 @@ const HomePage = (props: HomePageProps) => {
   const [chat, setChat] = useState<{ messages: AIMessage[]; input: string } | null>(null)
   const [draft, setDraft] = useState<VoraDraft | null>(null)
   const [chatKey, setChatKey] = useState(0)
-  // Bumped each time Enter or Share asks for the details step; 0 means no step open.
-  const [compose, setCompose] = useState(0)
   const [isPrivate, setIsPrivate] = useState(false)
   // Classic's rule for the "Make private" choice.
   const canMakePrivate = staff || (signedIn && !!tenant.membersPrivateIdeas)
@@ -275,10 +274,7 @@ const HomePage = (props: HomePageProps) => {
     setErrors([])
     setShared("")
     // Details belong to the typed idea; an emptied box starts a new one.
-    if (!q.trim()) {
-      setDetails("")
-      setCompose(0)
-    }
+    if (!q.trim()) setDetails("")
     update({ query: q })
   }
 
@@ -296,7 +292,6 @@ const HomePage = (props: HomePageProps) => {
     setErrors([])
     setShared("")
     setDraft(null)
-    setCompose(0)
     setChat({ messages: [], input: text })
     // A new key remounts VoraChat, so a reply still pending from the last conversation is dropped.
     setChatKey((k) => k + 1)
@@ -322,7 +317,6 @@ const HomePage = (props: HomePageProps) => {
       setIsPrivate(false)
       setDraft(null)
       setChat(null)
-      setCompose(0)
       if (seq.current !== before) return
       update({ query: "" })
     } catch {
@@ -360,8 +354,8 @@ const HomePage = (props: HomePageProps) => {
     post(title, description)
   }
 
-  // Enter and Share in the box never post a bare title: they open the details step
-  // (or Vora, when the site requires it). The card's own Share idea button posts.
+  // Enter and Share in the box never post a bare title: they open the share dialog on
+  // its form, title editable and description next (or Vora, when the site requires it).
   const startIdea = () => {
     const title = query.trim()
     if (!canShare || posting) return
@@ -374,11 +368,10 @@ const HomePage = (props: HomePageProps) => {
       return
     }
     setErrors([])
-    setCompose((n) => n + 1)
+    // Details typed in the no-match card carry over as the dialog's draft description.
+    if (details.trim()) cache.local.set(DRAFT_KEYS.DESCRIPTION, details)
+    requestShare(title, { mode: "form", productId, isPrivate: canMakePrivate && isPrivate })
   }
-  useEffect(() => {
-    if (compose) document.getElementById("u2-card-details")?.focus()
-  }, [compose])
 
   // By stage: groups for the site's statuses, plus any status a loaded idea has that the list lacks.
   const groupSlugs = [
@@ -453,10 +446,8 @@ const HomePage = (props: HomePageProps) => {
         <span className="u2-logo" aria-hidden="true" />
         {vora ? (
           <Trans id="ui2.card.drafted">Vora drafted your idea. Check the details, then share it.</Trans>
-        ) : noMatch ? (
-          <Trans id="ui2.card.lead">Nothing like this yet. Share it as a new idea:</Trans>
         ) : (
-          <Trans id="ui2.card.leadnew">Add the details, then share it as a new idea:</Trans>
+          <Trans id="ui2.card.lead">Nothing like this yet. Share it as a new idea:</Trans>
         )}
       </p>
       <h2 id="u2-card-title" className="u2-card__title">
@@ -633,8 +624,6 @@ const HomePage = (props: HomePageProps) => {
           </section>
         )}
 
-        {/* Once opened, the details card stays here, so a search that lands later never remounts it mid-typing. */}
-        {!!compose && !chat && !draft && !!query && shareCard(query, () => share(query, details), false)}
         {draft && shareCard(draft.title, () => post(draft.title, draft.description, draft), true)}
 
         {matchNote && (
@@ -737,9 +726,7 @@ const HomePage = (props: HomePageProps) => {
                   </div>
                 )
               ) : searchFailed ? null : noMatch ? (
-                compose ? null : (
-                  shareCard(query, () => share(query, details), false)
-                )
+                shareCard(query, () => share(query, details), false)
               ) : loading ? null : (
                 <p className="u2-empty u2-panel u2-muted">
                   <Trans id="home.postscontainer.label.noresults">No results matched your search, try something different.</Trans>
